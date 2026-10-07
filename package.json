@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently -k -p \"[{name}]\" -n \"BACKEND,FRONTEND\" -c \"yellow.bold,cyan.bold\" \"npm:server\" \"npm:vite\"",
+    "vite": "vite",
     "server": "node server/index.js",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview"
@@ -42,6 +43,7 @@
     "@types/ws": "^8.18.2",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^10.0.5",
     "postcss": "^8.5.2",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.3",

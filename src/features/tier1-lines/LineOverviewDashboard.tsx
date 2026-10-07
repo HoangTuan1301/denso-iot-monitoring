@@ -4,7 +4,7 @@
  * Tối ưu hoàn hảo độ tương phản màu chữ cho cả Light Mode và Dark Mode
  */
 
-import { Card, CardBody, Chip, Button } from '@heroui/react';
+import { Chip, Button } from '@heroui/react';
 import { 
   ShieldCheck, 
   AlertOctagon, 
@@ -84,138 +84,158 @@ export function LineOverviewDashboard() {
       {/* ========================================================================= */}
       {/* TOP KPI CARDS: CÁC THẺ THỐNG KÊ TỔNG QUAN TOÀN NHÀ MÁY                     */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full overflow-hidden">
         {/* KPI 1: Điểm An Toàn Trung Bình Toàn Xưởng */}
-        <Card className="bg-factory-card border border-factory-border p-4 shadow-sm hover:border-slate-400 dark:hover:border-gray-600 transition-colors">
-          <CardBody className="p-0 flex flex-col justify-between h-full">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-                  Chỉ Số An Toàn Xưởng
-                </p>
-                <div className="flex items-baseline gap-2 mt-2">
-                  <span
-                    className={`font-mono text-3xl font-extrabold ${
-                      avgSafetyScore >= 90
-                        ? 'text-emerald-600 dark:text-emerald-400'
-                        : avgSafetyScore >= 75
-                        ? 'text-amber-600 dark:text-amber-400'
-                        : 'text-rose-600 dark:text-rose-400'
-                    }`}
-                  >
-                    {avgSafetyScore}%
-                  </span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">/ 100%</span>
-                </div>
-              </div>
-              <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-                <ShieldCheck className="w-5 h-5" />
+        <div className="bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/30 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between min-w-0">
+          <div className="flex justify-between items-start gap-2">
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider truncate">
+                Chỉ Số An Toàn Xưởng
+              </p>
+              <div className="flex items-baseline gap-2 mt-2">
+                <span
+                  className={`font-mono text-3xl sm:text-4xl font-black tracking-tight ${
+                    avgSafetyScore >= 90
+                      ? 'text-emerald-700 dark:text-emerald-400'
+                      : avgSafetyScore >= 75
+                      ? 'text-amber-700 dark:text-amber-400'
+                      : 'text-rose-700 dark:text-rose-400'
+                  }`}
+                >
+                  {avgSafetyScore}%
+                </span>
+                <span className="text-xs text-emerald-600/80 dark:text-emerald-400/80 font-bold">/ 100%</span>
               </div>
             </div>
+            <div className="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 shadow-xs shrink-0">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+          </div>
 
-            <div className="mt-4 pt-3 border-t border-slate-200 dark:border-factory-border/60 flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
-              <TrendingUp className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span className="font-medium">Đạt tiêu chuẩn an toàn sản xuất</span>
-            </div>
-          </CardBody>
-        </Card>
+          <div className="mt-4 pt-3 border-t border-emerald-200/60 dark:border-emerald-800/30 flex items-center gap-1.5 text-xs text-emerald-800 dark:text-emerald-300">
+            <TrendingUp className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span className="font-semibold truncate">Đạt chuẩn ISO/IATF 16949</span>
+          </div>
+        </div>
 
         {/* KPI 2: Phân Bổ Trạng Thái Dây Chuyền (Lines) */}
-        <Card className="bg-factory-card border border-factory-border p-4 shadow-sm hover:border-slate-400 dark:hover:border-gray-600 transition-colors">
-          <CardBody className="p-0 flex flex-col justify-between h-full">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-                  Dây Chuyền (Tầng 1)
-                </p>
-                <div className="flex items-baseline gap-2 mt-2">
-                  <span className="font-mono text-3xl font-extrabold text-slate-900 dark:text-white">
-                    {totalLines}
-                  </span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Cụm sản xuất</span>
-                </div>
-              </div>
-              <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400">
-                <Layers className="w-5 h-5" />
+        <div className="bg-blue-50/80 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-800/30 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between min-w-0">
+          <div className="flex justify-between items-start gap-2">
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase tracking-wider truncate">
+                Dây Chuyền (Tầng 1)
+              </p>
+              <div className="flex items-baseline gap-2 mt-2">
+                <span className="font-mono text-3xl sm:text-4xl font-black tracking-tight text-blue-800 dark:text-blue-300">
+                  {totalLines}
+                </span>
+                <span className="text-xs text-blue-600/80 dark:text-blue-400/80 font-bold">Cụm sản xuất</span>
               </div>
             </div>
+            <div className="p-2.5 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-700 dark:text-blue-400 shadow-xs shrink-0">
+              <Layers className="w-5 h-5" />
+            </div>
+          </div>
 
-            <div className="mt-4 pt-3 border-t border-slate-200 dark:border-factory-border/60 flex items-center justify-between text-xs">
-              <span className="text-emerald-600 dark:text-emerald-400 font-bold">{normalLines} An toàn</span>
-              <span className="text-amber-600 dark:text-amber-400 font-bold">{warningLines} Cảnh báo</span>
-              <span className="text-rose-600 dark:text-rose-400 font-bold">{criticalLines} Nguy hiểm</span>
-            </div>
-          </CardBody>
-        </Card>
+          <div className="mt-4 pt-3 border-t border-blue-200/60 dark:border-blue-800/30 flex items-center justify-between text-xs font-bold">
+            <span className="text-emerald-700 dark:text-emerald-400">{normalLines} An toàn</span>
+            <span className="text-amber-700 dark:text-amber-400">{warningLines} Cảnh báo</span>
+            <span className="text-rose-700 dark:text-rose-400">{criticalLines} Nguy hiểm</span>
+          </div>
+        </div>
 
         {/* KPI 3: Tổng Số Thiết Bị Đang Giám Sát (Tầng 2) */}
-        <Card className="bg-factory-card border border-factory-border p-4 shadow-sm hover:border-slate-400 dark:hover:border-gray-600 transition-colors">
-          <CardBody className="p-0 flex flex-col justify-between h-full">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-                  Thiết Bị Giám Sát (Tầng 2)
-                </p>
-                <div className="flex items-baseline gap-2 mt-2">
-                  <span className="font-mono text-3xl font-extrabold text-slate-900 dark:text-white">
-                    {totalMachines}
-                  </span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Máy thành phần</span>
-                </div>
-              </div>
-              <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400">
-                <Cpu className="w-5 h-5" />
+        <div className="bg-indigo-50/80 dark:bg-indigo-950/20 border border-indigo-200/80 dark:border-indigo-800/30 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between min-w-0">
+          <div className="flex justify-between items-start gap-2">
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-indigo-800 dark:text-indigo-300 uppercase tracking-wider truncate">
+                Thiết Bị Giám Sát (Tầng 2)
+              </p>
+              <div className="flex items-baseline gap-2 mt-2">
+                <span className="font-mono text-3xl sm:text-4xl font-black tracking-tight text-indigo-800 dark:text-indigo-300">
+                  {totalMachines}
+                </span>
+                <span className="text-xs text-indigo-600/80 dark:text-indigo-400/80 font-bold">Máy thành phần</span>
               </div>
             </div>
+            <div className="p-2.5 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-700 dark:text-indigo-400 shadow-xs shrink-0">
+              <Cpu className="w-5 h-5" />
+            </div>
+          </div>
 
-            <div className="mt-4 pt-3 border-t border-slate-200 dark:border-factory-border/60 flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 font-medium">
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span>100% tích hợp định danh mã QR</span>
-            </div>
-          </CardBody>
-        </Card>
+          <div className="mt-4 pt-3 border-t border-indigo-200/60 dark:border-indigo-800/30 flex items-center gap-1.5 text-xs text-indigo-800 dark:text-indigo-300 font-semibold">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+            <span className="truncate">100% tích hợp định danh mã QR</span>
+          </div>
+        </div>
 
         {/* KPI 4: Sự Cố Cần Tiếp Nhận / Xử Lý */}
-        <Card className="bg-factory-card border border-factory-border p-4 shadow-sm hover:border-slate-400 dark:hover:border-gray-600 transition-colors">
-          <CardBody className="p-0 flex flex-col justify-between h-full">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-                  Sự Cố Cần Xử Lý
-                </p>
-                <div className="flex items-baseline gap-2 mt-2">
-                  <span
-                    className={`font-mono text-3xl font-extrabold ${
-                      unresolvedAlarms.length > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
-                    }`}
-                  >
-                    {unresolvedAlarms.length}
-                  </span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Sự cố đang mở</span>
-                </div>
-              </div>
-              <div
-                className={`p-2.5 rounded-xl border ${
+        <div
+          className={`p-5 rounded-2xl shadow-sm hover:shadow-md transition-all border flex flex-col justify-between min-w-0 ${
+            unresolvedAlarms.length > 0
+              ? 'bg-rose-50/80 dark:bg-rose-950/25 border-rose-200/80 dark:border-rose-800/35'
+              : 'bg-emerald-50/80 dark:bg-emerald-950/20 border-emerald-200/80 dark:border-emerald-800/30'
+          }`}
+        >
+          <div className="flex justify-between items-start gap-2">
+            <div className="min-w-0">
+              <p
+                className={`text-xs font-bold uppercase tracking-wider truncate ${
                   unresolvedAlarms.length > 0
-                    ? 'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400 animate-pulse'
-                    : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                    ? 'text-rose-800 dark:text-rose-300'
+                    : 'text-emerald-800 dark:text-emerald-300'
                 }`}
               >
-                <AlertCircle className="w-5 h-5" />
+                Sự Cố Cần Xử Lý
+              </p>
+              <div className="flex items-baseline gap-2 mt-2">
+                <span
+                  className={`font-mono text-3xl sm:text-4xl font-black tracking-tight ${
+                    unresolvedAlarms.length > 0
+                      ? 'text-rose-600 dark:text-rose-400 animate-pulse'
+                      : 'text-emerald-700 dark:text-emerald-400'
+                  }`}
+                >
+                  {unresolvedAlarms.length}
+                </span>
+                <span
+                  className={`text-xs font-bold ${
+                    unresolvedAlarms.length > 0
+                      ? 'text-rose-600/80 dark:text-rose-400/80'
+                      : 'text-emerald-600/80 dark:text-emerald-400/80'
+                  }`}
+                >
+                  Sự cố đang mở
+                </span>
               </div>
             </div>
-
-            <div className="mt-4 pt-3 border-t border-slate-200 dark:border-factory-border/60 flex items-center justify-between text-xs">
-              <span className="text-slate-600 dark:text-slate-400">Quy trình: 3 bước xác nhận</span>
-              <button
-                onClick={() => setActiveTab('alarms')}
-                className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-0.5 font-semibold cursor-pointer"
-              >
-                Xem chi tiết <ArrowUpRight className="w-3 h-3" />
-              </button>
+            <div
+              className={`p-2.5 rounded-xl border shadow-xs shrink-0 ${
+                unresolvedAlarms.length > 0
+                  ? 'bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-400 animate-pulse'
+                  : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-400'
+              }`}
+            >
+              <AlertCircle className="w-5 h-5" />
             </div>
-          </CardBody>
-        </Card>
+          </div>
+
+          <div
+            className={`mt-4 pt-3 border-t flex items-center justify-between text-xs ${
+              unresolvedAlarms.length > 0
+                ? 'border-rose-200/60 dark:border-rose-800/30 text-rose-800 dark:text-rose-300'
+                : 'border-emerald-200/60 dark:border-emerald-800/30 text-emerald-800 dark:text-emerald-300'
+            }`}
+          >
+            <span className="font-medium truncate">Quy trình: 3 bước</span>
+            <button
+              onClick={() => setActiveTab('alarms')}
+              className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-0.5 font-bold cursor-pointer shrink-0"
+            >
+              Xem chi tiết <ArrowUpRight className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* ========================================================================= */}

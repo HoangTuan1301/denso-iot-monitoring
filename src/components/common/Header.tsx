@@ -4,8 +4,8 @@
  * Tương thích hoàn hảo Dark & Light Mode với độ tương phản cao
  */
 
-import { useState, useEffect, useRef } from "react";
-import { Sun, Moon, RefreshCw, Flame, AlertOctagon, LogOut, Radio, Camera } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Sun, Moon, RefreshCw, Flame, AlertOctagon, LogOut, Radio } from "lucide-react";
 import { useMonitoringStore } from "../../stores/useMonitoringStore";
 import { useAuthStore }       from "../../stores/useAuthStore";
 import { useThemeStore }      from "../../stores/useThemeStore";
@@ -37,13 +37,12 @@ export function Header() {
     triggerEmergencyDemo,
     setActiveTab,
   } = useMonitoringStore();
-  const { currentUser, logout, uploadAvatar, setAvatarUrl } = useAuthStore();
+  const { currentUser, logout, setAvatarUrl } = useAuthStore();
   const { theme, toggleTheme }  = useThemeStore();
 
   const [timeStr, setTimeStr]       = useState("");
   const [demoNotice, setDemoNotice] = useState<string | null>(null);
   const [isWsConnected, setIsWsConnected] = useState(false);
-  const fileInputRef                = useRef<HTMLInputElement>(null);
 
   /* Lắng nghe trạng thái kết nối WebSocket Realtime */
   useEffect(() => {
@@ -191,13 +190,11 @@ export function Header() {
           </span>
         </div>
 
-        {/* User Profile Pill with Avatar (Click để đổi ảnh nhanh) */}
+        {/* User Profile Pill with Avatar (Chỉ hiển thị thông tin, không cho phép Upload đổi ảnh tại đây) */}
         <div
-          onClick={() => fileInputRef.current?.click()}
-          title="Bấm để tải ảnh đại diện mới lên MySQL"
-          className="flex items-center gap-2 rounded-full border border-slate-200 dark:border-factory-border bg-slate-100 dark:bg-factory-surface py-0.5 pl-1 pr-2.5 text-xs font-medium cursor-pointer hover:bg-slate-200/70 dark:hover:bg-white/10 transition-colors select-none"
+          className="flex items-center gap-2.5 rounded-full border border-slate-200 dark:border-factory-border bg-slate-100/80 dark:bg-factory-surface py-1 pl-1.5 pr-3 text-xs font-medium select-none shadow-xs"
         >
-          <div className="relative h-7 w-7 rounded-full overflow-hidden bg-emerald-500 text-white font-bold flex items-center justify-center shrink-0 shadow-xs border border-white/30">
+          <div className="relative h-7 w-7 rounded-full overflow-hidden bg-emerald-500 text-white font-bold flex items-center justify-center shrink-0 shadow-xs border border-white/40 dark:border-slate-700">
             {currentUser?.avatarUrl ? (
               <img
                 src={currentUser.avatarUrl}
@@ -208,31 +205,16 @@ export function Header() {
                 }}
               />
             ) : (
-              <span className="text-[10px]">{initials}</span>
+              <span className="text-[11px] font-bold">{initials}</span>
             )}
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-full">
-              <Camera className="w-3 h-3 text-white" />
-            </div>
           </div>
-          <span className="hidden sm:inline font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[100px]">
+          <span className="font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[140px]">
             {displayName}
           </span>
-          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold uppercase">
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold uppercase tracking-wider border border-emerald-500/20">
             {userRole}
           </span>
         </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/png,image/jpeg,image/webp,image/svg+xml"
-          className="hidden"
-          onChange={async (e) => {
-            const file = e.target.files?.[0];
-            if (file) {
-              await uploadAvatar(file);
-            }
-          }}
-        />
 
         {/* Đồng hồ */}
         <span className="hidden lg:block text-xs font-mono text-slate-600 dark:text-slate-400 tabular-nums min-w-[60px] text-right font-medium">

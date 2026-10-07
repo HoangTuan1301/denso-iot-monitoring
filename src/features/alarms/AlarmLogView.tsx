@@ -6,8 +6,6 @@
 
 import { useState } from 'react';
 import {
-  Card,
-  CardBody,
   Button,
   Chip,
   Input,
@@ -176,147 +174,146 @@ export function AlarmLogView() {
           </p>
         </div>
 
-        {/* Nút Xuất Báo Cáo */}
-        <Button
-          size="sm"
-          color="success"
-          variant="solid"
-          className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4 h-9 shadow-md shadow-emerald-600/20"
-          startContent={<Download className="w-4 h-4" />}
-          onPress={handleExportCSV}
+        {/* Nút Xuất Báo Cáo Gradient Xanh Lá */}
+        <button
+          type="button"
+          onClick={handleExportCSV}
+          className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold text-xs px-4 h-9.5 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer shrink-0"
         >
-          Xuất Báo Cáo (CSV/Excel)
-        </Button>
+          <Download className="w-4 h-4 shrink-0" />
+          <span>Xuất Báo Cáo (CSV/Excel)</span>
+        </button>
       </div>
 
       {/* ========================================================================= */}
-      {/* TOP STATS CARDS: THỐNG KÊ NHANH CÁC SỰ CỐ                                 */}
+      {/* TOP STATS CARDS: THỐNG KÊ NHANH CÁC SỰ CỐ (INDUSTRIAL CONTROL CENTER)      */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card className="bg-factory-card border border-factory-border p-4 shadow-xs">
-          <CardBody className="p-0 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase">
-                Tổng sự cố
-              </p>
-              <p className="font-mono text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
-                {totalAlarms}
-              </p>
-            </div>
-            <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-factory-bg text-slate-600 dark:text-slate-400">
-              <FileSpreadsheet className="w-5 h-5" />
-            </div>
-          </CardBody>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Thẻ 1: CRITICAL (Nguy hiểm) */}
+        <div className="bg-red-50/70 dark:bg-rose-950/20 border border-slate-200/80 dark:border-slate-800 border-l-4 border-l-red-500 rounded-xl p-4 shadow-sm flex items-center justify-between transition-all hover:shadow-md">
+          <div>
+            <p className="text-[11px] font-bold text-red-700 dark:text-red-400 uppercase tracking-wider">
+              Nguy hiểm (Critical)
+            </p>
+            <p className="font-mono text-3xl font-black text-red-600 dark:text-red-400 mt-1">
+              {criticalCount}
+            </p>
+          </div>
+          <div className="p-2.5 rounded-xl bg-red-500/15 border border-red-500/30 text-red-600 dark:text-red-400">
+            <AlertOctagon className="w-5 h-5 animate-pulse" />
+          </div>
+        </div>
 
-        <Card className="bg-factory-card border border-factory-border p-4 shadow-xs">
-          <CardBody className="p-0 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-rose-600 dark:text-rose-400 uppercase">
-                Nguy hiểm (Critical)
-              </p>
-              <p className="font-mono text-2xl font-extrabold text-rose-600 dark:text-rose-500 mt-1">
-                {criticalCount}
-              </p>
-            </div>
-            <div className="p-2.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
-              <AlertOctagon className="w-5 h-5 animate-pulse" />
-            </div>
-          </CardBody>
-        </Card>
+        {/* Thẻ 2: PENDING (Chờ xử lý) */}
+        <div className="bg-amber-50/70 dark:bg-amber-950/20 border border-slate-200/80 dark:border-slate-800 border-l-4 border-l-amber-500 rounded-xl p-4 shadow-sm flex items-center justify-between transition-all hover:shadow-md">
+          <div>
+            <p className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">
+              Chờ xử lý (Pending)
+            </p>
+            <p className="font-mono text-3xl font-black text-amber-600 dark:text-amber-400 mt-1">
+              {pendingCount}
+            </p>
+          </div>
+          <div className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400">
+            <Clock className="w-5 h-5" />
+          </div>
+        </div>
 
-        <Card className="bg-factory-card border border-factory-border p-4 shadow-xs">
-          <CardBody className="p-0 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase">
-                Chờ xử lý (Pending)
-              </p>
-              <p className="font-mono text-2xl font-extrabold text-amber-600 dark:text-amber-500 mt-1">
-                {pendingCount}
-              </p>
-            </div>
-            <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-              <Clock className="w-5 h-5" />
-            </div>
-          </CardBody>
-        </Card>
+        {/* Thẻ 3: RESOLVED (Đã giải quyết) */}
+        <div className="bg-emerald-50/70 dark:bg-emerald-950/20 border border-slate-200/80 dark:border-slate-800 border-l-4 border-l-emerald-500 rounded-xl p-4 shadow-sm flex items-center justify-between transition-all hover:shadow-md">
+          <div>
+            <p className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
+              Đã giải quyết (Resolved)
+            </p>
+            <p className="font-mono text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+              {resolvedCount}
+            </p>
+          </div>
+          <div className="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
+            <CheckCircle2 className="w-5 h-5" />
+          </div>
+        </div>
 
-        <Card className="bg-factory-card border border-factory-border p-4 shadow-xs">
-          <CardBody className="p-0 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">
-                Đã giải quyết (Resolved)
-              </p>
-              <p className="font-mono text-2xl font-extrabold text-emerald-600 dark:text-emerald-500 mt-1">
-                {resolvedCount}
-              </p>
-            </div>
-            <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-          </CardBody>
-        </Card>
+        {/* Thẻ 4: TỔNG (Tổng sự cố) */}
+        <div className="bg-slate-50 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800 border-l-4 border-l-slate-400 rounded-xl p-4 shadow-sm flex items-center justify-between transition-all hover:shadow-md">
+          <div>
+            <p className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+              Tổng sự cố
+            </p>
+            <p className="font-mono text-3xl font-black text-slate-800 dark:text-slate-100 mt-1">
+              {totalAlarms}
+            </p>
+          </div>
+          <div className="p-2.5 rounded-xl bg-slate-200/60 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400">
+            <FileSpreadsheet className="w-5 h-5" />
+          </div>
+        </div>
       </div>
 
       {/* ========================================================================= */}
       {/* KHU VỰC BỘ LỌC ĐA TIÊU CHÍ & TÌM KIẾM                                     */}
       {/* ========================================================================= */}
-      <div className="bg-factory-card rounded-2xl border border-factory-border p-4 shadow-xs">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {/* Ô tìm kiếm */}
-          <Input
-            size="sm"
-            placeholder="Tìm theo mã sự cố, thiết bị, nội dung..."
-            value={searchKeyword}
-            onChange={(e) => setSearchKeyword(e.target.value)}
-            startContent={<Search className="w-4 h-4 text-slate-400" />}
-            isClearable
-            onClear={() => setSearchKeyword('')}
-            classNames={{
-              input: 'text-xs',
-              inputWrapper: 'bg-slate-100 dark:bg-factory-bg border border-slate-200 dark:border-factory-border h-9',
-            }}
-          />
+      <div className="bg-slate-50/80 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
+          {/* Ô tìm kiếm mở rộng chiếm phần lớn bên trái */}
+          <div className="flex-1 min-w-[260px]">
+            <Input
+              size="sm"
+              placeholder="Tìm theo mã sự cố, thiết bị, nội dung..."
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              startContent={<Search className="w-4 h-4 text-slate-400" />}
+              isClearable
+              onClear={() => setSearchKeyword('')}
+              classNames={{
+                input: 'text-xs',
+                inputWrapper: 'bg-white dark:bg-factory-bg border border-slate-200 dark:border-factory-border h-9.5 rounded-xl shadow-xs',
+              }}
+            />
+          </div>
 
-          {/* Lọc theo Dây chuyền */}
-          <select
-            value={selectedLine}
-            onChange={(e) => setSelectedLine(e.target.value)}
-            aria-label="Lọc theo Dây chuyền"
-            className="w-full bg-slate-100 dark:bg-factory-bg border border-slate-200 dark:border-factory-border text-slate-800 dark:text-slate-200 rounded-xl text-xs h-9 px-3 outline-none cursor-pointer"
-          >
-            <option value="all">Tất cả Dây chuyền</option>
-            {lines.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.code} - {l.name}
-              </option>
-            ))}
-          </select>
+          {/* Dồn 3 Select box lọc gọn về bên phải */}
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 shrink-0">
+            {/* Lọc theo Dây chuyền */}
+            <select
+              value={selectedLine}
+              onChange={(e) => setSelectedLine(e.target.value)}
+              aria-label="Lọc theo Dây chuyền"
+              className="w-full sm:w-auto min-w-[160px] bg-white dark:bg-factory-bg border border-slate-200 dark:border-factory-border text-slate-800 dark:text-slate-200 rounded-xl text-xs h-9.5 px-3 outline-none cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 transition-colors shadow-xs"
+            >
+              <option value="all">Tất cả Dây chuyền</option>
+              {lines.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.code} - {l.name}
+                </option>
+              ))}
+            </select>
 
-          {/* Lọc theo Mức độ */}
-          <select
-            value={selectedSeverity}
-            onChange={(e) => setSelectedSeverity(e.target.value)}
-            aria-label="Lọc theo Mức độ"
-            className="w-full bg-slate-100 dark:bg-factory-bg border border-slate-200 dark:border-factory-border text-slate-800 dark:text-slate-200 rounded-xl text-xs h-9 px-3 outline-none cursor-pointer"
-          >
-            <option value="all">Tất cả Mức độ</option>
-            <option value="critical">Critical (Nguy hiểm)</option>
-            <option value="warning">Warning (Cảnh báo)</option>
-          </select>
+            {/* Lọc theo Mức độ */}
+            <select
+              value={selectedSeverity}
+              onChange={(e) => setSelectedSeverity(e.target.value)}
+              aria-label="Lọc theo Mức độ"
+              className="w-full sm:w-auto min-w-[130px] bg-white dark:bg-factory-bg border border-slate-200 dark:border-factory-border text-slate-800 dark:text-slate-200 rounded-xl text-xs h-9.5 px-3 outline-none cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 transition-colors shadow-xs"
+            >
+              <option value="all">Tất cả Mức độ</option>
+              <option value="critical">Critical (Nguy hiểm)</option>
+              <option value="warning">Warning (Cảnh báo)</option>
+            </select>
 
-          {/* Lọc theo Trạng thái quy trình */}
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            aria-label="Lọc theo Trạng thái"
-            className="w-full bg-slate-100 dark:bg-factory-bg border border-slate-200 dark:border-factory-border text-slate-800 dark:text-slate-200 rounded-xl text-xs h-9 px-3 outline-none cursor-pointer"
-          >
-            <option value="all">Tất cả Trạng thái</option>
-            <option value="pending">Chờ tiếp nhận ({pendingCount})</option>
-            <option value="acknowledged">Đang xử lý ({acknowledgedCount})</option>
-            <option value="resolved">Đã giải quyết ({resolvedCount})</option>
-          </select>
+            {/* Lọc theo Trạng thái quy trình */}
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              aria-label="Lọc theo Trạng thái"
+              className="w-full sm:w-auto min-w-[160px] bg-white dark:bg-factory-bg border border-slate-200 dark:border-factory-border text-slate-800 dark:text-slate-200 rounded-xl text-xs h-9.5 px-3 outline-none cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 transition-colors shadow-xs"
+            >
+              <option value="all">Tất cả Trạng thái</option>
+              <option value="pending">Chờ tiếp nhận ({pendingCount})</option>
+              <option value="acknowledged">Đang xử lý ({acknowledgedCount})</option>
+              <option value="resolved">Đã giải quyết ({resolvedCount})</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -333,7 +330,7 @@ export function AlarmLogView() {
               Quy trình 3 bước: Chờ tiếp nhận &rarr; Thợ nhận sửa &rarr; Đã khắc phục hoàn tất
             </p>
           </div>
-          <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
+          <span className="text-xs font-mono text-slate-500 dark:text-slate-400 font-bold">
             {filteredAlarms.length} / {totalAlarms} sự cố
           </span>
         </div>
@@ -341,17 +338,17 @@ export function AlarmLogView() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-factory-border text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-                <th className="py-3 px-3">MÃ & THỜI ĐIỂM</th>
-                <th className="py-3 px-2">VỊ TRÍ / THIẾT BỊ</th>
-                <th className="py-3 px-2">CHỈ SỐ & GIÁ TRỊ</th>
-                <th className="py-3 px-2">MỨC ĐỘ</th>
-                <th className="py-3 px-3">NỘI DUNG SỰ CỐ</th>
-                <th className="py-3 px-2">TRẠNG THÁI</th>
-                <th className="py-3 px-3 text-right">QUY TRÌNH XỬ LÝ</th>
+              <tr className="bg-slate-100/90 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold uppercase text-[11px] tracking-wider py-3.5 border-b border-slate-200 dark:border-slate-700">
+                <th className="py-3.5 px-3 w-[13%]">MÃ & THỜI ĐIỂM</th>
+                <th className="py-3.5 px-2 w-[13%]">VỊ TRÍ / THIẾT BỊ</th>
+                <th className="py-3.5 px-2 w-[13%]">CHỈ SỐ & GIÁ TRỊ</th>
+                <th className="py-3.5 px-2 w-[12%]">MỨC ĐỘ</th>
+                <th className="py-3.5 px-3 w-[35%]">NỘI DUNG SỰ CỐ</th>
+                <th className="py-3.5 px-2 w-[11%]">TRẠNG THÁI</th>
+                <th className="py-3.5 px-3 w-[13%] text-right">QUY TRÌNH XỬ LÝ</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-factory-border">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
               {filteredAlarms.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-slate-500 dark:text-slate-400 text-xs">
@@ -372,7 +369,7 @@ export function AlarmLogView() {
                   return (
                     <tr
                       key={alarm.id}
-                      className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                      className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-all border-b border-slate-100 dark:border-slate-800/60"
                     >
                       {/* Cột 1: Mã & Thời điểm */}
                       <td className="py-3.5 px-3 font-mono">
@@ -395,52 +392,53 @@ export function AlarmLogView() {
                       </td>
 
                       {/* Cột 3: Chỉ số & Giá trị vượt */}
-                      <td className="py-3.5 px-2 font-mono">
-                        <div className="flex items-baseline gap-1">
+                      <td className="py-3.5 px-2">
+                        <div className="flex items-center gap-1.5">
                           <span
-                            className={`font-bold text-sm ${
+                            className={`font-mono px-2 py-0.5 rounded font-bold text-sm ${
                               isCrit
-                                ? 'text-rose-600 dark:text-rose-500'
-                                : 'text-amber-600 dark:text-amber-500'
+                                ? 'bg-red-100/80 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200/60 dark:border-red-900/40'
+                                : 'bg-amber-100/80 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-900/40'
                             }`}
                           >
-                            {alarm.triggeredValue}
+                            {alarm.triggeredValue} {alarm.unit}
                           </span>
-                          <span className="text-[11px] text-slate-500">{alarm.unit}</span>
                         </div>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
                           Ngưỡng: &gt;{alarm.thresholdValue} {alarm.unit}
                         </p>
                       </td>
 
-                      {/* Cột 4: Mức độ */}
+                      {/* Cột 4: Mức độ (Pill Badge nổi bật với Ping Effect) */}
                       <td className="py-3.5 px-2">
-                        <Chip
-                          size="sm"
-                          color={isCrit ? 'danger' : 'warning'}
-                          variant="flat"
-                          startContent={
-                            isCrit ? (
-                              <AlertOctagon className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
-                            ) : (
-                              <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-                            )
-                          }
-                          className="font-bold text-[10px] uppercase"
-                        >
-                          {alarm.severity}
-                        </Chip>
+                        {isCrit ? (
+                          <span className="bg-red-100 text-red-700 border border-red-200 dark:bg-rose-950/60 dark:text-rose-400 dark:border-rose-800/40 px-2.5 py-1 rounded-full font-bold text-xs inline-flex items-center gap-1.5 shadow-xs">
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                            </span>
+                            <AlertOctagon className="w-3.5 h-3.5 text-red-600 dark:text-rose-400 shrink-0" />
+                            CRITICAL
+                          </span>
+                        ) : (
+                          <span className="bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-950/60 dark:text-amber-400 dark:border-amber-800/40 px-2.5 py-1 rounded-full font-bold text-xs inline-flex items-center gap-1.5">
+                            <span className="h-2 w-2 rounded-full bg-amber-500" />
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                            WARNING
+                          </span>
+                        )}
                       </td>
 
-                      {/* Cột 5: Nội dung sự cố */}
-                      <td className="py-3.5 px-3 max-w-[240px]">
-                        <p className="text-slate-800 dark:text-slate-200 line-clamp-2 leading-relaxed">
+                      {/* Cột 5: Nội dung sự cố (Dành 35% độ rộng) */}
+                      <td className="py-3.5 px-3">
+                        <p className="text-slate-800 dark:text-slate-200 font-medium leading-relaxed">
                           {alarm.message}
                         </p>
                         {alarm.resolutionNotes && (
-                          <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 line-clamp-1 italic">
-                            Xử lý: {alarm.resolutionNotes}
-                          </p>
+                          <div className="bg-emerald-50/80 dark:bg-emerald-950/30 border-l-2 border-emerald-500 p-2 mt-1.5 rounded-r text-xs text-emerald-800 dark:text-emerald-300 flex items-start gap-1.5 shadow-xs">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                            <span>Xử lý: {alarm.resolutionNotes}</span>
+                          </div>
                         )}
                       </td>
 

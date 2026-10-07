@@ -82,44 +82,8 @@ export const apiClient = {
       tokenStorage.setSession(res);
       return res;
     } catch (err: any) {
-      // Fallback cục bộ nếu server chưa khởi động xong
-      if (email === 'admin@denso.com' && password === 'admin123') {
-        const mockAdmin: AuthResponse = {
-          message: 'Đăng nhập thành công (Chế độ Local Secure).',
-          user: {
-            id: 'usr-admin-01',
-            employeeId: 'DNS-1001',
-            email: 'admin@denso.com',
-            name: 'Hoàng Minh Hải',
-            fullName: 'Hoàng Minh Hải',
-            role: 'ADMIN',
-            assignedLineId: 'ALL',
-            status: 'active',
-          },
-          accessToken: 'local-admin-jwt-token',
-          refreshToken: 'local-admin-refresh-token',
-        };
-        tokenStorage.setSession(mockAdmin);
-        return mockAdmin;
-      }
-      if (email === 'user@denso.com' && password === 'user123') {
-        const mockUser: AuthResponse = {
-          message: 'Đăng nhập thành công (Chế độ Local Secure).',
-          user: {
-            id: 'usr-operator-01',
-            employeeId: 'DNS-1024',
-            email: 'user@denso.com',
-            name: 'Trần Quang Huy',
-            fullName: 'Trần Quang Huy',
-            role: 'OPERATOR',
-            assignedLineId: 'LINE-01',
-            status: 'active',
-          },
-          accessToken: 'local-operator-jwt-token',
-          refreshToken: 'local-operator-refresh-token',
-        };
-        tokenStorage.setSession(mockUser);
-        return mockUser;
+      if (err.message && err.message.includes('Failed to fetch')) {
+        throw new Error('Không thể kết nối đến máy chủ Backend (Port 5000). Vui lòng khởi động backend bằng "npm run server" hoặc "npm run dev".');
       }
       throw err;
     }

@@ -6,10 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import {
-  Card,
-  CardBody,
   Button,
-  Chip,
   Input,
 } from '@heroui/react';
 import {
@@ -194,9 +191,7 @@ export function AuditLogView() {
 
           <Button
             size="sm"
-            color="success"
-            variant="solid"
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4 h-9 shadow-md shadow-emerald-600/20"
+            className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold text-xs px-4 h-9 shadow-md hover:shadow-lg rounded-lg transition-all"
             startContent={<Download className="w-4 h-4" />}
             onPress={handleExportCSV}
           >
@@ -205,125 +200,122 @@ export function AuditLogView() {
         </div>
       </div>
 
-      {/* KPI Thống Kê Hành Động */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card className="bg-factory-card border border-factory-border p-4 shadow-xs">
-          <CardBody className="p-0 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase">
-                Tổng nhật ký
-              </p>
-              <p className="font-mono text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
-                {totalAudit}
-              </p>
-            </div>
-            <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-factory-bg text-slate-600 dark:text-slate-400">
-              <FileSpreadsheet className="w-5 h-5" />
-            </div>
-          </CardBody>
-        </Card>
-
-        <Card className="bg-factory-card border border-factory-border p-4 shadow-xs">
-          <CardBody className="p-0 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase">
-                Cấu hình & PLC
-              </p>
-              <p className="font-mono text-2xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">
-                {configAudit}
-              </p>
-            </div>
-            <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-              <Terminal className="w-5 h-5" />
-            </div>
-          </CardBody>
-        </Card>
-
-        <Card className="bg-factory-card border border-factory-border p-4 shadow-xs">
-          <CardBody className="p-0 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-blue-600 dark:text-blue-400 uppercase">
-                Đăng nhập / Ra
-              </p>
-              <p className="font-mono text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1">
-                {authAudit}
-              </p>
-            </div>
-            <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-              <UserCheck className="w-5 h-5" />
-            </div>
-          </CardBody>
-        </Card>
-
-        <Card className="bg-factory-card border border-factory-border p-4 shadow-xs">
-          <CardBody className="p-0 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-rose-600 dark:text-rose-400 uppercase">
-                Sự cố & Khẩn cấp
-              </p>
-              <p className="font-mono text-2xl font-extrabold text-rose-600 dark:text-rose-400 mt-1">
-                {alarmAudit}
-              </p>
-            </div>
-            <div className="p-2.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
-              <ShieldAlert className="w-5 h-5" />
-            </div>
-          </CardBody>
-        </Card>
-      </div>
-
-      {/* Bộ Lọc & Bảng Dữ Liệu Audit Log */}
-      <div className="bg-factory-card rounded-2xl border border-factory-border p-5 space-y-4 shadow-xs">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-b border-factory-border pb-4">
-          <div className="sm:col-span-2">
-            <Input
-              size="sm"
-              placeholder="Tìm theo nhân viên, hành động, đối tượng, nội dung..."
-              value={searchKeyword}
-              onChange={(e) => setSearchKeyword(e.target.value)}
-              startContent={<Search className="w-4 h-4 text-slate-400" />}
-              isClearable
-              onClear={() => setSearchKeyword('')}
-              classNames={{
-                input: 'text-xs',
-                inputWrapper: 'bg-slate-100 dark:bg-factory-bg border border-slate-200 dark:border-factory-border h-9',
-              }}
-            />
-          </div>
-
+      {/* 4 Thẻ KPI Thống Kê Đỉnh */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+        {/* Card 1: SỰ CỐ & KHẨN CẤP */}
+        <div className="bg-red-50/70 dark:bg-rose-950/20 border-l-4 border-red-500 border border-red-100 dark:border-rose-900/30 rounded-xl p-4 flex items-center justify-between shadow-xs">
           <div>
-            <select
-              value={selectedActionFilter}
-              onChange={(e) => setSelectedActionFilter(e.target.value)}
-              className="w-full bg-slate-100 dark:bg-factory-bg border border-slate-200 dark:border-factory-border text-slate-800 dark:text-slate-200 rounded-xl text-xs h-9 px-3 outline-none cursor-pointer"
-            >
-              <option value="all">Tất cả Hành động</option>
-              <option value="UPDATE_THRESHOLD">UPDATE_THRESHOLD (Sửa ngưỡng)</option>
-              <option value="TOGGLE_PLC">TOGGLE_PLC (Bật/Tắt PLC)</option>
-              <option value="ACKNOWLEDGE_ALARM">ACKNOWLEDGE_ALARM (Nhận sửa)</option>
-              <option value="RESOLVE_ALARM">RESOLVE_ALARM (Hoàn thành sự cố)</option>
-              <option value="LOGIN">LOGIN (Đăng nhập)</option>
-              <option value="LOGOUT">LOGOUT (Đăng xuất)</option>
-              <option value="CREATE_USER">CREATE_USER (Tạo nhân viên)</option>
-              <option value="TRIGGER_EMERGENCY">TRIGGER_EMERGENCY (Giả lập sự cố)</option>
-            </select>
+            <p className="text-[11px] font-bold text-red-600 dark:text-red-400 uppercase tracking-wider">
+              Sự cố & Khẩn cấp
+            </p>
+            <p className="font-mono text-3xl font-black text-red-600 dark:text-red-400 mt-1">
+              {alarmAudit}
+            </p>
+          </div>
+          <div className="p-2.5 rounded-xl bg-red-100/80 dark:bg-rose-950/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-rose-800/40">
+            <ShieldAlert className="w-5 h-5" />
           </div>
         </div>
 
-        {/* Bảng Dữ Liệu */}
+        {/* Card 2: CẤU HÌNH & PLC */}
+        <div className="bg-amber-50/70 dark:bg-amber-950/20 border-l-4 border-amber-500 border border-amber-100 dark:border-amber-900/30 rounded-xl p-4 flex items-center justify-between shadow-xs">
+          <div>
+            <p className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+              Cấu hình & PLC
+            </p>
+            <p className="font-mono text-3xl font-black text-amber-600 dark:text-amber-400 mt-1">
+              {configAudit}
+            </p>
+          </div>
+          <div className="p-2.5 rounded-xl bg-amber-100/80 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40">
+            <Terminal className="w-5 h-5" />
+          </div>
+        </div>
+
+        {/* Card 3: ĐĂNG NHẬP / RA */}
+        <div className="bg-blue-50/70 dark:bg-blue-950/20 border-l-4 border-blue-500 border border-blue-100 dark:border-blue-900/30 rounded-xl p-4 flex items-center justify-between shadow-xs">
+          <div>
+            <p className="text-[11px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+              Đăng nhập / Ra
+            </p>
+            <p className="font-mono text-3xl font-black text-blue-600 dark:text-blue-400 mt-1">
+              {authAudit}
+            </p>
+          </div>
+          <div className="p-2.5 rounded-xl bg-blue-100/80 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800/40">
+            <UserCheck className="w-5 h-5" />
+          </div>
+        </div>
+
+        {/* Card 4: TỔNG NHẬT KÝ */}
+        <div className="bg-slate-50 dark:bg-slate-900/40 border-l-4 border-slate-400 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-xs">
+          <div>
+            <p className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+              Tổng nhật ký
+            </p>
+            <p className="font-mono text-3xl font-black text-slate-800 dark:text-slate-100 mt-1">
+              {totalAudit}
+            </p>
+          </div>
+          <div className="p-2.5 rounded-xl bg-slate-200/60 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400">
+            <FileSpreadsheet className="w-5 h-5" />
+          </div>
+        </div>
+      </div>
+
+      {/* Thanh Bộ Lọc & Dropdown */}
+      <div className="bg-slate-50/80 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row gap-3">
+        <div className="flex-1">
+          <Input
+            size="sm"
+            placeholder="Tìm theo nhân viên, hành động, đối tượng, nội dung..."
+            value={searchKeyword}
+            onChange={(e) => setSearchKeyword(e.target.value)}
+            startContent={<Search className="w-4 h-4 text-slate-400" />}
+            isClearable
+            onClear={() => setSearchKeyword('')}
+            classNames={{
+              input: 'text-xs',
+              inputWrapper: 'bg-white dark:bg-factory-bg border border-slate-200 dark:border-factory-border h-9.5 rounded-xl shadow-xs',
+            }}
+          />
+        </div>
+
+        <div className="sm:w-64 shrink-0">
+          <select
+            value={selectedActionFilter}
+            onChange={(e) => setSelectedActionFilter(e.target.value)}
+            aria-label="Lọc theo Hành động"
+            className="w-full bg-white dark:bg-factory-bg border border-slate-200 dark:border-factory-border text-slate-800 dark:text-slate-200 rounded-xl text-xs h-9.5 px-3 outline-none cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 transition-colors shadow-xs"
+          >
+            <option value="all">Tất cả Hành động</option>
+            <option value="UPDATE_THRESHOLD">UPDATE_THRESHOLD (Sửa ngưỡng)</option>
+            <option value="TOGGLE_PLC">TOGGLE_PLC (Bật/Tắt PLC)</option>
+            <option value="ACKNOWLEDGE_ALARM">ACKNOWLEDGE_ALARM (Nhận sửa)</option>
+            <option value="RESOLVE_ALARM">RESOLVE_ALARM (Hoàn thành sự cố)</option>
+            <option value="LOGIN">LOGIN (Đăng nhập)</option>
+            <option value="LOGOUT">LOGOUT (Đăng xuất)</option>
+            <option value="CREATE_USER">CREATE_USER (Tạo nhân viên)</option>
+            <option value="TRIGGER_EMERGENCY">TRIGGER_EMERGENCY (Giả lập sự cố)</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Bảng Nhật Ký Audit (Data Table) */}
+      <div className="bg-factory-card rounded-2xl border border-factory-border p-5 space-y-4 shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-factory-border text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-                <th className="py-3 px-3">THỜI GIAN & MÃ</th>
-                <th className="py-3 px-2">NHÂN VIÊN (THỰC HIỆN)</th>
-                <th className="py-3 px-2">HÀNH ĐỘNG</th>
-                <th className="py-3 px-2">ĐỐI TƯỢNG</th>
-                <th className="py-3 px-3">CHI TIẾT THAY ĐỔI</th>
-                <th className="py-3 px-2 font-mono text-right">IP ADDRESS</th>
+              <tr className="bg-slate-100/90 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold uppercase text-[11px] tracking-wider py-3.5 border-b border-slate-200 dark:border-slate-700">
+                <th className="py-3.5 px-3">THỜI GIAN & MÃ</th>
+                <th className="py-3.5 px-2">NHÂN VIÊN (THỰC HIỆN)</th>
+                <th className="py-3.5 px-2">HÀNH ĐỘNG</th>
+                <th className="py-3.5 px-2">ĐỐI TƯỢNG</th>
+                <th className="py-3.5 px-3">CHI TIẾT THAY ĐỔI</th>
+                <th className="py-3.5 px-3 font-mono text-right">IP ADDRESS</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-factory-border">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
               {isLoading ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
@@ -338,28 +330,13 @@ export function AuditLogView() {
                 </tr>
               ) : (
                 logs.map((log) => {
-                  const isThreshold = log.action.includes('THRESHOLD');
-                  const isPLC = log.action.includes('PLC');
-                  const isAlarm = log.action.includes('ALARM');
-                  const isUser = log.action.includes('USER');
-                  const isEmergency = log.action.includes('EMERGENCY');
-
-                  const chipColor = isEmergency
-                    ? 'danger'
-                    : isAlarm
-                    ? 'warning'
-                    : isThreshold
-                    ? 'primary'
-                    : isPLC
-                    ? 'success'
-                    : isUser
-                    ? 'secondary'
-                    : 'default';
-
                   return (
-                    <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                    <tr
+                      key={log.id}
+                      className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-all border-b border-slate-100 dark:border-slate-800/60"
+                    >
                       {/* Thời gian & Mã */}
-                      <td className="py-3 px-3 font-mono">
+                      <td className="py-3.5 px-3 font-mono">
                         <span className="font-bold text-slate-900 dark:text-white">
                           {new Date(log.timestamp).toLocaleTimeString('vi-VN', {
                             hour: '2-digit',
@@ -367,13 +344,16 @@ export function AuditLogView() {
                             second: '2-digit',
                           })}
                         </span>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
-                          {new Date(log.timestamp).toLocaleDateString('vi-VN')} &bull; {log.id}
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                          {new Date(log.timestamp).toLocaleDateString('vi-VN')}{' '}
+                          <span className="font-mono text-[11px] text-slate-400 dark:text-slate-500">
+                            &bull; {log.id}
+                          </span>
                         </p>
                       </td>
 
                       {/* Nhân viên */}
-                      <td className="py-3 px-2">
+                      <td className="py-3.5 px-2">
                         <div className="flex items-center gap-1.5">
                           <span className="font-mono font-bold text-slate-900 dark:text-white">
                             {log.employeeId}
@@ -387,30 +367,46 @@ export function AuditLogView() {
                         </p>
                       </td>
 
-                      {/* Hành động */}
-                      <td className="py-3 px-2">
-                        <Chip size="sm" color={chipColor as any} variant="flat" className="font-mono font-bold text-[10px]">
-                          {log.action}
-                        </Chip>
+                      {/* Hành động (Pill Badges) */}
+                      <td className="py-3.5 px-2">
+                        {log.action === 'LOGIN' ? (
+                          <span className="inline-block bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40 font-bold px-2.5 py-1 rounded-full text-xs">
+                            LOGIN
+                          </span>
+                        ) : log.action === 'LOGOUT' ? (
+                          <span className="inline-block bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-bold px-2.5 py-1 rounded-full text-xs">
+                            LOGOUT
+                          </span>
+                        ) : log.action.includes('EMERGENCY') ? (
+                          <span className="inline-block bg-red-100 text-red-800 dark:bg-rose-950/60 dark:text-rose-300 border border-red-200 dark:border-rose-800/40 font-bold px-2.5 py-1 rounded-full text-xs">
+                            {log.action}
+                          </span>
+                        ) : (
+                          <span className="inline-block bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40 font-bold px-2.5 py-1 rounded-full text-xs">
+                            {log.action}
+                          </span>
+                        )}
                       </td>
 
                       {/* Đối tượng */}
-                      <td className="py-3 px-2 font-mono">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-factory-bg border border-slate-200 dark:border-factory-border text-slate-700 dark:text-gray-300">
+                      <td className="py-3.5 px-2">
+                        <span className="font-mono text-xs bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 inline-block">
                           {log.target}
                         </span>
                       </td>
 
                       {/* Chi tiết thay đổi */}
-                      <td className="py-3 px-3 max-w-[300px]">
+                      <td className="py-3.5 px-3 max-w-[320px]">
                         <p className="text-slate-800 dark:text-slate-200 line-clamp-2 leading-relaxed">
                           {log.details}
                         </p>
                       </td>
 
                       {/* IP Address */}
-                      <td className="py-3 px-2 text-right font-mono text-[11px] text-slate-500 dark:text-slate-400">
-                        {log.ipAddress}
+                      <td className="py-3.5 px-3 text-right">
+                        <span className="font-mono text-xs text-slate-500 dark:text-slate-400 bg-slate-100/60 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 px-2 py-0.5 rounded inline-block">
+                          {log.ipAddress}
+                        </span>
                       </td>
                     </tr>
                   );

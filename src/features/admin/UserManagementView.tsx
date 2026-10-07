@@ -365,6 +365,8 @@ export function UserManagementView() {
   const adminCount = users.filter((u) => String(u.role).toUpperCase() === 'ADMIN').length;
   const operatorCount = users.filter((u) => String(u.role).toUpperCase() !== 'ADMIN').length;
 
+  const isCurrentUserAdmin = (currentUser?.role || '').toUpperCase() === 'ADMIN';
+
   // Lọc danh sách hiển thị
   const filteredUsers = users.filter((u) => {
     const roleUpper = String(u.role).toUpperCase();
@@ -384,6 +386,23 @@ export function UserManagementView() {
 
     return matchRole && matchSearch;
   });
+
+  // Nếu tài khoản hiện tại không phải là ADMIN, chặn hiển thị hoặc thông báo không có quyền
+  if (!isCurrentUserAdmin) {
+    return (
+      <div className="p-8 text-center bg-white dark:bg-slate-800 rounded-2xl border border-rose-500/20 shadow-sm max-w-xl mx-auto my-12">
+        <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-600 border border-rose-500/20 flex items-center justify-center mx-auto mb-4">
+          <AlertTriangle className="w-6 h-6" />
+        </div>
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+          Truy Cập Bị Giới Hạn (403 Forbidden)
+        </h2>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
+          Phân hệ Quản Lý Người Dùng & Phân Quyền chỉ dành riêng cho tài khoản có vai trò <strong>Quản Trị Viên (ADMIN)</strong>. Tài khoản của bạn hiện là <strong>{currentUser?.role || 'OPERATOR'}</strong> và không có quyền thực hiện hoặc sửa đổi thông tin người dùng.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -599,8 +618,8 @@ export function UserManagementView() {
                       {/* Cột 1: TÀI KHOẢN */}
                       <td className="py-3.5 px-3">
                         <div className="flex items-center gap-3">
-                          {/* Badge Avatar tròn bo góc hiển thị 2 chữ cái đầu */}
-                          <div className="relative group flex h-9 w-9 shrink-0 items-center justify-center rounded-xl overflow-hidden bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-bold text-xs border border-emerald-500/30 shadow-xs">
+                          {/* Badge Avatar tròn bo góc hiển thị ảnh hoặc 2 chữ cái đầu */}
+                          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl overflow-hidden bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-bold text-xs border border-emerald-500/30 shadow-xs">
                             {user.avatarUrl ? (
                               <img
                                 src={user.avatarUrl}
@@ -613,24 +632,6 @@ export function UserManagementView() {
                             ) : (
                               <span>{initials}</span>
                             )}
-                            {/* Upload avatar nhanh khi rê chuột */}
-                            <label
-                              className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                            >
-                              <Camera className="w-3.5 h-3.5 text-white" />
-                              <input
-                                type="file"
-                                accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                                className="hidden"
-                                disabled={uploadingUserId === user.id}
-                                onChange={async (e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) {
-                                    await handleDirectAvatarUpload(user.id, file);
-                                  }
-                                }}
-                              />
-                            </label>
                           </div>
 
                           <div className="min-w-0">
@@ -989,6 +990,56 @@ export function UserManagementView() {
                   <option value="ADMIN">SỬA — quản trị & cấu hình hệ thống</option>
                 </select>
               </div>
+
+              {/* Ô 4: Ảnh đại diện (Avatar) - CHỈ DÀNH CHO ADMIN THỰC HIỆN TẠI ĐÂY */}
+              {editingUser && isCurrentUserAdmin && (
+                <div className="pt-2 border-t border-slate-100 dark:border-slate-700/60">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                    Ảnh đại diện (Avatar)
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl overflow-hidden bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-bold text-sm border border-emerald-500/30 shadow-xs">
+                      {editingUser.avatarUrl ? (
+                        <img
+                          src={editingUser.avatarUrl}
+                          alt={editingUser.fullName || editingUser.name}
+                          className="h-full w-full object-cover"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <span>{getTwoInitials(editingUser.fullName || editingUser.name)}</span>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 cursor-pointer transition-colors shadow-xs">
+                        <Camera className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                        <span>{uploadingUserId === editingUser.id ? 'Đang tải ảnh...' : 'Chọn ảnh mới...'}</span>
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                          className="hidden"
+                          disabled={uploadingUserId === editingUser.id}
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              await handleDirectAvatarUpload(editingUser.id, file);
+                              // Cập nhật lại editingUser với avatar mới
+                              setEditingUser((prev) =>
+                                prev ? { ...prev, avatarUrl: URL.createObjectURL(file) } : null
+                              );
+                            }
+                          }}
+                        />
+                      </label>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
+                        Hỗ trợ PNG, JPG, WebP. Tối đa 5MB.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Footer Buttons: Đặt ở góc dưới bên phải */}
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-700/60">

@@ -20,8 +20,14 @@ class SocketClient {
 
     try {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      // Nếu có biến môi trường VITE_WS_URL (khi deploy Vercel), dùng biến đó
-      const wsUrl = import.meta.env.VITE_WS_URL || `${protocol}//${window.location.hostname}:5000/ws`;
+      // Nếu có biến môi trường VITE_WS_URL hoặc đang chạy trên Vercel, tự động kết nối tới Render WSS
+      let wsUrl = import.meta.env.VITE_WS_URL;
+      if (!wsUrl && typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+        wsUrl = 'wss://denso-iot-monitoring.onrender.com/ws';
+      }
+      if (!wsUrl) {
+        wsUrl = `${protocol}//${window.location.hostname}:5000/ws`;
+      }
 
       this.socket = new WebSocket(wsUrl);
 

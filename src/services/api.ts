@@ -34,7 +34,19 @@ export const tokenStorage = {
   },
 };
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+// Tự động nhận diện URL Backend Render nếu chạy trên môi trường Vercel hoặc cloud
+const getApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL.replace(/\/+$/, '');
+  }
+  // Nếu đang mở trên tên miền vercel.app, tự động trỏ về Render backend
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    return 'https://denso-iot-monitoring.onrender.com';
+  }
+  return '';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Hàm gửi HTTP Request có tự động đính kèm Bearer Token
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -62,6 +74,13 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     tokenStorage.clearSession();
     window.dispatchEvent(new Event('auth:unauthorized'));
     throw new Error('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.');
+  }
+
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    const text = await response.text();
+    console.error(`[API Error] Expected JSON but received ${contentType} from ${fullUrl}:`, text.slice(0, 200));
+    throw new Error('Máy chủ đang khởi động hoặc đường dẫn API chưa kết nối đúng tới Backend.');
   }
 
   const data = await response.json();

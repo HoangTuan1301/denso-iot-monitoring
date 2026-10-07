@@ -20,8 +20,8 @@ class SocketClient {
 
     try {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      // Nếu chạy dev trên Vite (port 3000 hoặc 3001), kết nối qua proxy /ws hoặc trực tiếp port 5000
-      const wsUrl = `${protocol}//${window.location.hostname}:5000/ws`;
+      // Nếu có biến môi trường VITE_WS_URL (khi deploy Vercel), dùng biến đó
+      const wsUrl = import.meta.env.VITE_WS_URL || `${protocol}//${window.location.hostname}:5000/ws`;
 
       this.socket = new WebSocket(wsUrl);
 

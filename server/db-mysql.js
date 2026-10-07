@@ -19,6 +19,7 @@ const DB_PORT = parseInt(process.env.DB_PORT || '3306', 10);
 const DB_USER = process.env.DB_USER || 'root';
 const DB_PASSWORD = process.env.DB_PASSWORD || '123456';
 const DB_NAME = process.env.DB_NAME || 'denso_iot';
+const DB_SSL = process.env.DB_SSL === 'true' || DB_HOST.includes('aivencloud.com') || DB_HOST.includes('tidbcloud.com');
 
 let pool = null;
 
@@ -27,26 +28,34 @@ let pool = null;
  */
 export async function initDatabase() {
   try {
-    // 1. Kết nối ban đầu không chọn database để tạo database nếu chưa có
-    const initialConn = await mysql.createConnection({
-      host: DB_HOST,
-      port: DB_PORT,
-      user: DB_USER,
-      password: DB_PASSWORD,
-    });
+    const sslConfig = DB_SSL ? { rejectUnauthorized: false } : undefined;
 
-    await initialConn.query(
-      `CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`
-    );
-    await initialConn.end();
+    // 1. Thử tạo database nếu tài khoản có quyền (localhost)
+    if (!DB_SSL) {
+      try {
+        const initialConn = await mysql.createConnection({
+          host: DB_HOST,
+          port: DB_PORT,
+          user: DB_USER,
+          password: DB_PASSWORD,
+        });
+        await initialConn.query(
+          `CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`
+        );
+        await initialConn.end();
+      } catch (err) {
+        console.warn(`[MySQL] Bỏ qua bước tạo database: ${err.message}`);
+      }
+    }
 
-    // 2. Tạo connection pool kết nối tới database denso_iot
+    // 2. Tạo connection pool kết nối tới database
     pool = mysql.createPool({
       host: DB_HOST,
       port: DB_PORT,
       user: DB_USER,
       password: DB_PASSWORD,
       database: DB_NAME,
+      ssl: sslConfig,
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0,
@@ -54,7 +63,7 @@ export async function initDatabase() {
       keepAliveInitialDelay: 10000,
     });
 
-    console.log(`[MySQL] Đã kết nối thành công tới MySQL database: ${DB_NAME}@${DB_HOST}:${DB_PORT}`);
+    console.log(`[MySQL] Đã kết nối thành công tới MySQL database: ${DB_NAME}@${DB_HOST}:${DB_PORT} (SSL: ${DB_SSL})`);
 
     // 3. Tạo bảng Users
     await pool.query(`

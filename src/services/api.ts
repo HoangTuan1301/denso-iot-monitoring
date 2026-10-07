@@ -34,6 +34,8 @@ export const tokenStorage = {
   },
 };
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
 // Hàm gửi HTTP Request có tự động đính kèm Bearer Token
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = tokenStorage.getAccessToken();
@@ -47,7 +49,10 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(endpoint, {
+  // Nếu có API_BASE_URL và endpoint bắt đầu bằng '/', nối vào
+  const fullUrl = API_BASE_URL && endpoint.startsWith('/') ? `${API_BASE_URL}${endpoint}` : endpoint;
+
+  const response = await fetch(fullUrl, {
     ...options,
     headers,
   });

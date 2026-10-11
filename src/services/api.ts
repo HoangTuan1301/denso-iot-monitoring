@@ -48,7 +48,7 @@ const getApiBaseUrl = () => {
 
 const API_BASE_URL = getApiBaseUrl();
 
-// Hàm gửi HTTP Request có tự động đính kèm Bearer Token
+// Hàm gửi HTTP Request có tự động đính kèm Bearer Token và timeout
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = tokenStorage.getAccessToken();
   const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
@@ -64,32 +64,45 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   // Nếu có API_BASE_URL và endpoint bắt đầu bằng '/', nối vào
   const fullUrl = API_BASE_URL && endpoint.startsWith('/') ? `${API_BASE_URL}${endpoint}` : endpoint;
 
-  const response = await fetch(fullUrl, {
-    ...options,
-    headers,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout để không treo UI khi server ngủ
 
-  if (response.status === 401) {
-    // Phiên làm việc hết hạn
-    tokenStorage.clearSession();
-    window.dispatchEvent(new Event('auth:unauthorized'));
-    throw new Error('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.');
+  try {
+    const response = await fetch(fullUrl, {
+      ...options,
+      headers,
+      signal: options.signal || controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (response.status === 401) {
+      // Phiên làm việc hết hạn
+      tokenStorage.clearSession();
+      window.dispatchEvent(new Event('auth:unauthorized'));
+      throw new Error('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.');
+    }
+
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      const text = await response.text();
+      console.warn(`[API Error] Phản hồi non-JSON từ ${fullUrl}:`, text.slice(0, 150));
+      throw new Error('Máy chủ đang khởi động hoặc chưa sẵn sàng. Vui lòng thử lại sau giây lát.');
+    }
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || `Lỗi yêu cầu: ${response.statusText}`);
+    }
+
+    return data as T;
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error('Máy chủ Backend phản hồi quá lâu (đang khởi động). Vui lòng thử lại.');
+    }
+    throw err;
   }
-
-  const contentType = response.headers.get('content-type') || '';
-  if (!contentType.includes('application/json')) {
-    const text = await response.text();
-    console.error(`[API Error] Expected JSON but received ${contentType} from ${fullUrl}:`, text.slice(0, 200));
-    throw new Error('Máy chủ đang khởi động hoặc đường dẫn API chưa kết nối đúng tới Backend.');
-  }
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || `Lỗi yêu cầu: ${response.statusText}`);
-  }
-
-  return data as T;
 }
 
 // =========================================================================
@@ -107,7 +120,7 @@ export const apiClient = {
       return res;
     } catch (err: any) {
       if (err.message && err.message.includes('Failed to fetch')) {
-        throw new Error('Không thể kết nối đến máy chủ Backend (Port 5000). Vui lòng khởi động backend bằng "npm run server" hoặc "npm run dev".');
+        throw new Error('Không thể kết nối đến máy chủ Backend. Máy chủ có thể đang ngủ hoặc chưa khởi động.');
       }
       throw err;
     }
@@ -118,12 +131,21 @@ export const apiClient = {
   },
 
   async logout(): Promise<void> {
+    // 1. Luôn xóa session ngay lập tức
+    tokenStorage.clearSession();
+    // 2. Báo server với timeout ngắn (2s) để không chặn luồng
     try {
-      await request('/api/auth/logout', { method: 'POST' });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      const fullUrl = API_BASE_URL ? `${API_BASE_URL}/api/auth/logout` : '/api/auth/logout';
+      await fetch(fullUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+      }).catch(() => {});
+      clearTimeout(timeoutId);
     } catch {
-      // bỏ qua lỗi nếu server offline
-    } finally {
-      tokenStorage.clearSession();
+      // bỏ qua lỗi
     }
   },
 

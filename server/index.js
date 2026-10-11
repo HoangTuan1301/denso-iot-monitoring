@@ -561,6 +561,28 @@ setInterval(() => {
   broadcast(telemetryPacket);
 }, 2000);
 
+// =========================================================================
+// HEALTH CHECK ENDPOINTS (RENDER & MONITORING)
+// =========================================================================
+let isDbConnected = false;
+
+app.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    service: 'DENSO IoT Monitoring Backend',
+    database: isDbConnected ? 'connected' : 'connecting_or_sleeping',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    database: isDbConnected ? 'connected' : 'connecting',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Global Error Handlers để đảm bảo server hoạt động ổn định
 process.on('uncaughtException', (err) => {
   console.error('[DENSO IoT Backend Uncaught Exception]:', err.message);
@@ -570,24 +592,42 @@ process.on('unhandledRejection', (reason) => {
   console.error('[DENSO IoT Backend Unhandled Rejection]:', reason);
 });
 
-// Khởi chạy HTTP & WebSocket Server sau khi kết nối MySQL
+// Khởi chạy HTTP & WebSocket Server
 server.on('error', (err) => {
   console.error('[DENSO IoT Server Error]:', err.message);
 });
 
-async function startServer() {
-  try {
-    await mysqlDb.initDatabase();
-    server.listen(PORT, () => {
-      console.log(`[DENSO IoT Backend] Server đang chạy tại http://localhost:${PORT}`);
-      console.log(`[DENSO IoT Backend] CSDL MySQL: denso_iot@localhost:3306`);
-      console.log(`[DENSO IoT Backend] WebSocket Server hoạt động tại ws://localhost:${PORT}/ws`);
-      console.log(`[DENSO IoT Backend] Avatar Upload directory: ${avatarsDir}`);
-    });
-  } catch (err) {
-    console.error('[FATAL] Không thể kết nối tới MySQL:', err.message);
-    process.exit(1);
+async function connectDatabaseWithRetry(maxRetries = 10, delayMs = 4000) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`[DENSO IoT Backend] Đang kết nối CSDL MySQL (lần ${attempt}/${maxRetries})...`);
+      await mysqlDb.initDatabase();
+      isDbConnected = true;
+      console.log(`[DENSO IoT Backend] Kết nối CSDL MySQL thành công! CSDL sẵn sàng.`);
+      return;
+    } catch (err) {
+      console.warn(`[DENSO IoT Backend] Thử kết nối CSDL lần ${attempt} chưa thành công: ${err.message}`);
+      if (attempt < maxRetries) {
+        console.log(`[DENSO IoT Backend] Thử lại sau ${delayMs / 1000}s...`);
+        await new Promise((r) => setTimeout(r, delayMs));
+      } else {
+        console.error('[DENSO IoT Backend] Tạm thời chưa kết nối được CSDL. Máy chủ vẫn duy trì hoạt động để phục vụ WebSocket và tránh Render crash.');
+      }
+    }
   }
 }
 
+async function startServer() {
+  // 1. Luôn bind port ngay lập tức để Render healthcheck pass và không thoát mã lỗi 1
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`[DENSO IoT Backend] Server đang chạy tại http://0.0.0.0:${PORT}`);
+    console.log(`[DENSO IoT Backend] WebSocket Server hoạt động tại ws://0.0.0.0:${PORT}/ws`);
+    console.log(`[DENSO IoT Backend] Avatar Upload directory: ${avatarsDir}`);
+  });
+
+  // 2. Kết nối CSDL ở chế độ retry nền (không bao giờ gọi process.exit(1))
+  connectDatabaseWithRetry();
+}
+
 startServer();
+

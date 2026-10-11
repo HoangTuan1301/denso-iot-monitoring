@@ -50,12 +50,14 @@ export const useAuthStore = create<AuthState>((set) => ({
   availableUsers: mockUsers,
 
   /**
-   * Đăng nhập xác thực bảo mật JWT
+   * Đăng nhập xác thực bảo mật JWT (Kèm fallback demo mượt mà khi Backend đang khởi động)
    */
   login: async (email, password) => {
     set({ isLoading: true, error: null });
+    const normalizedEmail = email.trim().toLowerCase();
+
     try {
-      const res = await apiClient.login(email, password);
+      const res = await apiClient.login(normalizedEmail, password);
       set({
         currentUser: res.user,
         token: res.accessToken,
@@ -65,6 +67,35 @@ export const useAuthStore = create<AuthState>((set) => ({
       });
       return true;
     } catch (err: any) {
+      // Fallback cho buổi thuyết trình/demo: Nếu máy chủ đang ngủ hoặc mất kết nối,
+      // cho phép đăng nhập tức thì với tài khoản demo mẫu chuẩn
+      const matchedMock = mockUsers.find(
+        (u) => u.email.toLowerCase() === normalizedEmail
+      );
+      const isDemoPass =
+        (normalizedEmail === 'admin@denso.com' && password === 'admin123') ||
+        (normalizedEmail === 'user@denso.com' && password === 'user123') ||
+        (normalizedEmail === 'tech@denso.com' && password === 'tech123');
+
+      if (matchedMock && isDemoPass) {
+        console.warn('[Auth Store] Máy chủ đang khởi động hoặc ngủ, kích hoạt phiên Demo nội bộ:', matchedMock.email);
+        const demoToken = 'demo-jwt-token-' + Date.now();
+        tokenStorage.setSession({
+          message: 'Demo login successful',
+          user: matchedMock,
+          accessToken: demoToken,
+          refreshToken: 'demo-refresh',
+        });
+        set({
+          currentUser: matchedMock,
+          token: demoToken,
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+        });
+        return true;
+      }
+
       set({
         isLoading: false,
         error: err.message || 'Đăng nhập thất bại. Vui lòng thử lại.',
@@ -74,20 +105,20 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   /**
-   * Đăng xuất xóa phiên làm việc
+   * Đăng xuất xóa phiên làm việc ngay lập tức (Tức thì, không treo giao diện)
    */
   logout: async () => {
-    try {
-      await apiClient.logout();
-    } catch {
-      // bỏ qua
-    } finally {
-      tokenStorage.clearSession();
-      set({
-        isAuthenticated: false,
-        token: null,
-      });
-    }
+    // 1. Dọn dẹp session cục bộ ngay lập tức để UI chuyển về LoginPage tức thì
+    tokenStorage.clearSession();
+    set({
+      currentUser: defaultAdmin,
+      isAuthenticated: false,
+      token: null,
+      error: null,
+    });
+
+    // 2. Báo server ở chế độ nền (không chờ đợi)
+    apiClient.logout().catch(() => {});
   },
 
   /**
@@ -100,13 +131,21 @@ export const useAuthStore = create<AuthState>((set) => ({
       return;
     }
 
+    if (token.startsWith('demo-jwt-token-')) {
+      const user = tokenStorage.getUser();
+      if (user) {
+        set({ currentUser: user, isAuthenticated: true });
+        return;
+      }
+    }
+
     try {
       const { user } = await apiClient.getMe();
       set({ currentUser: user, isAuthenticated: true });
     } catch {
-      // Token hết hạn
+      // Token hết hạn hoặc không kết nối được
       tokenStorage.clearSession();
-      set({ isAuthenticated: false, token: null });
+      set({ isAuthenticated: false, token: null, currentUser: defaultAdmin });
     }
   },
 

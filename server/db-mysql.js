@@ -56,6 +56,7 @@ export async function initDatabase() {
       password: DB_PASSWORD,
       database: DB_NAME,
       ssl: sslConfig,
+      timezone: '+00:00', // Đảm bảo toàn bộ tương tác ngày giờ giữa Node.js và MySQL ở múi giờ UTC thuần túy
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0,
@@ -210,6 +211,37 @@ export async function initDatabase() {
           ('AUD-INIT-001', 'usr-admin-01', 'admin@denso.com', 'Hoàng Minh Hải', 'DNS-1001', 'SYSTEM_INIT', 'SYSTEM', 'Khởi tạo hệ thống CSDL MySQL denso_iot thành công', '127.0.0.1', NOW()),
           ('AUD-INIT-002', 'usr-admin-01', 'admin@denso.com', 'Hoàng Minh Hải', 'DNS-1001', 'LOGIN', 'auth', 'Đăng nhập phiên quản trị viên hệ thống', '127.0.0.1', NOW())
       `);
+    }
+
+    // 12. Tạo bảng machine_telemetry_history (Lịch sử hoạt động máy & Telemetry chuỗi thời gian)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS machine_telemetry_history (
+        id VARCHAR(96) PRIMARY KEY,
+        timestamp DATETIME(3) NOT NULL,
+        lineId VARCHAR(64) NOT NULL,
+        lineName VARCHAR(128) NOT NULL,
+        machineId VARCHAR(64) NOT NULL,
+        machineName VARCHAR(128) NOT NULL,
+        metricId VARCHAR(64) NOT NULL,
+        metricName VARCHAR(128) NOT NULL,
+        value DECIMAL(10, 2) NOT NULL,
+        unit VARCHAR(32) NOT NULL,
+        status ENUM('normal', 'warning', 'critical') NOT NULL,
+        source ENUM('simulation', 'device') NOT NULL DEFAULT 'simulation',
+        plcStationId VARCHAR(64) NULL,
+        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_line_time (lineId, timestamp DESC),
+        INDEX idx_machine_time (machineId, timestamp DESC),
+        INDEX idx_metric_time (metricId, timestamp DESC),
+        INDEX idx_time_status (timestamp DESC, status)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    // 13. Khởi tạo dữ liệu lịch sử telemetry mẫu nếu bảng đang trống
+    const [historyRows] = await pool.query('SELECT COUNT(*) as count FROM machine_telemetry_history');
+    if (historyRows[0].count === 0) {
+      console.log('[MySQL] Bảng machine_telemetry_history trống. Đang khởi tạo dữ liệu telemetry mẫu...');
+      await seedInitialTelemetryHistory();
     }
 
     console.log('[MySQL] Cơ sở dữ liệu và các bảng đã sẵn sàng!');
@@ -412,8 +444,501 @@ export async function togglePLCStation(id) {
   };
 }
 
+// =========================================================================
+// CÁC THAO TÁC TRÊN BẢNG MACHINE_TELEMETRY_HISTORY (LỊCH SỬ HOẠT ĐỘNG MÁY)
+// =========================================================================
+
+const ALLOWED_SORT_COLUMNS = [
+  'timestamp',
+  'value',
+  'lineId',
+  'machineId',
+  'metricId',
+  'status',
+  'createdAt',
+];
+
+// Danh mục kênh telemetry chuẩn đồng bộ giữa backend và frontend (Khớp 100% mô hình nhà máy)
+export const CANONICAL_TELEMETRY_CHANNELS = [
+  {
+    lineId: 'LINE-01',
+    lineName: 'Dây chuyền Lắp ráp Động cơ 01',
+    machineId: 'MC-FDR-01',
+    machineName: 'Máy cấp phôi tự động 01',
+    metricId: 'MTR-FDR-01-PRS',
+    metricName: 'Áp suất khí nén cấp phôi',
+    unit: 'bar',
+    base: 6.2,
+    variance: 0.3,
+    wMin: 4.5,
+    wMax: 7.5,
+    cMin: 3.5,
+    cMax: 8.5,
+  },
+  {
+    lineId: 'LINE-01',
+    lineName: 'Dây chuyền Lắp ráp Động cơ 01',
+    machineId: 'MC-FDR-01',
+    machineName: 'Máy cấp phôi tự động 01',
+    metricId: 'MTR-FDR-01-SPD',
+    metricName: 'Tốc độ cấp phôi',
+    unit: 'chi tiết/phút',
+    base: 45.0,
+    variance: 3.0,
+    wMin: 30.0,
+    wMax: 60.0,
+    cMin: 20.0,
+    cMax: 70.0,
+  },
+  {
+    lineId: 'LINE-01',
+    lineName: 'Dây chuyền Lắp ráp Động cơ 01',
+    machineId: 'MC-CYL-01',
+    machineName: 'Máy ép xi-lanh thủy lực 01',
+    metricId: 'MTR-CYL-01-PRS',
+    metricName: 'Áp suất nén ép trục',
+    unit: 'bar',
+    base: 142.5,
+    variance: 5.0,
+    wMin: 120.0,
+    wMax: 165.0,
+    cMin: 100.0,
+    cMax: 180.0,
+  },
+  {
+    lineId: 'LINE-01',
+    lineName: 'Dây chuyền Lắp ráp Động cơ 01',
+    machineId: 'MC-CYL-01',
+    machineName: 'Máy ép xi-lanh thủy lực 01',
+    metricId: 'MTR-CYL-01-TMP',
+    metricName: 'Nhiệt độ dầu thủy lực',
+    unit: '°C',
+    base: 52.0,
+    variance: 2.5,
+    wMin: 40.0,
+    wMax: 68.0,
+    cMin: 30.0,
+    cMax: 75.0,
+  },
+  {
+    lineId: 'LINE-01',
+    lineName: 'Dây chuyền Lắp ráp Động cơ 01',
+    machineId: 'MC-ASM-01',
+    machineName: 'Robot siết bulong động cơ 01',
+    metricId: 'MTR-ASM-01-TRQ',
+    metricName: 'Mô-men xoắn siết bulong',
+    unit: 'N·m',
+    base: 42.0,
+    variance: 2.0,
+    wMin: 35.0,
+    wMax: 50.0,
+    cMin: 30.0,
+    cMax: 55.0,
+  },
+  {
+    lineId: 'LINE-02',
+    lineName: 'Dây chuyền Sơn Tĩnh Điện 02',
+    machineId: 'MC-PNT-01',
+    machineName: 'Buồng phun sơn robot 01',
+    metricId: 'MTR-PNT-01-FLW',
+    metricName: 'Lưu lượng khí nén phun sơn',
+    unit: 'L/min',
+    base: 315.0,
+    variance: 10.0,
+    wMin: 280.0,
+    wMax: 360.0,
+    cMin: 250.0,
+    cMax: 390.0,
+  },
+  {
+    lineId: 'LINE-02',
+    lineName: 'Dây chuyền Sơn Tĩnh Điện 02',
+    machineId: 'MC-PNT-01',
+    machineName: 'Buồng phun sơn robot 01',
+    metricId: 'MTR-PNT-01-TMP',
+    metricName: 'Nhiệt độ buồng sấy sơn',
+    unit: '°C',
+    base: 82.0,
+    variance: 3.0,
+    wMin: 70.0,
+    wMax: 95.0,
+    cMin: 60.0,
+    cMax: 105.0,
+  },
+  {
+    lineId: 'LINE-02',
+    lineName: 'Dây chuyền Sơn Tĩnh Điện 02',
+    machineId: 'MC-DRY-01',
+    machineName: 'Lò sấy nhiệt hồng ngoại 01',
+    metricId: 'MTR-DRY-01-TMP',
+    metricName: 'Nhiệt độ sấy hồng ngoại',
+    unit: '°C',
+    base: 160.0,
+    variance: 5.0,
+    wMin: 140.0,
+    wMax: 180.0,
+    cMin: 125.0,
+    cMax: 195.0,
+  },
+  {
+    lineId: 'LINE-03',
+    lineName: 'Dây chuyền Đóng gói & Kiểm tra 03',
+    machineId: 'MC-TST-01',
+    machineName: 'Bàn đo rung kiểm tra chất lượng',
+    metricId: 'MTR-TST-01-VIB',
+    metricName: 'Độ rung kiểm tra',
+    unit: 'mm/s',
+    base: 1.6,
+    variance: 0.3,
+    wMin: 0.5,
+    wMax: 2.8,
+    cMin: 0.2,
+    cMax: 3.5,
+  },
+  {
+    lineId: 'LINE-03',
+    lineName: 'Dây chuyền Đóng gói & Kiểm tra 03',
+    machineId: 'MC-TST-01',
+    machineName: 'Bàn đo rung kiểm tra chất lượng',
+    metricId: 'MTR-TST-01-RPM',
+    metricName: 'Tốc độ quay thử nghiệm',
+    unit: 'vòng/phút',
+    base: 1495.0,
+    variance: 15.0,
+    wMin: 1400.0,
+    wMax: 1600.0,
+    cMin: 1350.0,
+    cMax: 1650.0,
+  },
+];
+
+/**
+ * Khởi tạo dữ liệu lịch sử mẫu ban đầu (120 bản ghi bao phủ Ca 1, Ca 2, Ca 3 Đêm)
+ */
+export async function seedInitialTelemetryHistory() {
+  const getVNDate = (daysAgo = 0) => {
+    const d = new Date(Date.now() - daysAgo * 86400000);
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(d);
+  };
+
+  const todayVN = getVNDate(0);
+  const yesterdayVN = getVNDate(1);
+
+  // 12 mốc thời gian đại diện: 4 Ca 1, 4 Ca 2, 4 Ca 3 (Đêm qua nửa đêm)
+  const timepoints = [
+    // Ca 1 (Hôm nay: 06:00 - 14:00)
+    `${todayVN}T07:15:00+07:00`,
+    `${todayVN}T09:30:00+07:00`,
+    `${todayVN}T11:45:00+07:00`,
+    `${todayVN}T13:30:00+07:00`,
+    // Ca 2 (Hôm nay: 14:00 - 22:00)
+    `${todayVN}T14:45:00+07:00`,
+    `${todayVN}T17:00:00+07:00`,
+    `${todayVN}T19:15:00+07:00`,
+    `${todayVN}T21:30:00+07:00`,
+    // Ca 3 (Đêm qua nửa đêm: 22:00 hôm qua - 06:00 hôm nay)
+    `${yesterdayVN}T22:30:00+07:00`,
+    `${yesterdayVN}T23:45:00+07:00`,
+    `${todayVN}T02:15:00+07:00`,
+    `${todayVN}T04:45:00+07:00`,
+  ];
+
+  const seedRecords = [];
+
+  for (let tIdx = 0; tIdx < timepoints.length; tIdx++) {
+    const isoUtc = new Date(timepoints[tIdx]).toISOString();
+    const epoch = new Date(timepoints[tIdx]).getTime();
+
+    for (let cIdx = 0; cIdx < CANONICAL_TELEMETRY_CHANNELS.length; cIdx++) {
+      const ch = CANONICAL_TELEMETRY_CHANNELS[cIdx];
+      // Tạo dao động ngẫu nhiên có kiểm soát
+      const jitterFactor = Math.sin(tIdx + cIdx) * ch.variance;
+      const val = Number(Math.max(0, ch.base + jitterFactor).toFixed(2));
+
+      let status = 'normal';
+      if (val <= ch.cMin || val >= ch.cMax) status = 'critical';
+      else if (val <= ch.wMin || val >= ch.wMax) status = 'warning';
+
+      seedRecords.push({
+        id: `LOG_${ch.machineId}_${ch.metricId}_${epoch}`,
+        lineId: ch.lineId,
+        lineName: ch.lineName,
+        machineId: ch.machineId,
+        machineName: ch.machineName,
+        metricId: ch.metricId,
+        metricName: ch.metricName,
+        value: val,
+        unit: ch.unit,
+        status,
+        source: 'simulation',
+        timestamp: isoUtc,
+      });
+    }
+  }
+
+  const res = await insertTelemetryBatch(seedRecords);
+  console.log(`[MySQL] Đã nạp thành công ${res.insertedCount} bản ghi telemetry lịch sử mẫu (bao phủ Ca 1, Ca 2, Ca 3 Đêm).`);
+}
+
+/**
+ * Ghi nhiều bản ghi telemetry vào CSDL (Batch Insert an toàn, ID xác định chống trùng)
+ */
+export async function insertTelemetryBatch(records = []) {
+  if (!pool || !Array.isArray(records) || records.length === 0) {
+    return { insertedCount: 0 };
+  }
+
+  try {
+    const values = records.map((r) => {
+      // 1. Định danh xác định (Deterministic ID):
+      // Ưu tiên eventId/sampleId có sẵn từ nguồn phát; nếu không có, tạo ID kết hợp:
+      // LOG_<machineId>_<metricId>_<timestampEpochMs> (Tuyệt đối không dùng Math.random() để tránh sinh ID khác khi retry)
+      const epoch = r.timestamp ? new Date(r.timestamp).getTime() : Date.now();
+      const id = r.id || r.eventId || r.sampleId || `LOG_${r.machineId || 'MCH'}_${r.metricId || 'MTR'}_${epoch}`;
+
+      // 2. Chuẩn hóa timestamp sang chuỗi UTC YYYY-MM-DD HH:mm:ss.SSS cho MySQL DATETIME(3)
+      const dateObj = r.timestamp ? new Date(r.timestamp) : new Date();
+      const utcTimestamp = !isNaN(dateObj.getTime())
+        ? dateObj.toISOString().slice(0, 23).replace('T', ' ')
+        : new Date().toISOString().slice(0, 23).replace('T', ' ');
+
+      // 3. Validate và làm tròn số đo 2 chữ số thập phân
+      const numVal = Number(r.value);
+      const safeVal = !isNaN(numVal) ? Number(numVal.toFixed(2)) : 0.00;
+
+      return [
+        id,
+        utcTimestamp,
+        r.lineId || 'UNKNOWN',
+        r.lineName || 'Unknown Line',
+        r.machineId || 'UNKNOWN',
+        r.machineName || 'Unknown Machine',
+        r.metricId || 'UNKNOWN',
+        r.metricName || 'Unknown Metric',
+        safeVal,
+        r.unit || '',
+        r.status || 'normal',
+        r.source === 'device' ? 'device' : 'simulation',
+        r.plcStationId || null,
+      ];
+    });
+
+    const sql = `
+      INSERT IGNORE INTO machine_telemetry_history (
+        id, timestamp, lineId, lineName, machineId, machineName,
+        metricId, metricName, value, unit, status, source, plcStationId
+      ) VALUES ?
+    `;
+
+    const [result] = await pool.query(sql, [values]);
+    return {
+      success: true,
+      insertedCount: result.affectedRows,
+    };
+  } catch (err) {
+    console.error('[insertTelemetryBatch Error]:', err.message);
+    throw err;
+  }
+}
+
+/**
+ * Tra cứu lịch sử hoạt động máy kèm bộ lọc đa tiêu chí, chuyển đổi múi giờ UTC chuẩn xác,
+ * hỗ trợ ca đêm và kiểm soát trần an toàn khi xuất dữ liệu.
+ */
+export async function getTelemetryLogs(filters = {}) {
+  if (!pool) {
+    throw new Error('CSDL MySQL chưa sẵn sàng hoặc connection pool chưa được khởi tạo');
+  }
+
+  const {
+    lineId,
+    machineId,
+    metricId,
+    status,
+    startDate,
+    endDate,
+    startTime,
+    endTime,
+    page = 1,
+    limit = 20,
+    sortBy = 'timestamp',
+    sortOrder = 'DESC',
+    isExport = false,
+  } = filters;
+
+  const conditions = [];
+  const params = [];
+
+  // 1. Lọc theo lineId
+  if (lineId && lineId !== 'all') {
+    conditions.push('lineId = ?');
+    params.push(lineId);
+  }
+
+  // 2. Lọc theo machineId
+  if (machineId && machineId !== 'all') {
+    conditions.push('machineId = ?');
+    params.push(machineId);
+  }
+
+  // 3. Lọc theo metricId
+  if (metricId && metricId !== 'all') {
+    conditions.push('metricId = ?');
+    params.push(metricId);
+  }
+
+  // 4. Lọc theo status
+  if (status && status !== 'all') {
+    conditions.push('status = ?');
+    params.push(status);
+  }
+
+  // 5. Xử lý Múi Giờ Việt Nam (Asia/Ho_Chi_Minh: UTC+7) sang UTC chuẩn và Ca Đêm
+  // Dùng khoảng nửa mở [startUtc, endUtc) để bao trùm chính xác mili-giây
+  if (startDate) {
+    let effectiveEndDate = endDate || startDate;
+    let sTime = startTime ? `${startTime}:00.000` : '00:00:00.000';
+
+    // Xử lý Ca Đêm: Nếu cùng 1 ngày nhưng startTime > endTime (ví dụ: 22:00 đến 06:00)
+    // Tự động tịnh tiến ngày kết thúc sang ngày tiếp theo chuẩn lịch
+    const isOvernight = startDate === effectiveEndDate && startTime && endTime && startTime > endTime;
+    if (isOvernight) {
+      const [ey, em, ed] = effectiveEndDate.split('-').map(Number);
+      const nextDate = new Date(Date.UTC(ey, em - 1, ed + 1));
+      effectiveEndDate = nextDate.toISOString().slice(0, 10);
+    }
+
+    // Thời điểm bắt đầu tính theo UTC
+    const startVnIso = `${startDate}T${sTime}+07:00`;
+    const startUtcDate = new Date(startVnIso);
+    if (!isNaN(startUtcDate.getTime())) {
+      const startUtcSql = startUtcDate.toISOString().slice(0, 23).replace('T', ' ');
+      conditions.push('timestamp >= ?');
+      params.push(startUtcSql);
+    }
+
+    // Thời điểm kết thúc (endUtc): Bao trùm toàn bộ phút endTime (ví dụ 17:00 -> < 17:01:00)
+    // Hoặc bao trùm cả ngày nếu không chọn endTime (< 00:00:00 ngày tiếp theo)
+    let endUtcSql = null;
+    if (endTime) {
+      // Cộng thêm 1 phút để bao trùm trọn vẹn phút kết thúc (VD: endTime 17:00 -> < 17:01:00)
+      const endVnIso = `${effectiveEndDate}T${endTime}:00.000+07:00`;
+      const endBaseDate = new Date(endVnIso);
+      if (!isNaN(endBaseDate.getTime())) {
+        const endPlusMinute = new Date(endBaseDate.getTime() + 60000);
+        endUtcSql = endPlusMinute.toISOString().slice(0, 23).replace('T', ' ');
+      }
+    } else {
+      // Không chọn endTime: bao trùm hết 23:59:59.999 của effectiveEndDate (< 00:00 ngày hôm sau)
+      const [ey, em, ed] = effectiveEndDate.split('-').map(Number);
+      const nextDate = new Date(Date.UTC(ey, em - 1, ed + 1));
+      const nextDayStr = nextDate.toISOString().slice(0, 10);
+      const nextDayVnIso = `${nextDayStr}T00:00:00.000+07:00`;
+      const nextDayDate = new Date(nextDayVnIso);
+      if (!isNaN(nextDayDate.getTime())) {
+        endUtcSql = nextDayDate.toISOString().slice(0, 23).replace('T', ' ');
+      }
+    }
+
+    if (endUtcSql) {
+      conditions.push('timestamp < ?');
+      params.push(endUtcSql);
+    }
+  }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+  // Đếm tổng số bản ghi thỏa mãn điều kiện
+  const countSql = `SELECT COUNT(*) as total FROM machine_telemetry_history ${whereClause}`;
+  const [countRows] = await pool.query(countSql, params);
+  const totalRecords = countRows[0]?.total || 0;
+
+  // Xử lý sorting an toàn (Whitelist validation)
+  const safeSortBy = ALLOWED_SORT_COLUMNS.includes(sortBy) ? sortBy : 'timestamp';
+  const safeOrder = String(sortOrder).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+
+  const MAX_EXPORT_LIMIT = 10000;
+
+  // Nếu là thao tác Export và tổng số bản ghi vượt 10.000:
+  // Từ chối xuất dữ liệu thiếu để bảo vệ tính toàn vẹn, yêu cầu thu hẹp bộ lọc
+  if (isExport && totalRecords > MAX_EXPORT_LIMIT) {
+    return {
+      totalRecords,
+      page: 1,
+      limit: MAX_EXPORT_LIMIT,
+      totalPages: Math.ceil(totalRecords / MAX_EXPORT_LIMIT),
+      isTruncated: true,
+      exportAllowed: false,
+      maxExportLimit: MAX_EXPORT_LIMIT,
+      warning: `Số lượng bản ghi (${totalRecords.toLocaleString('vi-VN')}) vượt quá giới hạn an toàn ${MAX_EXPORT_LIMIT.toLocaleString('vi-VN')} dòng. Vui lòng thu hẹp khoảng ngày/giờ lọc để đảm bảo dữ liệu xuất nguyên vẹn 100%.`,
+      data: [],
+    };
+  }
+
+  // Xử lý phân trang
+  const safeLimit = isExport ? MAX_EXPORT_LIMIT : Math.min(Math.max(1, Number(limit) || 20), 100);
+  const safePage = Math.max(1, Number(page) || 1);
+  const offset = (safePage - 1) * safeLimit;
+
+  let querySql = `
+    SELECT id, timestamp, lineId, lineName, machineId, machineName,
+           metricId, metricName, value, unit, status, source, plcStationId, createdAt
+    FROM machine_telemetry_history
+    ${whereClause}
+    ORDER BY ${safeSortBy} ${safeOrder}
+  `;
+
+  const queryParams = [...params];
+  if (!isExport) {
+    querySql += ` LIMIT ? OFFSET ?`;
+    queryParams.push(safeLimit, offset);
+  } else {
+    querySql += ` LIMIT ?`;
+    queryParams.push(safeLimit);
+  }
+
+  const [rows] = await pool.query(querySql, queryParams);
+
+  const formattedRows = rows.map((r) => ({
+    ...r,
+    value: Number(r.value),
+    timestamp: r.timestamp instanceof Date ? r.timestamp.toISOString() : String(r.timestamp),
+    createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt),
+  }));
+
+  const totalPages = safeLimit > 0 ? Math.ceil(totalRecords / safeLimit) : 1;
+
+  return {
+    totalRecords,
+    page: safePage,
+    limit: safeLimit,
+    totalPages,
+    isTruncated: false,
+    exportAllowed: true,
+    maxExportLimit: MAX_EXPORT_LIMIT,
+    data: formattedRows,
+  };
+}
+
+/**
+ * Đóng an toàn connection pool khi tắt server hoặc kết thúc test
+ */
+export async function closeDatabase() {
+  if (pool) {
+    try {
+      await pool.end();
+      console.log('[MySQL] Connection pool đã được đóng an toàn.');
+    } catch (err) {
+      console.warn('[MySQL Warning] Lỗi khi đóng connection pool:', err.message);
+    } finally {
+      pool = null;
+    }
+  }
+}
+
 export const mysqlDb = {
   initDatabase,
+  closeDatabase,
   getUsers,
   getUserById,
   getUserByEmail,
@@ -425,6 +950,11 @@ export const mysqlDb = {
   addAuditLog,
   getPLCStations,
   togglePLCStation,
+  insertTelemetryBatch,
+  getTelemetryLogs,
+  seedInitialTelemetryHistory,
+  CANONICAL_TELEMETRY_CHANNELS,
 };
 
 export default mysqlDb;
+

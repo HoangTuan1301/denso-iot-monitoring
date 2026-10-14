@@ -622,6 +622,234 @@ app.post('/api/plc-stations/:id/toggle', authenticateToken, async (req, res) => 
 });
 
 // =========================================================================
+// TELEMETRY & MACHINE ACTIVITY LOGS APIS (LỊCH SỬ HOẠT ĐỘNG MÁY)
+// =========================================================================
+
+const VALID_SORT_COLUMNS = ['timestamp', 'value', 'lineId', 'machineId', 'metricId', 'status', 'createdAt'];
+
+/**
+ * Kiểm tra ngày theo lịch thực tế (bao gồm kiểm tra năm nhuận và tháng 2)
+ */
+function isValidCalendarDate(dateStr) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
+  const parts = dateStr.split('-');
+  const y = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10);
+  const d = parseInt(parts[2], 10);
+  if (y < 2000 || y > 2100 || m < 1 || m > 12 || d < 1 || d > 31) return false;
+  const dateObj = new Date(Date.UTC(y, m - 1, d));
+  return (
+    dateObj.getUTCFullYear() === y &&
+    dateObj.getUTCMonth() + 1 === m &&
+    dateObj.getUTCDate() === d
+  );
+}
+
+/**
+ * Kiểm tra giờ hợp lệ trong ngày (00:00 đến 23:59)
+ */
+function isValidTime(timeStr) {
+  if (!/^\d{2}:\d{2}$/.test(timeStr)) return false;
+  const [h, m] = timeStr.split(':').map((s) => parseInt(s, 10));
+  return h >= 0 && h <= 23 && m >= 0 && m <= 59;
+}
+
+app.get(
+  '/api/telemetry/logs',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE', 'OPERATOR']),
+  async (req, res) => {
+    try {
+      const {
+        lineId,
+        machineId,
+        metricId,
+        status,
+        startDate,
+        endDate,
+        startTime,
+        endTime,
+        page = '1',
+        limit = '20',
+        sortBy = 'timestamp',
+        sortOrder = 'DESC',
+        isExport = 'false',
+      } = req.query;
+
+      // 1. Validate tham số phân trang page và limit
+      if (req.query.page !== undefined) {
+        const pNum = Number(page);
+        if (!Number.isInteger(pNum) || pNum < 1) {
+          return res.status(400).json({
+            success: false,
+            message: 'Tham số "page" phải là số nguyên dương hợp lệ (>= 1).',
+          });
+        }
+      }
+
+      if (req.query.limit !== undefined) {
+        const lNum = Number(limit);
+        if (!Number.isInteger(lNum) || lNum < 1) {
+          return res.status(400).json({
+            success: false,
+            message: 'Tham số "limit" phải là số nguyên dương hợp lệ (>= 1).',
+          });
+        }
+      }
+
+      // 2. Validate cột sắp xếp (Whitelist validation)
+      if (sortBy && !VALID_SORT_COLUMNS.includes(sortBy)) {
+        return res.status(400).json({
+          success: false,
+          message: `Cột sắp xếp "${sortBy}" không hợp lệ. Chỉ chấp nhận một trong các cột: ${VALID_SORT_COLUMNS.join(', ')}.`,
+        });
+      }
+
+      if (sortOrder && !['ASC', 'DESC'].includes(String(sortOrder).toUpperCase())) {
+        return res.status(400).json({
+          success: false,
+          message: 'Chiều sắp xếp không hợp lệ. Chỉ chấp nhận "ASC" hoặc "DESC".',
+        });
+      }
+
+      // 3. Validate ngày thực tế theo lịch (bao gồm năm nhuận)
+      if (startDate && !isValidCalendarDate(startDate)) {
+        return res.status(400).json({
+          success: false,
+          message: `Ngày bắt đầu "${startDate}" không hợp lệ theo lịch chuẩn (YYYY-MM-DD).`,
+        });
+      }
+
+      if (endDate && !isValidCalendarDate(endDate)) {
+        return res.status(400).json({
+          success: false,
+          message: `Ngày kết thúc "${endDate}" không hợp lệ theo lịch chuẩn (YYYY-MM-DD).`,
+        });
+      }
+
+      // 4. Validate khung giờ (00:00 - 23:59)
+      if (startTime && !isValidTime(startTime)) {
+        return res.status(400).json({
+          success: false,
+          message: `Giờ bắt đầu "${startTime}" không hợp lệ. Giờ phải nằm trong khoảng 00:00 đến 23:59.`,
+        });
+      }
+
+      if (endTime && !isValidTime(endTime)) {
+        return res.status(400).json({
+          success: false,
+          message: `Giờ kết thúc "${endTime}" không hợp lệ. Giờ phải nằm trong khoảng 00:00 đến 23:59.`,
+        });
+      }
+
+      // 5. Kiểm tra logic ngày: Ngày kết thúc không được nhỏ hơn ngày bắt đầu
+      if (startDate && endDate && endDate < startDate) {
+        return res.status(400).json({
+          success: false,
+          message: 'Ngày kết thúc (endDate) không được nhỏ hơn ngày bắt đầu (startDate).',
+        });
+      }
+
+      const exportFlag = String(isExport).toLowerCase() === 'true';
+      const parsedPage = Math.max(1, parseInt(page, 10) || 1);
+      const parsedLimit = exportFlag
+        ? Math.min(Math.max(1, parseInt(limit, 10) || 10000), 10000)
+        : Math.min(Math.max(1, parseInt(limit, 10) || 20), 100);
+
+      const filters = {
+        lineId: lineId && lineId !== 'all' ? String(lineId).trim() : undefined,
+        machineId: machineId && machineId !== 'all' ? String(machineId).trim() : undefined,
+        metricId: metricId && metricId !== 'all' ? String(metricId).trim() : undefined,
+        status: status && status !== 'all' ? String(status).trim() : undefined,
+        startDate: startDate ? String(startDate).trim() : undefined,
+        endDate: endDate ? String(endDate).trim() : undefined,
+        startTime: startTime ? String(startTime).trim() : undefined,
+        endTime: endTime ? String(endTime).trim() : undefined,
+        page: parsedPage,
+        limit: parsedLimit,
+        sortBy: sortBy || 'timestamp',
+        sortOrder: String(sortOrder || 'DESC').toUpperCase(),
+        isExport: exportFlag,
+      };
+
+      // 6. Truy vấn từ CSDL MySQL chính thức
+      try {
+        const queryResult = await mysqlDb.getTelemetryLogs(filters);
+
+        // Nếu là thao tác Export và số lượng vượt trần 10.000 dòng:
+        // Từ chối xuất và yêu cầu người dùng thu hẹp bộ lọc để bảo vệ tính toàn vẹn dữ liệu
+        if (exportFlag && queryResult.exportAllowed === false) {
+          return res.status(400).json({
+            success: false,
+            message: queryResult.warning,
+            metadata: {
+              totalRecords: queryResult.totalRecords,
+              page: queryResult.page,
+              limit: queryResult.limit,
+              totalPages: queryResult.totalPages,
+              isTruncated: true,
+              exportAllowed: false,
+              maxExportLimit: queryResult.maxExportLimit || 10000,
+              appliedFilters: filters,
+              serverTimeUTC: new Date().toISOString(),
+              dataSource: 'MySQL_Database',
+              status: 'ok',
+            },
+            data: [],
+          });
+        }
+
+        return res.json({
+          success: true,
+          metadata: {
+            totalRecords: queryResult.totalRecords,
+            page: queryResult.page,
+            limit: queryResult.limit,
+            totalPages: queryResult.totalPages,
+            isTruncated: queryResult.isTruncated || false,
+            exportAllowed: queryResult.exportAllowed !== false,
+            maxExportLimit: queryResult.maxExportLimit || 10000,
+            appliedFilters: filters,
+            serverTimeUTC: new Date().toISOString(),
+            dataSource: 'MySQL_Database',
+            status: 'ok',
+            warning: queryResult.warning,
+          },
+          data: queryResult.data,
+        });
+      } catch (dbErr) {
+        console.warn(`[GetTelemetryLogs] MySQL chưa khả dụng: ${dbErr.message}`);
+        // Nếu DB không khả dụng, không giả mạo là lịch sử đầy đủ mà trả trạng thái degraded rõ ràng
+        return res.json({
+          success: true,
+          metadata: {
+            totalRecords: 0,
+            page: parsedPage,
+            limit: parsedLimit,
+            totalPages: 0,
+            isTruncated: false,
+            exportAllowed: !exportFlag,
+            maxExportLimit: 10000,
+            appliedFilters: filters,
+            serverTimeUTC: new Date().toISOString(),
+            dataSource: 'Memory_Fallback',
+            status: 'degraded',
+            warning: 'Cơ sở dữ liệu trung tâm chưa được kết nối hoặc đang ngoại tuyến. Dữ liệu lịch sử bền vững tạm thời chưa khả dụng.',
+          },
+          data: [],
+        });
+      }
+    } catch (err) {
+      console.error('[Telemetry Logs API Error]:', err);
+      res.status(500).json({
+        success: false,
+        message: 'Lỗi máy chủ khi truy vấn lịch sử telemetry: ' + err.message,
+      });
+    }
+  }
+);
+
+// =========================================================================
 // WEBSOCKET REAL-TIME IoT SIMULATION ENGINE
 // =========================================================================
 wss.on('connection', (ws) => {
@@ -674,9 +902,59 @@ setInterval(() => {
 }, 2000);
 
 // =========================================================================
-// HEALTH CHECK ENDPOINTS (RENDER & MONITORING)
+// BỘ GHI TỰ ĐỘNG TELEMETRY TẬP TRUNG TẠI BACKEND VÀO MYSQL (DEVELOPMENT)
 // =========================================================================
 let isDbConnected = false;
+
+// Cứ mỗi 5 giây, backend tự động ghi một batch dữ liệu telemetry của các máy vào MySQL
+setInterval(async () => {
+  if (!isDbConnected) return;
+
+  try {
+    const channels = mysqlDb.CANONICAL_TELEMETRY_CHANNELS || [];
+    if (channels.length === 0) return;
+
+    const now = new Date();
+    // Chọn luân phiên các kênh cảm biến ở 3 dây chuyền để ghi nhận nhịp thời gian thực
+    const pickedChannels = [
+      channels[Math.floor(Math.random() * 2)],       // Line 1: FDR
+      channels[2 + Math.floor(Math.random() * 2)],   // Line 1: CYL
+      channels[5 + Math.floor(Math.random() * 2)],   // Line 2: PNT
+      channels[8 + Math.floor(Math.random() * 2)],   // Line 3: TST
+    ].filter(Boolean);
+
+    const batch = pickedChannels.map((ch) => {
+      const offset = (Math.random() - 0.5) * 2 * ch.variance;
+      const val = Number(Math.max(0, ch.base + offset).toFixed(2));
+      let status = 'normal';
+      if (val <= ch.cMin || val >= ch.cMax) status = 'critical';
+      else if (val <= ch.wMin || val >= ch.wMax) status = 'warning';
+
+      return {
+        lineId: ch.lineId,
+        lineName: ch.lineName,
+        machineId: ch.machineId,
+        machineName: ch.machineName,
+        metricId: ch.metricId,
+        metricName: ch.metricName,
+        value: val,
+        unit: ch.unit,
+        status,
+        source: 'simulation',
+        timestamp: now.toISOString(),
+      };
+    });
+
+    await mysqlDb.insertTelemetryBatch(batch);
+  } catch (err) {
+    // Không làm gián đoạn máy chủ nếu gặp lỗi ghi CSDL nền
+    console.warn('[Telemetry Auto-Record Warning]:', err.message);
+  }
+}, 5000);
+
+// =========================================================================
+// HEALTH CHECK ENDPOINTS (RENDER & MONITORING)
+// =========================================================================
 
 app.get('/', (req, res) => {
   res.json({

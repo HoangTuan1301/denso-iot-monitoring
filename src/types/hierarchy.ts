@@ -88,3 +88,76 @@ export interface ProductionLine {
   machines: MachineComponent[];  // Danh sách các máy/thiết bị trực thuộc (Tầng 2)
   description?: string;          // Mô tả nhiệm vụ của dây chuyền
 }
+
+/**
+ * ============================================================================
+ * LỊCH SỬ HOẠT ĐỘNG MÁY & DỮ LIỆU TELEMETRY (MACHINE ACTIVITY LOG)
+ * ============================================================================
+ * Nguồn dữ liệu lịch sử chuỗi thời gian bền vững cho toàn bộ máy móc & cảm biến.
+ */
+
+export type TelemetrySource = 'simulation' | 'device';
+
+export interface MachineActivityLog {
+  id: string;                    // Khóa định danh duy nhất (chống trùng lặp)
+  timestamp: string;             // Thời gian chuẩn UTC định dạng ISO 8601 (ví dụ: "2026-10-15T08:30:15.000Z")
+  lineId: string;                // Mã dây chuyền (ví dụ: "LINE-01")
+  lineName: string;              // Tên dây chuyền (ví dụ: "Dây chuyền Lắp ráp Động cơ 01")
+  machineId: string;             // Mã thiết bị (ví dụ: "MC-FDR-01")
+  machineName: string;           // Tên thiết bị (ví dụ: "Máy cấp phôi tự động 01")
+  metricId: string;              // Mã chỉ số đo lường (ví dụ: "MTR-FDR-01-TMP")
+  metricName: string;            // Tên chỉ số (ví dụ: "Nhiệt độ động cơ cấp phôi")
+  value: number;                 // Giá trị đo thực tế (chuẩn số thực 2 chữ số thập phân)
+  unit: string;                  // Đơn vị đo (ví dụ: "°C", "bar", "mm/s")
+  status: SystemStatus;          // Trạng thái đánh giá ngưỡng: 'normal' | 'warning' | 'critical'
+  source: TelemetrySource;       // Nguồn dữ liệu: 'simulation' (Mô phỏng thuật toán) | 'device' (Thiết bị thật)
+  plcStationId?: string;         // Mã trạm PLC phụ trách đọc kênh dữ liệu (nếu có)
+  createdAt?: string;            // Thời gian ghi vào CSDL
+}
+
+/**
+ * Các tham số bộ lọc đa tiêu chí khi tra cứu hoặc xuất lịch sử hoạt động máy
+ */
+export interface TelemetryFilterParams {
+  lineId?: string;               // Lọc theo Dây chuyền ('all' hoặc mã Line cụ thể)
+  machineId?: string;            // Lọc theo Thiết bị ('all' hoặc mã Machine cụ thể)
+  metricId?: string;             // Lọc theo Chỉ số ('all' hoặc mã Metric cụ thể)
+  status?: SystemStatus | 'all'; // Lọc theo Trạng thái
+  startDate?: string;            // Ngày bắt đầu (định dạng YYYY-MM-DD)
+  endDate?: string;              // Ngày kết thúc (định dạng YYYY-MM-DD)
+  startTime?: string;            // Giờ bắt đầu (định dạng HH:mm)
+  endTime?: string;              // Giờ kết thúc (định dạng HH:mm)
+  page?: number;                 // Trang hiện tại (1-indexed)
+  limit?: number;                // Số bản ghi mỗi trang (UI: 1-100)
+  sortBy?: 'timestamp' | 'value' | 'lineId' | 'machineId' | 'status'; // Cột sắp xếp
+  sortOrder?: 'ASC' | 'DESC';    // Chiều sắp xếp (mặc định DESC)
+  isExport?: boolean;            // Cờ xuất dữ liệu (trả về toàn bộ tập dữ liệu khớp bộ lọc, max 10.000)
+}
+
+/**
+ * Metadata thông tin phân trang & trạng thái kết nối nguồn dữ liệu
+ */
+export interface TelemetryLogsMetadata {
+  totalRecords: number;          // Tổng số bản ghi thỏa mãn bộ lọc
+  page: number;                  // Trang hiện tại
+  limit: number;                 // Số bản ghi trên 1 trang
+  totalPages: number;            // Tổng số trang
+  appliedFilters: TelemetryFilterParams; // Các điều kiện lọc đã áp dụng
+  serverTimeUTC: string;         // Mốc thời gian UTC của máy chủ khi trả kết quả
+  dataSource: 'MySQL_Database' | 'Memory_Fallback'; // Nguồn cung cấp dữ liệu
+  status: 'ok' | 'degraded';     // Trạng thái vận hành: 'ok' (toàn vẹn) | 'degraded' (dự phòng)
+  isTruncated: boolean;          // Cờ báo hiệu kết quả có bị chạm trần giới hạn hay không
+  exportAllowed: boolean;        // Cho phép xuất hay từ chối (nếu vượt trần 10.000 dòng thì false)
+  maxExportLimit: number;        // Giới hạn trần an toàn (10.000 bản ghi)
+  warning?: string;              // Cảnh báo nếu đang chạy ở chế độ dự phòng hoặc vượt trần xuất
+}
+
+/**
+ * Cấu trúc phản hồi chuẩn API GET /api/telemetry/logs
+ */
+export interface TelemetryLogsResponse {
+  success: boolean;
+  metadata: TelemetryLogsMetadata;
+  data: MachineActivityLog[];
+}
+

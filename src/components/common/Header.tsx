@@ -19,6 +19,7 @@ const BREADCRUMBS: Record<string, { group: string; page: string }> = {
   lines:      { group: "Cấu hình",  page: "Luồng & Thành phần" },
   thresholds: { group: "Cấu hình",  page: "Cấu hình Ngưỡng & Trạm PLC" },
   alarms:     { group: "Giám sát",  page: "Nhật Ký Cảnh Báo & Sự Cố" },
+  history:    { group: "Giám sát",  page: "Lịch sử hoạt động máy" },
   users:      { group: "Quản trị",  page: "Quản Lý Người Dùng & Phân Quyền" },
   audit:      { group: "Kiểm toán", page: "Nhật Ký Kiểm Toán (Audit Logs)" },
   qr:         { group: "Tiện ích",  page: "Quét mã QR" },

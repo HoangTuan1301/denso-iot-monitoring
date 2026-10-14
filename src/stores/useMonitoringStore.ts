@@ -13,7 +13,7 @@ import { evaluateMetricStatus, calculateLineSafetyMetrics, convertPLCRawToEngine
 import { useAlarmStore } from './useAlarmStore';
 import { apiClient } from '../services/api';
 
-export type NavigationTab = 'dashboard' | 'lines' | 'thresholds' | 'alarms' | 'users' | 'audit' | 'qr' | 'settings';
+export type NavigationTab = 'dashboard' | 'lines' | 'thresholds' | 'alarms' | 'history' | 'users' | 'audit' | 'qr' | 'settings';
 
 export interface PLCStation {
   id: string;

@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
+  History,
 } from "lucide-react";
 import { Tooltip } from "@heroui/react";
 import { useMonitoringStore, NavigationTab } from "../../stores/useMonitoringStore";
@@ -63,6 +64,7 @@ export function Sidebar() {
     { id: "dashboard",  label: "Dashboard Tổng quan", icon: LayoutDashboard },
     { id: "lines",      label: "Chi tiết Component",  icon: Cpu },
     { id: "alarms",     label: "Danh sách Alert",     icon: Bell, badgeCount: pendingCount },
+    { id: "history",    label: "Lịch sử hoạt động",   icon: History },
   ];
 
   /* -------- Render 1 button menu -------- */

@@ -12,6 +12,7 @@ import { ThresholdConfigView } from './features/admin/ThresholdConfigView';
 import { UserManagementView } from './features/admin/UserManagementView';
 import { AuditLogView } from './features/audit/AuditLogView';
 import { AlarmLogView } from './features/alarms/AlarmLogView';
+import { MachineHistoryView } from './features/history/MachineHistoryView';
 import { LoginPage } from './features/auth/LoginPage';
 import { useMonitoringStore } from './stores/useMonitoringStore';
 import { useAuthStore } from './stores/useAuthStore';
@@ -139,6 +140,9 @@ export default function App() {
 
       case 'alarms':
         return <AlarmLogView />;
+
+      case 'history':
+        return <MachineHistoryView />;
 
       case 'qr':
         return (

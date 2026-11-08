@@ -10,8 +10,10 @@ import { PLCMappingConfig } from './plc';
  * - normal: An toàn / Bình thường (Màu xanh)
  * - warning: Cảnh báo vượt ngưỡng nhẹ (Màu vàng)
  * - critical: Nguy hiểm, cần can thiệp gấp (Màu đỏ nhấp nháy)
+ * - no_data / unknown: Chưa có dữ liệu đo lường thực tế (Màu xám)
+ * - offline: Mất kết nối / Ngừng hoạt động
  */
-export type SystemStatus = 'normal' | 'warning' | 'critical';
+export type SystemStatus = 'normal' | 'warning' | 'critical' | 'no_data' | 'unknown' | 'offline';
 
 /**
  * Điểm dữ liệu lịch sử theo thời gian phục vụ vẽ biểu đồ (Tầng 3)
@@ -50,6 +52,16 @@ export interface MetricIndicator {
 
   // Thời gian cập nhật gần nhất
   lastUpdated: string;
+
+  // Thuộc tính nguồn đo và chất lượng dữ liệu (Bước 2F-3)
+  dataSourceType?: 'FILE_INGEST' | 'PLC_DIRECT' | 'SIMULATED';
+  quality?: 'GOOD' | 'UNCERTAIN' | 'BAD';
+  isLive?: boolean;
+  isStale?: boolean;
+  measuredAt?: string;
+  ageSeconds?: number;
+  fileTagName?: string;
+  mappingCode?: string;
 }
 
 /**
@@ -62,13 +74,40 @@ export interface MetricIndicator {
 export interface MachineComponent {
   id: string;                    // Mã máy (ví dụ: "MC-CYL-01")
   name: string;                  // Tên thiết bị (ví dụ: "Máy xi-lanh ép thủy lực 01")
-  model: string;                 // Model máy (ví dụ: "SMC-HYD-500")
+  model?: string;                // Model máy (ví dụ: "SMC-HYD-500")
+  code?: string;                 // Mã code (ví dụ: "MC-CYL-01")
+  type?: string;                 // Phân loại máy (ví dụ: "Dập", "Hàn", "Sơn")
   lineId: string;                // Thuộc Dây chuyền nào (Khóa ngoại trỏ về Tầng 1)
-  status: SystemStatus;          // Trạng thái tổng hợp từ các chỉ số con
-  qrCode: string;                // Chuỗi nhận diện QR Code (ví dụ: "DENSO-MC-CYL-01")
-  location: string;              // Vị trí lắp đặt trong xưởng (ví dụ: "Trạm A3 - Khu vực 1")
+  lineName?: string;             // Tên dây chuyền gắn kèm
+  status: SystemStatus;          // Trạng thái tổng hợp từ các chỉ số con (giám sát)
+  managementStatus?: 'active' | 'inactive'; // Trạng thái quản lý thiết bị (đang sử dụng / ngừng sử dụng)
+  healthScore?: number | null;   // Điểm sức khỏe máy (0 - 100, hoặc null khi chưa có dữ liệu)
+  uptimeHours?: number;          // Số giờ vận hành
+  qrCode?: string;               // Chuỗi nhận diện QR Code
+  qrCodeUrl?: string;            // Đường dẫn hình ảnh QR
+  location?: string;             // Vị trí lắp đặt trong xưởng
+  description?: string | null;   // Mô tả kỹ thuật / ghi chú thiết bị
   metrics: MetricIndicator[];    // Danh sách các chỉ số kỹ thuật Tầng 3
   lastMaintenance?: string;      // Ngày bảo trì gần nhất
+  plc?: {
+    id: string;
+    name: string;
+    protocol: string;
+    status: string;
+    enabled: boolean;
+    isDemo: boolean;
+  } | null;
+  plcId?: string | null;
+  plcName?: string | null;
+  plcProtocol?: string | null;
+  plcStatus?: string | null;
+  mappingCount?: number;
+
+  // Thuộc tính nguồn dữ liệu máy (Bước 2F-3)
+  dataSourceType?: 'FILE_INGEST' | 'PLC_DIRECT' | 'SIMULATED';
+  streamStatus?: 'STREAMING' | 'IDLE' | 'STALE' | 'UNKNOWN';
+  lastFileIngestedAt?: string;
+  lastMeasuredAt?: string;
 }
 
 /**
@@ -85,8 +124,25 @@ export interface ProductionLine {
   status: SystemStatus;          // Trạng thái tổng quan của toàn dây chuyền
   safetyScore: number;           // Chỉ số an toàn toàn dây chuyền (0 - 100%)
   operatingHours: number;        // Số giờ hoạt động liên tục (hours)
+  targetOutput?: number;         // Sản lượng mục tiêu
+  actualOutput?: number;         // Sản lượng thực tế
+  machineCount?: number;         // Số lượng máy trực thuộc
   machines: MachineComponent[];  // Danh sách các máy/thiết bị trực thuộc (Tầng 2)
   description?: string;          // Mô tả nhiệm vụ của dây chuyền
+  plc?: {
+    id: string;
+    name: string;
+    protocol: string;
+    status: string;
+    enabled: boolean;
+    isDemo: boolean;
+    ipAddress?: string;
+    port?: number;
+  } | null;
+  plcId?: string | null;
+  plcName?: string | null;
+  plcProtocol?: string | null;
+  plcStatus?: string | null;
 }
 
 /**

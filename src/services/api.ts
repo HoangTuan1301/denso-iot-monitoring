@@ -6,6 +6,20 @@
 
 import { AuthResponse, UserProfile } from '../types/auth';
 import { AuditLogEntry } from '../types/audit';
+import { ProductionLine, MachineComponent } from '../types/hierarchy';
+import {
+  MetricCatalogItem,
+  MetricFilterParams,
+  MetricListResponse,
+  MetricUsageDetails,
+  CreateMetricPayload,
+  UpdateMetricPayload,
+  MetricMappingItem,
+  MetricThresholds,
+  CollectionSchedule,
+  CreateMappingPayload,
+  UpdateMappingPayload,
+} from '../types/metric';
 
 const TOKEN_KEY = 'denso_iot_access_token';
 const REFRESH_TOKEN_KEY = 'denso_iot_refresh_token';
@@ -92,7 +106,16 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || `Lỗi yêu cầu: ${response.statusText}`);
+      const error: any = new Error(data.message || `Lỗi yêu cầu: ${response.statusText}`);
+      error.status = response.status;
+      error.errorCode = data.errorCode;
+      error.code = data.code || data.errorCode;
+      error.data = data;
+      error.currentPlcId = data.currentPlcId;
+      error.currentPlcName = data.currentPlcName;
+      error.sourceMachineId = data.sourceMachineId;
+      error.sourceMachineName = data.sourceMachineName;
+      throw error;
     }
 
     return data as T;
@@ -221,5 +244,429 @@ export const apiClient = {
     } catch {
       // Không chặn luồng chính nếu ghi log thất bại
     }
+  },
+
+  // --- Metric Catalog (Danh mục Metric) ---
+  async getMetrics(filters: MetricFilterParams = {}): Promise<MetricListResponse> {
+    const params = new URLSearchParams();
+    if (filters.page) params.append('page', String(filters.page));
+    if (filters.limit) params.append('limit', String(filters.limit));
+    if (filters.search) params.append('search', filters.search);
+    if (filters.category && filters.category !== 'all') params.append('category', filters.category);
+    if (filters.dataType && filters.dataType !== 'all') params.append('dataType', filters.dataType);
+    if (filters.status && filters.status !== 'all') params.append('status', filters.status);
+    if (filters.sortBy) params.append('sortBy', filters.sortBy);
+    if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
+
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return request<MetricListResponse>(`/api/metrics${query}`);
+  },
+
+  async getMetricById(id: string): Promise<{ metric: MetricCatalogItem }> {
+    return request<{ metric: MetricCatalogItem }>(`/api/metrics/${encodeURIComponent(id)}`);
+  },
+
+  async getMetricUsage(id: string): Promise<{ usage: MetricUsageDetails }> {
+    return request<{ usage: MetricUsageDetails }>(`/api/metrics/${encodeURIComponent(id)}/usage`);
+  },
+
+  async createMetric(payload: CreateMetricPayload): Promise<{ message: string; metric: MetricCatalogItem }> {
+    return request<{ message: string; metric: MetricCatalogItem }>('/api/metrics', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async updateMetric(id: string, payload: UpdateMetricPayload): Promise<{ message: string; metric: MetricCatalogItem }> {
+    return request<{ message: string; metric: MetricCatalogItem }>(`/api/metrics/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async updateMetricStatus(id: string, status: 'ACTIVE' | 'INACTIVE'): Promise<{ message: string; metric: MetricCatalogItem }> {
+    return request<{ message: string; metric: MetricCatalogItem }>(`/api/metrics/${encodeURIComponent(id)}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  async deleteMetric(id: string): Promise<{ success: boolean; message: string; metric?: MetricCatalogItem }> {
+    return request<{ success: boolean; message: string; metric?: MetricCatalogItem }>(
+      `/api/metrics/${encodeURIComponent(id)}`,
+      {
+        method: 'DELETE',
+      }
+    );
+  },
+
+  // --- Production Lines (Bước 2B / 2F-1) ---
+  async getLines(filters: { status?: string; search?: string } = {}): Promise<{ lines: ProductionLine[] }> {
+    const params = new URLSearchParams();
+    if (filters.status && filters.status !== 'all') params.append('status', filters.status);
+    if (filters.search) params.append('search', filters.search);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return request<{ lines: ProductionLine[] }>(`/api/lines${query}`);
+  },
+
+  async getLineById(id: string): Promise<{ line: ProductionLine }> {
+    return request<{ line: ProductionLine }>(`/api/lines/${encodeURIComponent(id)}`);
+  },
+
+  // --- Machines & Components (Bước 2B / 2F-1) ---
+  async getMachines(filters: { lineId?: string; status?: string; type?: string; search?: string } = {}): Promise<{ machines: MachineComponent[] }> {
+    const params = new URLSearchParams();
+    if (filters.lineId && filters.lineId !== 'all') params.append('lineId', filters.lineId);
+    if (filters.status && filters.status !== 'all') params.append('status', filters.status);
+    if (filters.type && filters.type !== 'all') params.append('type', filters.type);
+    if (filters.search) params.append('search', filters.search);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return request<{ machines: MachineComponent[] }>(`/api/machines${query}`);
+  },
+
+  async getMachineById(id: string): Promise<{ machine: MachineComponent }> {
+    return request<{ machine: MachineComponent }>(`/api/machines/${encodeURIComponent(id)}`);
+  },
+
+  async createMachine(payload: {
+    lineId: string;
+    name: string;
+    code: string;
+    type?: string;
+    status?: string;
+    managementStatus?: 'active' | 'inactive';
+    location?: string;
+    description?: string;
+  }): Promise<{ message: string; machine: MachineComponent }> {
+    return request<{ message: string; machine: MachineComponent }>('/api/machines', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async updateMachine(
+    id: string,
+    payload: {
+      name?: string;
+      type?: string;
+      location?: string;
+      description?: string;
+      managementStatus?: 'active' | 'inactive';
+      status?: string;
+    }
+  ): Promise<{ message: string; machine: MachineComponent }> {
+    return request<{ message: string; machine: MachineComponent }>(`/api/machines/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  // --- PLC Stations (Bước 2B / 2F-1) ---
+  async getPLCStations(): Promise<{ stations: any[] }> {
+    return request<{ stations: any[] }>('/api/plc-stations');
+  },
+
+  // --- Line-Level PLC Assignment & Detachment (Kiến trúc theo Dây chuyền) ---
+  async assignLinePLC(
+    lineId: string,
+    payload: { plcId: string; confirmDestReplace?: boolean; confirmSourceTransfer?: boolean }
+  ): Promise<{ message: string; success: boolean; line?: any; plc?: any; transferredFromLine?: string; replacedPlc?: string }> {
+    return request<{ message: string; success: boolean; line?: any; plc?: any; transferredFromLine?: string; replacedPlc?: string }>(
+      `/api/lines/${encodeURIComponent(lineId)}/plc`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      }
+    );
+  },
+
+  async unassignLinePLC(
+    lineId: string
+  ): Promise<{ message: string; success: boolean; lineId?: string; unassignedPlcId?: string }> {
+    return request<{ message: string; success: boolean; lineId?: string; unassignedPlcId?: string }>(
+      `/api/lines/${encodeURIComponent(lineId)}/plc`,
+      {
+        method: 'DELETE',
+      }
+    );
+  },
+
+  // --- PLC Assignment & Detachment (Deprecated machine-level) ---
+  async assignPLC(
+    machineId: string,
+    payload: { plcId: string; confirmDestReplace?: boolean; confirmSourceTransfer?: boolean }
+  ): Promise<{ message: string; success: boolean; machine?: any; plc?: any }> {
+    return request<{ message: string; success: boolean; machine?: any; plc?: any }>(
+      `/api/machines/${encodeURIComponent(machineId)}/plc`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      }
+    );
+  },
+
+  async unassignPLC(
+    machineId: string
+  ): Promise<{ message: string; success: boolean; machineId?: string }> {
+    return request<{ message: string; success: boolean; machineId?: string }>(
+      `/api/machines/${encodeURIComponent(machineId)}/plc`,
+      {
+        method: 'DELETE',
+      }
+    );
+  },
+
+  // =========================================================================
+  // GIAI ĐOẠN 2 - BƯỚC 2C / 2F-2: MAPPINGS, THRESHOLDS & SCHEDULES
+  // =========================================================================
+
+  // --- Metric Mappings ---
+  async getMappings(filters: {
+    machineId?: string;
+    plcId?: string;
+    metricId?: string;
+    status?: string;
+    monitoring_enabled?: string;
+    search?: string;
+  } = {}): Promise<{ mappings: MetricMappingItem[] }> {
+    const params = new URLSearchParams();
+    if (filters.machineId && filters.machineId !== 'all') params.append('machineId', filters.machineId);
+    if (filters.plcId && filters.plcId !== 'all') params.append('plcId', filters.plcId);
+    if (filters.metricId && filters.metricId !== 'all') params.append('metricId', filters.metricId);
+    if (filters.status && filters.status !== 'all') params.append('status', filters.status);
+    if (filters.monitoring_enabled && filters.monitoring_enabled !== 'all') {
+      params.append('monitoring_enabled', filters.monitoring_enabled);
+    }
+    if (filters.search) params.append('search', filters.search);
+
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return request<{ mappings: MetricMappingItem[] }>(`/api/mappings${query}`);
+  },
+
+  async getMappingById(id: string): Promise<{ mapping: MetricMappingItem }> {
+    return request<{ mapping: MetricMappingItem }>(`/api/mappings/${encodeURIComponent(id)}`);
+  },
+
+  async createMapping(
+    payload: CreateMappingPayload
+  ): Promise<{ message: string; mapping: MetricMappingItem }> {
+    return request<{ message: string; mapping: MetricMappingItem }>('/api/mappings', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async updateMapping(
+    id: string,
+    payload: UpdateMappingPayload
+  ): Promise<{ message: string; mapping: MetricMappingItem }> {
+    return request<{ message: string; mapping: MetricMappingItem }>(
+      `/api/mappings/${encodeURIComponent(id)}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      }
+    );
+  },
+
+  async deactivateMapping(
+    id: string
+  ): Promise<{ message: string; mappingId: string; status: string; monitoring_enabled: number }> {
+    return request<{ message: string; mappingId: string; status: string; monitoring_enabled: number }>(
+      `/api/mappings/${encodeURIComponent(id)}/deactivate`,
+      {
+        method: 'PATCH',
+      }
+    );
+  },
+
+  async deleteMapping(id: string): Promise<{ success: boolean; message: string }> {
+    return request<{ success: boolean; message: string }>(`/api/mappings/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+  },
+
+  async assignMetricMachines(
+    id: string,
+    machineIds: string[]
+  ): Promise<{ success: boolean; message: string }> {
+    return request<{ success: boolean; message: string }>(
+      `/api/metrics/${encodeURIComponent(id)}/assign`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ machineIds }),
+      }
+    );
+  },
+
+  async toggleMappingMonitoring(
+    id: string,
+    enable: boolean
+  ): Promise<{ message: string; mapping: MetricMappingItem }> {
+    return request<{ message: string; mapping: MetricMappingItem }>(
+      `/api/mappings/${encodeURIComponent(id)}/monitoring`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ enable }),
+      }
+    );
+  },
+
+  // --- Metric Thresholds ---
+  async getThresholds(mappingId: string): Promise<{ thresholds: MetricThresholds | null }> {
+    return request<{ thresholds: MetricThresholds | null }>(
+      `/api/mappings/${encodeURIComponent(mappingId)}/thresholds`
+    );
+  },
+
+  async setThresholds(
+    mappingId: string,
+    payload: {
+      warning_min?: number | null;
+      warning_max?: number | null;
+      critical_min?: number | null;
+      critical_max?: number | null;
+      action_plan?: string | null;
+    }
+  ): Promise<{ message: string; thresholds: MetricThresholds }> {
+    return request<{ message: string; thresholds: MetricThresholds }>(
+      `/api/mappings/${encodeURIComponent(mappingId)}/thresholds`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      }
+    );
+  },
+
+  // --- Collection Schedules ---
+  async getSchedule(mappingId: string): Promise<{ schedule: CollectionSchedule | null }> {
+    return request<{ schedule: CollectionSchedule | null }>(
+      `/api/mappings/${encodeURIComponent(mappingId)}/schedule`
+    );
+  },
+
+  async setSchedule(
+    mappingId: string,
+    payload: {
+      frequency_type: 'INTERVAL' | 'CRON' | 'CONTINUOUS';
+      interval_seconds?: number | null;
+      cron_expression?: string | null;
+      is_active?: boolean;
+    }
+  ): Promise<{ message: string; schedule: CollectionSchedule }> {
+    return request<{ message: string; schedule: CollectionSchedule }>(
+      `/api/mappings/${encodeURIComponent(mappingId)}/schedule`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      }
+    );
+  },
+
+  // =========================================================================
+  // FILE INGESTION & REAL-TIME TELEMETRY APIS (GIAI ĐOẠN 2F-3)
+  // =========================================================================
+  async getLatestTelemetry(params?: { machineId?: string; lineId?: string }): Promise<{
+    success: boolean;
+    total: number;
+    timestamp: string;
+    data: Array<{
+      id: string;
+      lineId: string;
+      lineName?: string;
+      machineId: string;
+      machineName?: string;
+      metricId: string;
+      metricName?: string;
+      value: number;
+      unit: string;
+      status: string;
+      source: string;
+      dataSourceType: 'FILE_INGEST' | 'PLC_DIRECT' | 'SIMULATED';
+      fileTagName?: string;
+      quality: 'GOOD' | 'UNCERTAIN' | 'BAD';
+      isLive: boolean;
+      isStale: boolean;
+      ageSeconds: number;
+      measuredAt: string;
+      plcStationId?: string | null;
+      thresholds: {
+        warningMin: number | null;
+        warningMax: number | null;
+        criticalMin: number | null;
+        criticalMax: number | null;
+      };
+    }>;
+  }> {
+    const searchParams = new URLSearchParams();
+    if (params?.machineId && params.machineId !== 'all') searchParams.append('machineId', params.machineId);
+    if (params?.lineId && params.lineId !== 'all') searchParams.append('lineId', params.lineId);
+    const qs = searchParams.toString();
+    return request(`/api/telemetry/latest${qs ? `?${qs}` : ''}`);
+  },
+
+  async getIngestionStatus(): Promise<{
+    enabled: boolean;
+    status: 'RUNNING' | 'PAUSED' | 'DISABLED';
+    watchDirectory: string | null;
+    activeProfiles: number;
+    profiles: Array<{ profileId: string; name: string; mode: string; expectedCycleSeconds: number }>;
+    stats: Record<string, number> | null;
+    database: string;
+    timestamp: string;
+  }> {
+    return request('/api/ingestion/status');
+  },
+
+  async getIngestionFiles(params?: { limit?: number; status?: string; machineId?: string }): Promise<{
+    files: Array<{
+      id: string;
+      file_hash: string;
+      file_name: string;
+      file_size: number;
+      machine_id: string | null;
+      total_records: number;
+      valid_records: number;
+      error_records: number;
+      conflict_records: number;
+      status: 'PROCESSING' | 'COMMITTED' | 'FAILED' | 'DUPLICATE' | 'PARTIAL';
+      error_details?: string | null;
+      file_modified_at?: string | null;
+      ingested_at: string;
+      processed_at?: string | null;
+    }>;
+    total: number;
+    limit: number;
+  }> {
+    const searchParams = new URLSearchParams();
+    if (params?.limit) searchParams.append('limit', String(params.limit));
+    if (params?.status) searchParams.append('status', params.status);
+    if (params?.machineId) searchParams.append('machineId', params.machineId);
+    const qs = searchParams.toString();
+    return request(`/api/ingestion/files${qs ? `?${qs}` : ''}`);
+  },
+
+  async getIngestionConflicts(params?: { limit?: number; fileId?: string; machineId?: string }): Promise<{
+    conflicts: Array<{
+      id: string;
+      file_id: string;
+      machine_id: string;
+      mapping_code: string;
+      data_no: number;
+      measured_at: string;
+      existing_value: number;
+      incoming_value: number;
+      resolution: string;
+      detected_at: string;
+    }>;
+    total: number;
+    limit: number;
+  }> {
+    const searchParams = new URLSearchParams();
+    if (params?.limit) searchParams.append('limit', String(params.limit));
+    if (params?.fileId) searchParams.append('fileId', params.fileId);
+    if (params?.machineId) searchParams.append('machineId', params.machineId);
+    const qs = searchParams.toString();
+    return request(`/api/ingestion/conflicts${qs ? `?${qs}` : ''}`);
   },
 };

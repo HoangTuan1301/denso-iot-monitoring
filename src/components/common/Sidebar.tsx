@@ -15,8 +15,9 @@ import {
   ChevronRight,
   ShieldCheck,
   History,
+  Gauge,
 } from "lucide-react";
-import { Tooltip } from "@heroui/react";
+import { Tooltip } from "./Tooltip";
 import { useMonitoringStore, NavigationTab } from "../../stores/useMonitoringStore";
 import { useAlarmStore } from "../../stores/useAlarmStore";
 import { useAuthStore } from "../../stores/useAuthStore";
@@ -25,6 +26,7 @@ import { useState } from "react";
 interface NavItem {
   id: NavigationTab;
   label: string;
+  group: 'config' | 'monitoring';
   icon: typeof LayoutDashboard;
   badgeCount?: number;
 }
@@ -33,7 +35,7 @@ interface NavItem {
 /* Sidebar Component                                                    */
 /* ------------------------------------------------------------------ */
 export function Sidebar() {
-  const { activeTab, setActiveTab } = useMonitoringStore();
+  const { activeTab, activeNavGroup, setActiveTab } = useMonitoringStore();
   const { alarms }                  = useAlarmStore();
   const { currentUser }             = useAuthStore();
   const [collapsed, setCollapsed]   = useState(false);
@@ -45,37 +47,43 @@ export function Sidebar() {
 
   /* -------- Danh sách menu theo phân quyền RBAC -------- */
   const configItems: NavItem[] = [
-    { id: "lines", label: "Luồng & Thành phần", icon: GitBranch },
+    { id: "lines", group: "config", label: "Dây chuyền & Thiết bị", icon: GitBranch },
+    { id: "metrics", group: "config", label: "Danh mục Thông số", icon: Gauge },
   ];
 
   if (isAdmin || isMaintenance) {
-    configItems.push({ id: "thresholds", label: "Mapping & Ngưỡng", icon: ArrowLeftRight });
+    configItems.push({ id: "thresholds", group: "config", label: "Mapping & Ngưỡng cảnh báo", icon: ArrowLeftRight });
   }
 
   if (isAdmin) {
-    configItems.push({ id: "users", label: "Quản lý Người dùng", icon: Users });
+    configItems.push({ id: "users", group: "config", label: "Quản lý Tài khoản", icon: Users });
   }
 
   if (isAdmin || isMaintenance) {
-    configItems.push({ id: "audit", label: "Nhật ký Audit", icon: ShieldCheck });
+    configItems.push({ id: "audit", group: "config", label: "Nhật ký Hệ thống", icon: ShieldCheck });
   }
 
   const monitoringItems: NavItem[] = [
-    { id: "dashboard",  label: "Dashboard Tổng quan", icon: LayoutDashboard },
-    { id: "lines",      label: "Chi tiết Component",  icon: Cpu },
-    { id: "alarms",     label: "Danh sách Alert",     icon: Bell, badgeCount: pendingCount },
-    { id: "history",    label: "Lịch sử hoạt động",   icon: History },
+    { id: "dashboard",  group: "monitoring", label: "Dashboard Tổng quan", icon: LayoutDashboard },
+    { id: "devices",    group: "monitoring", label: "Giám sát Thiết bị",   icon: Cpu },
+    { id: "alarms",     group: "monitoring", label: "Cảnh báo & Sự cố",    icon: Bell, badgeCount: pendingCount },
+    { id: "history",    group: "monitoring", label: "Lịch sử Dữ liệu",     icon: History },
   ];
 
   /* -------- Render 1 button menu -------- */
   const NavBtn = ({ item }: { item: NavItem }) => {
     const Icon     = item.icon;
-    const isActive = activeTab === item.id;
+    const isActive =
+      item.id === "devices"
+        ? activeTab === "devices" || (activeTab === "lines" && activeNavGroup === "monitoring")
+        : item.id === "lines"
+        ? activeTab === "lines" && activeNavGroup === item.group
+        : activeTab === item.id;
     const hasBadge = (item.badgeCount ?? 0) > 0;
 
     const inner = (
       <button
-        onClick={() => setActiveTab(item.id)}
+        onClick={() => setActiveTab(item.id, item.group)}
         className={[
           // === layout ===
           "w-full flex flex-row items-center gap-3 rounded-xl",
@@ -98,9 +106,9 @@ export function Sidebar() {
           ].join(" ")}
         />
 
-        {/* Label — chỉ hiện khi mở rộng */}
+        {/* Label — chỉ hiện khi mở rộng (line-height chuẩn tránh cắt nét g, y, p, q và dấu tiếng Việt) */}
         {!collapsed && (
-          <span className="flex-1 truncate text-left leading-none font-medium">
+          <span className="flex-1 truncate text-left leading-normal py-0.5 font-medium">
             {item.label}
           </span>
         )}
@@ -133,12 +141,12 @@ export function Sidebar() {
   }) => (
     <div className="space-y-1">
       {!collapsed && (
-        <p className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+        <p className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 leading-normal py-0.5">
           {title}
         </p>
       )}
       {items.map((item) => (
-        <NavBtn key={`${item.id}-${item.label}`} item={item} />
+        <NavBtn key={`${item.group}-${item.id}-${item.label}`} item={item} />
       ))}
     </div>
   );
@@ -184,27 +192,29 @@ export function Sidebar() {
           )}
 
           {/* Nút Toggle thu gọn/mở rộng */}
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            aria-label="Toggle Sidebar"
-            className={[
-              "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg cursor-pointer",
-              "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors",
-              collapsed ? "absolute -right-3 top-4 bg-factory-card border border-factory-border shadow-sm rounded-full h-6 w-6 z-40" : "ml-1",
-            ].join(" ")}
-          >
-            {collapsed ? (
-              <ChevronRight className="h-3.5 w-3.5" />
-            ) : (
-              <ChevronLeft className="h-4 w-4" />
-            )}
-          </button>
+          <Tooltip content={collapsed ? "Mở rộng thanh điều hướng" : "Thu gọn thanh điều hướng"} placement={collapsed ? "right" : "bottom"}>
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              aria-label="Toggle Sidebar"
+              className={[
+                "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg cursor-pointer",
+                "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors",
+                collapsed ? "absolute -right-3 top-4 bg-factory-card border border-factory-border shadow-sm rounded-full h-6 w-6 z-40" : "ml-1",
+              ].join(" ")}
+            >
+              {collapsed ? (
+                <ChevronRight className="h-3.5 w-3.5" />
+              ) : (
+                <ChevronLeft className="h-4 w-4" />
+              )}
+            </button>
+          </Tooltip>
         </div>
 
         {/* -------- MENU NHÓM -------- */}
         <nav className="px-3 py-5 space-y-6">
-          <NavGroup title="Cấu hình" items={configItems} />
-          <NavGroup title="Giám sát" items={monitoringItems} />
+          <NavGroup title="NHÓM CẤU HÌNH" items={configItems} />
+          <NavGroup title="NHÓM GIÁM SÁT" items={monitoringItems} />
         </nav>
       </div>
     </aside>

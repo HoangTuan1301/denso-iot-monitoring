@@ -3,7 +3,8 @@
  * @description Nút bấm chuyển đổi nhanh giao diện Sáng / Tối (Light / Dark Mode)
  */
 
-import { Button, Tooltip } from '@heroui/react';
+import { Button } from '@heroui/react';
+import { Tooltip } from './Tooltip';
 import { Sun, Moon } from 'lucide-react';
 import { useThemeStore } from '../../stores/useThemeStore';
 

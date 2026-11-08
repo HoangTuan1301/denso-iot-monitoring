@@ -124,3 +124,22 @@
   50%       { opacity: 0.35; }
 }
 .animate-alarm-blink { animation: alarmBlink 1.1s ease-in-out infinite; }
+
+/* ============================================================
+   MODAL BACKDROP & OVERLAY — Đảm bảo phủ kín 100% viewport
+   Nổi trên Header (z-20) và Sidebar (z-30) với màu đen mờ đồng nhất
+   ============================================================ */
+div[data-slot="backdrop"] {
+  background-color: rgba(2, 6, 23, 0.75) !important;
+  backdrop-filter: blur(3px) !important;
+  -webkit-backdrop-filter: blur(3px) !important;
+  z-index: 9998 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  position: fixed !important;
+  inset: 0 !important;
+}
+
+div[data-slot="wrapper"] {
+  z-index: 9999 !important;
+}

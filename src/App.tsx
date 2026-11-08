@@ -8,11 +8,13 @@ import { useEffect } from 'react';
 import { MainLayout } from './layouts/MainLayout';
 import { LineOverviewDashboard } from './features/tier1-lines/LineOverviewDashboard';
 import { MachineListView } from './features/tier2-machines/MachineListView';
+import { DeviceMonitoringView } from './features/tier2-machines/DeviceMonitoringView';
 import { ThresholdConfigView } from './features/admin/ThresholdConfigView';
 import { UserManagementView } from './features/admin/UserManagementView';
 import { AuditLogView } from './features/audit/AuditLogView';
 import { AlarmLogView } from './features/alarms/AlarmLogView';
 import { MachineHistoryView } from './features/history/MachineHistoryView';
+import { MetricCatalogView } from './features/metrics/MetricCatalogView';
 import { LoginPage } from './features/auth/LoginPage';
 import { useMonitoringStore } from './stores/useMonitoringStore';
 import { useAuthStore } from './stores/useAuthStore';
@@ -22,7 +24,19 @@ import { Card, CardBody, Button } from '@heroui/react';
 import { QrCode, ShieldAlert } from 'lucide-react';
 
 export default function App() {
-  const { activeTab, setActiveTab, isRealtimeActive, simulateTick } = useMonitoringStore();
+  const {
+    activeTab,
+    activeNavGroup,
+    setActiveTab,
+    isRealtimeActive,
+    simulateTick,
+    fetchLines,
+    fetchMachines,
+    fetchLatestTelemetry,
+    fetchIngestionOverview,
+    handleLiveTelemetryPacket,
+    handleHistoricalBatchIngested,
+  } = useMonitoringStore();
   const { currentUser, isAuthenticated, checkAuth } = useAuthStore();
   const theme = useThemeStore((state) => state.theme);
 
@@ -36,7 +50,17 @@ export default function App() {
     checkAuth();
   }, [checkAuth]);
 
-  // Kết nối WebSocket IoT Server và lắng nghe luồng telemetry
+  // Tải dữ liệu ban đầu từ MySQL Backend khi người dùng đã xác thực
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchLines();
+      fetchMachines();
+      fetchLatestTelemetry();
+      fetchIngestionOverview();
+    }
+  }, [isAuthenticated, fetchLines, fetchMachines, fetchLatestTelemetry, fetchIngestionOverview]);
+
+  // Kết nối WebSocket IoT Server và lắng nghe luồng telemetry + file ingestion
   useEffect(() => {
     socketClient.connect();
 
@@ -46,11 +70,46 @@ export default function App() {
       }
     });
 
+    const unsubTelemetry = socketClient.on('telemetry_packet', (msg: any) => {
+      const packet = msg.payload || msg;
+      handleLiveTelemetryPacket(packet);
+    });
+
+    const unsubHistorical = socketClient.on('historical_batch_ingested', (msg: any) => {
+      const batch = msg.payload || msg;
+      handleHistoricalBatchIngested(batch);
+      // Tự động đồng bộ lại overview khi có file mới xử lý xong
+      fetchIngestionOverview();
+    });
+
+    const unsubIngestionStatus = socketClient.on('ingestion_status_changed', () => {
+      fetchIngestionOverview();
+    });
+
+    // Đồng bộ lại khi WebSocket phục hồi kết nối (Reconnect Synchronization)
+    const unsubStatus = socketClient.onStatusChange((connected) => {
+      if (connected) {
+        fetchLatestTelemetry();
+        fetchIngestionOverview();
+      }
+    });
+
     return () => {
       unsubTick();
+      unsubTelemetry();
+      unsubHistorical();
+      unsubIngestionStatus();
+      unsubStatus();
       socketClient.disconnect();
     };
-  }, [isRealtimeActive, simulateTick]);
+  }, [
+    isRealtimeActive,
+    simulateTick,
+    handleLiveTelemetryPacket,
+    handleHistoricalBatchIngested,
+    fetchLatestTelemetry,
+    fetchIngestionOverview,
+  ]);
 
   // Màn hình Đăng nhập mặc định khi chưa xác thực
   if (!isAuthenticated) {
@@ -66,7 +125,13 @@ export default function App() {
       case 'dashboard':
         return <LineOverviewDashboard />;
 
+      case 'devices':
+        return <DeviceMonitoringView />;
+
       case 'lines':
+        if (activeNavGroup === 'monitoring') {
+          return <DeviceMonitoringView />;
+        }
         return <MachineListView />;
 
       case 'thresholds':
@@ -162,7 +227,10 @@ export default function App() {
           </Card>
         );
 
+      case 'metrics':
       case 'settings':
+        return <MetricCatalogView />;
+
       default:
         return <LineOverviewDashboard />;
     }

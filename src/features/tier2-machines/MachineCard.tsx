@@ -26,9 +26,10 @@ interface MachineCardProps {
 export function MachineCard({ machine, lineName, onOpenDetails, onOpenQR }: MachineCardProps) {
   const isCritical = machine.status === 'critical';
   const isWarning = machine.status === 'warning';
+  const isNormal = machine.status === 'normal';
 
-  const statusColor = isCritical ? 'danger' : isWarning ? 'warning' : 'success';
-  const StatusIcon = isCritical ? AlertOctagon : isWarning ? AlertTriangle : ShieldCheck;
+  const statusColor = isCritical ? 'danger' : isWarning ? 'warning' : isNormal ? 'success' : 'default';
+  const StatusIcon = isCritical ? AlertOctagon : isWarning ? AlertTriangle : isNormal ? ShieldCheck : Cpu;
 
   return (
     <Card
@@ -55,18 +56,31 @@ export function MachineCard({ machine, lineName, onOpenDetails, onOpenQR }: Mach
                 startContent={<StatusIcon className={`w-3.5 h-3.5 ${isCritical ? 'animate-alarm-blink text-rose-400' : ''}`} />}
                 className="font-semibold text-xs capitalize"
               >
-                {machine.status === 'normal'
+                {isNormal
                   ? 'Bình thường'
-                  : machine.status === 'warning'
+                  : isWarning
                   ? 'Cảnh báo'
-                  : 'Nguy hiểm'}
+                  : isCritical
+                  ? 'Nguy hiểm'
+                  : 'Chưa có dữ liệu'}
               </Chip>
             </div>
             <h3 className="text-sm font-bold text-white mt-1 line-clamp-1">{machine.name}</h3>
-            <p className="text-[11px] text-gray-400 font-mono">
-              Model: <span className="text-gray-300 font-semibold">{machine.model}</span>
-              {lineName && ` • ${lineName}`}
-            </p>
+            <div className="flex flex-wrap items-center gap-2 mt-1">
+              <p className="text-[11px] text-gray-400 font-mono">
+                Model: <span className="text-gray-300 font-semibold">{machine.model}</span>
+                {lineName && ` • ${lineName}`}
+              </p>
+              {machine.dataSourceType === 'FILE_INGEST' ? (
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                  FILE INGEST (TEST)
+                </span>
+              ) : (
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                  MODBUS: KHÔNG KẾT NỐI
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Biểu tượng CPU máy */}
@@ -91,7 +105,7 @@ export function MachineCard({ machine, lineName, onOpenDetails, onOpenQR }: Mach
               startContent={<QrCode className="w-3 h-3" />}
               onPress={() => onOpenQR(machine)}
             >
-              QR: {machine.qrCode.split('-').slice(-2).join('-')}
+              QR: {(machine.qrCode || machine.id).split('-').slice(-2).join('-')}
             </Button>
           </div>
 
@@ -105,6 +119,8 @@ export function MachineCard({ machine, lineName, onOpenDetails, onOpenQR }: Mach
             {machine.metrics.map((metric) => {
               const isCrit = metric.status === 'critical';
               const isWarn = metric.status === 'warning';
+              const quality = metric.quality || 'GOOD';
+              const isFile = metric.dataSourceType === 'FILE_INGEST';
 
               return (
                 <div
@@ -118,26 +134,62 @@ export function MachineCard({ machine, lineName, onOpenDetails, onOpenQR }: Mach
                       : 'bg-factory-bg/50 border-factory-border/70 hover:border-gray-600'
                   }`}
                 >
-                  <div className="truncate max-w-[150px]">
-                    <p className="text-gray-300 font-medium truncate">{metric.name}</p>
-                    <p className="text-[10px] text-gray-500 font-mono">
-                      PLC: {metric.plcMapping?.address} ({metric.plcMapping?.dataType})
-                    </p>
+                  <div className="truncate max-w-[170px]">
+                    <div className="flex items-center gap-1.5">
+                      {/* Quality dot */}
+                      <span
+                        className={`w-2 h-2 rounded-full shrink-0 ${
+                          quality === 'GOOD'
+                            ? 'bg-emerald-400 shadow-xs shadow-emerald-400/50'
+                            : quality === 'UNCERTAIN'
+                            ? 'bg-amber-400'
+                            : 'bg-rose-500'
+                        }`}
+                        title={`Chất lượng dữ liệu: ${quality}`}
+                      />
+                      <p className="text-gray-300 font-medium truncate">{metric.name}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-gray-400 font-mono">
+                      {isFile ? (
+                        <span>CSV: {metric.fileTagName || metric.mappingCode || 'log215'}</span>
+                      ) : (
+                        <span>PLC: {metric.plcMapping?.address || 'N/A'}</span>
+                      )}
+                      {metric.measuredAt && (
+                        <span className="text-gray-500 text-[9px] truncate">
+                          &bull; {metric.measuredAt.replace('T', ' ').slice(0, 19)}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="text-right">
-                    <span
-                      className={`font-mono font-bold text-sm ${
-                        isCrit
-                          ? 'text-rose-400'
-                          : isWarn
-                          ? 'text-amber-400'
-                          : 'text-emerald-400'
-                      }`}
-                    >
-                      {metric.currentValue}
+                  <div className="text-right shrink-0">
+                    <div className="flex items-center justify-end gap-1">
+                      {metric.isStale && (
+                        <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-amber-950/50 text-amber-400 border border-amber-800/40">
+                          STALE
+                        </span>
+                      )}
+                      {isFile && (
+                        <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-blue-950/40 text-blue-400 border border-blue-800/40">
+                          FILE
+                        </span>
+                      )}
+                      <span
+                        className={`font-mono font-bold text-sm ${
+                          isCrit
+                            ? 'text-rose-400'
+                            : isWarn
+                            ? 'text-amber-400'
+                            : 'text-emerald-400'
+                        }`}
+                      >
+                        {metric.currentValue}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-gray-400 font-mono">
+                      {metric.unit && metric.unit !== 'N/A' && metric.unit !== '-' ? metric.unit : 'raw'}
                     </span>
-                    <span className="text-[10px] text-gray-400 ml-1 font-mono">{metric.unit}</span>
                   </div>
                 </div>
               );

@@ -19,6 +19,8 @@ import { MetricIndicator } from '../../types/hierarchy';
 interface MetricHistoryChartProps {
   metric: MetricIndicator;
   height?: number;
+  customData?: Array<{ timestamp: string; value: number }>;
+  isDatabaseSource?: boolean;
 }
 
 // Tooltip tùy biến chuẩn Dark Mode công nghiệp
@@ -46,7 +48,12 @@ function CustomTooltip({ active, payload, label, unit }: CustomTooltipProps) {
   return null;
 }
 
-export function MetricHistoryChart({ metric, height = 280 }: MetricHistoryChartProps) {
+export function MetricHistoryChart({
+  metric,
+  height = 280,
+  customData,
+  isDatabaseSource = false,
+}: MetricHistoryChartProps) {
   const isCritical = metric.status === 'critical';
   const isWarning = metric.status === 'warning';
 
@@ -55,10 +62,12 @@ export function MetricHistoryChart({ metric, height = 280 }: MetricHistoryChartP
   const fillColor = isCritical ? '#EF4444' : isWarning ? '#F59E0B' : '#10B981';
   const gradientId = `gradient-${metric.id}`;
 
+  const chartData = customData && customData.length > 0 ? customData : metric.history;
+
   // Tính toán dải trục Y tối ưu
-  const values = metric.history.map((h) => h.value);
-  const minVal = Math.min(...values, metric.criticalMin, metric.warningMin);
-  const maxVal = Math.max(...values, metric.criticalMax, metric.warningMax);
+  const values = chartData.map((h) => h.value);
+  const minVal = values.length > 0 ? Math.min(...values, metric.criticalMin, metric.warningMin) : 0;
+  const maxVal = values.length > 0 ? Math.max(...values, metric.criticalMax, metric.warningMax) : 100;
   const padding = (maxVal - minVal) * 0.15 || 5;
 
   const yDomainMin = Number((minVal - padding).toFixed(1));
@@ -67,7 +76,14 @@ export function MetricHistoryChart({ metric, height = 280 }: MetricHistoryChartP
   return (
     <div className="w-full">
       <div className="flex flex-wrap items-center justify-between text-xs text-slate-600 dark:text-gray-400 mb-2 gap-2">
-        <span className="font-semibold text-slate-800 dark:text-gray-300">Biến thiên thời gian thực:</span>
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-slate-800 dark:text-gray-300">Biến thiên chuỗi thời gian:</span>
+          {isDatabaseSource && (
+            <span className="px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono">
+              MySQL TEST
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-3 text-[11px] font-mono">
           <span className="flex items-center gap-1">
             <span className="w-2.5 h-0.5 bg-rose-500 inline-block"></span>
@@ -79,14 +95,14 @@ export function MetricHistoryChart({ metric, height = 280 }: MetricHistoryChartP
           </span>
           <span className="flex items-center gap-1">
             <span className="w-2.5 h-1.5 rounded-sm bg-emerald-500 inline-block"></span>
-            <span>Thực tế ({metric.unit})</span>
+            <span>Thực tế ({metric.unit || 'raw'})</span>
           </span>
         </div>
       </div>
 
       <div style={{ width: '100%', height }} className="relative">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={metric.history} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
             <defs>
               <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={fillColor} stopOpacity={0.4} />

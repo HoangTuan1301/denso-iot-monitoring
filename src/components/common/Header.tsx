@@ -16,14 +16,16 @@ import { socketClient }       from "../../services/socket";
 /* ------------------------------------------------------------------ */
 const BREADCRUMBS: Record<string, { group: string; page: string }> = {
   dashboard:  { group: "Giám sát",  page: "Dashboard Tổng quan" },
-  lines:      { group: "Cấu hình",  page: "Luồng & Thành phần" },
-  thresholds: { group: "Cấu hình",  page: "Cấu hình Ngưỡng & Trạm PLC" },
-  alarms:     { group: "Giám sát",  page: "Nhật Ký Cảnh Báo & Sự Cố" },
-  history:    { group: "Giám sát",  page: "Lịch sử hoạt động máy" },
-  users:      { group: "Quản trị",  page: "Quản Lý Người Dùng & Phân Quyền" },
-  audit:      { group: "Kiểm toán", page: "Nhật Ký Kiểm Toán (Audit Logs)" },
+  devices:    { group: "Giám sát",  page: "Giám sát Thiết bị" },
+  lines:      { group: "Cấu hình",  page: "Dây chuyền & Thiết bị" },
+  metrics:    { group: "Cấu hình",  page: "Danh mục Thông số" },
+  thresholds: { group: "Cấu hình",  page: "Mapping & Ngưỡng cảnh báo" },
+  users:      { group: "Cấu hình",  page: "Quản lý Tài khoản" },
+  audit:      { group: "Cấu hình",  page: "Nhật ký Hệ thống" },
+  alarms:     { group: "Giám sát",  page: "Cảnh báo & Sự cố" },
+  history:    { group: "Giám sát",  page: "Lịch sử Dữ liệu" },
   qr:         { group: "Tiện ích",  page: "Quét mã QR" },
-  settings:   { group: "Cấu hình",  page: "Danh mục Metric & Hệ thống" },
+  settings:   { group: "Cấu hình",  page: "Danh mục Thông số & Hệ thống" },
 };
 
 /* ------------------------------------------------------------------ */
@@ -32,6 +34,7 @@ const BREADCRUMBS: Record<string, { group: string; page: string }> = {
 export function Header() {
   const {
     activeTab,
+    activeNavGroup,
     isRealtimeActive,
     toggleRealtime,
     simulateTick,
@@ -83,7 +86,11 @@ export function Header() {
     return () => clearInterval(id);
   }, []);
 
-  const { group, page } = BREADCRUMBS[activeTab] ?? BREADCRUMBS.dashboard;
+  const currentBreadcrumb =
+    activeTab === "devices" || (activeTab === "lines" && activeNavGroup === "monitoring")
+      ? { group: "Giám sát", page: "Giám sát Thiết bị" }
+      : BREADCRUMBS[activeTab] ?? BREADCRUMBS.dashboard;
+  const { group, page } = currentBreadcrumb;
   const userRole        = (currentUser?.role || "OPERATOR").toUpperCase();
   const isAdmin         = userRole === "ADMIN";
 

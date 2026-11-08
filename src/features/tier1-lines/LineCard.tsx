@@ -13,7 +13,8 @@ import {
   Layers, 
   Clock, 
   ArrowRight,
-  Activity
+  Activity,
+  Cpu
 } from 'lucide-react';
 import { ProductionLine } from '../../types/hierarchy';
 import { useMonitoringStore } from '../../stores/useMonitoringStore';
@@ -55,7 +56,7 @@ export function LineCard({ line, onViewDetails }: LineCardProps) {
     if (onViewDetails) {
       onViewDetails(line.id);
     } else {
-      setActiveTab('lines');
+      setActiveTab('lines', 'monitoring');
     }
   };
 
@@ -173,6 +174,37 @@ export function LineCard({ line, onViewDetails }: LineCardProps) {
               <p className="font-mono font-bold text-slate-900 dark:text-white mt-0.5 truncate">
                 {line.operatingHours}h liên tục
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Trạm PLC của Dây chuyền (Kiến trúc 1 Line - 1 PLC - Gắn sẵn theo yêu cầu) */}
+        <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 dark:bg-factory-bg/50 border border-slate-200 dark:border-factory-border/60 text-xs">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <Cpu className="w-4 h-4 text-blue-500 dark:text-blue-400 shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider truncate">
+                Trạm PLC Dây Chuyền (Gắn Sẵn)
+              </p>
+              {line.plc ? (
+                <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                  <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">
+                    {line.plc.name}
+                  </span>
+                  {line.plc.isDemo && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 shrink-0">
+                      MÔ PHỎNG / DEMO
+                    </span>
+                  )}
+                  <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 shrink-0">
+                    {line.plc.status === 'CONNECTED' ? 'CONNECTED' : 'CHƯA KẾT NỐI VẬT LÝ (UNKNOWN)'}
+                  </span>
+                </div>
+              ) : (
+                <p className="text-slate-400 dark:text-slate-500 italic text-[11px] mt-0.5">
+                  Chưa cấu hình trạm PLC
+                </p>
+              )}
             </div>
           </div>
         </div>

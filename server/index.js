@@ -15,7 +15,12 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import multer from 'multer';
 import { WebSocketServer, WebSocket } from 'ws';
-import { mysqlDb } from './db-mysql.js';
+import * as mysqlDb from './db-mysql.js';
+import { WebSocketTelemetryService } from './telemetry/WebSocketTelemetryService.js';
+import { TelemetryEngine } from './telemetry/TelemetryEngine.js';
+import { ResilientBatchBuffer } from './telemetry/ResilientBatchBuffer.js';
+import { FileIngestionService } from './ingestion/FileIngestionService.js';
+import { defaultProfileRegistry } from './ingestion/FileProfileRegistry.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -73,6 +78,18 @@ wss.on('error', (err) => {
   console.error('[WSS Server Error]:', err.message);
 });
 
+// Khởi tạo Dịch vụ Telemetry v2 và Bộ đệm Batch Buffer
+export const wsService = new WebSocketTelemetryService(wss);
+export const batchBuffer = new ResilientBatchBuffer();
+export const telemetryEngine = new TelemetryEngine({
+  pool: null, // Sẽ được cập nhật khi CSDL kết nối thành công
+  buffer: batchBuffer,
+  onTelemetryPacket: (packet) => {
+    wsService.broadcastTelemetry(packet);
+  },
+});
+export let fileIngestionService = null;
+
 // Hàm broadcast tới toàn bộ client đang kết nối
 function broadcast(message) {
   const payload = JSON.stringify(message);
@@ -100,7 +117,7 @@ function authenticateToken(req, res, next) {
 
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
-      return res.status(403).json({ message: 'Phiên làm việc hết hạn hoặc token không hợp lệ.' });
+      return res.status(401).json({ message: 'Phiên làm việc đã hết hạn hoặc token không hợp lệ. Vui lòng đăng nhập lại.' });
     }
     req.user = decoded;
     next();
@@ -580,6 +597,709 @@ app.post('/api/audit-logs', authenticateToken, async (req, res) => {
 });
 
 // =========================================================================
+// PRODUCTION LINES APIS (DÂY CHUYỀN SẢN XUẤT - BƯỚC 2B)
+// =========================================================================
+
+// Lấy danh sách dây chuyền sản xuất kèm bộ lọc và tổng số máy
+app.get(
+  '/api/lines',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE', 'OPERATOR']),
+  async (req, res) => {
+    try {
+      const lines = await mysqlDb.getProductionLines(req.query);
+      res.json({ lines });
+    } catch (err) {
+      console.error('[Get Production Lines Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi lấy danh sách dây chuyền sản xuất.',
+      });
+    }
+  }
+);
+
+// Lấy chi tiết dây chuyền theo ID kèm danh sách máy và trạm PLC
+app.get(
+  '/api/lines/:id',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE', 'OPERATOR']),
+  async (req, res) => {
+    try {
+      const line = await mysqlDb.getProductionLineById(req.params.id);
+      if (!line) {
+        return res.status(404).json({ message: `Không tìm thấy dây chuyền với ID: ${req.params.id}` });
+      }
+      res.json({ line });
+    } catch (err) {
+      console.error('[Get Production Line By ID Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi lấy thông tin dây chuyền.',
+      });
+    }
+  }
+);
+
+// Tạo mới dây chuyền (Chỉ Admin)
+app.post(
+  '/api/lines',
+  authenticateToken,
+  requireRole(['ADMIN']),
+  async (req, res) => {
+    try {
+      const { name, code } = req.body;
+      if (!name || typeof name !== 'string' || !name.trim()) {
+        return res.status(400).json({ message: 'Tên dây chuyền (name) là bắt buộc.' });
+      }
+      if (!code || typeof code !== 'string' || !code.trim()) {
+        return res.status(400).json({ message: 'Mã dây chuyền (code) là bắt buộc.' });
+      }
+
+      const ipAddress = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+      const newLine = await mysqlDb.createProductionLine(req.body, req.user, ipAddress);
+
+      broadcast({ type: 'line_created', data: newLine });
+      res.status(201).json({
+        message: 'Tạo dây chuyền sản xuất thành công.',
+        line: newLine,
+      });
+    } catch (err) {
+      console.error('[Create Production Line Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi tạo dây chuyền sản xuất.',
+        errorCode: err.errorCode,
+      });
+    }
+  }
+);
+
+// Cập nhật thông tin dây chuyền (Admin & Maintenance)
+app.put(
+  '/api/lines/:id',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE']),
+  async (req, res) => {
+    try {
+      const ipAddress = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+      const updatedLine = await mysqlDb.updateProductionLine(req.params.id, req.body, req.user, ipAddress);
+
+      broadcast({ type: 'line_updated', data: updatedLine });
+      res.json({
+        message: 'Cập nhật dây chuyền sản xuất thành công.',
+        line: updatedLine,
+      });
+    } catch (err) {
+      console.error('[Update Production Line Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi cập nhật dây chuyền.',
+        errorCode: err.errorCode,
+      });
+    }
+  }
+);
+
+// Lưu trữ / Dừng vận hành dây chuyền (Chỉ Admin)
+app.patch(
+  '/api/lines/:id/archive',
+  authenticateToken,
+  requireRole(['ADMIN']),
+  async (req, res) => {
+    try {
+      const ipAddress = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+      const result = await mysqlDb.archiveProductionLine(req.params.id, req.user, ipAddress);
+
+      broadcast({ type: 'line_archived', data: result });
+      res.json({
+        message: 'Lưu trữ / Dừng vận hành dây chuyền thành công.',
+        ...result,
+      });
+    } catch (err) {
+      console.error('[Archive Production Line Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi lưu trữ dây chuyền.',
+      });
+    }
+  }
+);
+
+// =========================================================================
+// MACHINES APIS (MÁY MÓC / THIẾT BỊ - BƯỚC 2B)
+// =========================================================================
+
+// Lấy danh sách máy kèm bộ lọc (lineId, status, type, search)
+app.get(
+  '/api/machines',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE', 'OPERATOR']),
+  async (req, res) => {
+    try {
+      const machines = await mysqlDb.getMachines(req.query);
+      res.json({ machines });
+    } catch (err) {
+      console.error('[Get Machines Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi lấy danh sách máy móc.',
+      });
+    }
+  }
+);
+
+// Lấy chi tiết máy kèm thông tin PLC và danh sách Metric Mapping
+app.get(
+  '/api/machines/:id',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE', 'OPERATOR']),
+  async (req, res) => {
+    try {
+      const machine = await mysqlDb.getMachineById(req.params.id);
+      if (!machine) {
+        return res.status(404).json({ message: `Không tìm thấy máy với ID: ${req.params.id}` });
+      }
+      res.json({ machine });
+    } catch (err) {
+      console.error('[Get Machine By ID Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi lấy thông tin máy.',
+      });
+    }
+  }
+);
+
+// Tạo mới máy (Chỉ Admin)
+app.post(
+  '/api/machines',
+  authenticateToken,
+  requireRole(['ADMIN']),
+  async (req, res) => {
+    try {
+      const { lineId, name, code, type, status, managementStatus, location, description } = req.body;
+      if (!lineId || typeof lineId !== 'string' || !lineId.trim()) {
+        return res.status(400).json({ message: 'Dây chuyền sở hữu (lineId) là bắt buộc.' });
+      }
+      if (!name || typeof name !== 'string' || !name.trim()) {
+        return res.status(400).json({ message: 'Tên máy (name) là bắt buộc.' });
+      }
+      if (!code || typeof code !== 'string' || !code.trim()) {
+        return res.status(400).json({ message: 'Mã máy (code) là bắt buộc.' });
+      }
+
+      // Trạng thái giám sát (Monitoring status): no_data / unknown / normal / warning / critical / offline
+      const validStatuses = ['no_data', 'unknown', 'normal', 'warning', 'critical', 'offline'];
+      const normalizedStatus = (status && typeof status === 'string') ? status.toLowerCase() : 'no_data';
+      if (status && !validStatuses.includes(normalizedStatus)) {
+        return res.status(400).json({
+          message: 'Trạng thái giám sát không hợp lệ. Chấp nhận: no_data, unknown, normal, warning, critical, offline.'
+        });
+      }
+
+      // Trạng thái quản lý thiết bị: active (đang sử dụng) / inactive (ngừng sử dụng)
+      const validMgmt = ['active', 'inactive'];
+      const normalizedMgmt = (managementStatus && typeof managementStatus === 'string')
+        ? managementStatus.toLowerCase()
+        : 'active';
+      if (managementStatus && !validMgmt.includes(normalizedMgmt)) {
+        return res.status(400).json({
+          message: 'Trạng thái quản lý thiết bị chỉ chấp nhận: active hoặc inactive.'
+        });
+      }
+
+      const ipAddress = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+      const newMachine = await mysqlDb.createMachine({
+        lineId: lineId.trim(),
+        name: name.trim(),
+        code: code.trim().toUpperCase(),
+        type: (type && typeof type === 'string' && type.trim()) ? type.trim() : 'general',
+        status: normalizedStatus,
+        managementStatus: normalizedMgmt,
+        location: (location && typeof location === 'string') ? location.trim() : null,
+        description: (description && typeof description === 'string') ? description.trim() : null,
+      }, req.user, ipAddress);
+
+      broadcast({ type: 'machine_created', data: newMachine });
+      res.status(201).json({
+        message: 'Thêm máy mới thành công.',
+        machine: newMachine,
+      });
+    } catch (err) {
+      console.error('[Create Machine Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi thêm máy mới.',
+        errorCode: err.errorCode,
+      });
+    }
+  }
+);
+
+// Cập nhật máy (Admin & Maintenance)
+app.put(
+  '/api/machines/:id',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE']),
+  async (req, res) => {
+    try {
+      const { name, type, location, description, managementStatus, status } = req.body;
+
+      if (name !== undefined && (typeof name !== 'string' || !name.trim())) {
+        return res.status(400).json({ message: 'Tên máy (name) không được để trống.' });
+      }
+
+      if (managementStatus !== undefined && !['active', 'inactive'].includes(String(managementStatus).toLowerCase())) {
+        return res.status(400).json({ message: 'Trạng thái quản lý thiết bị chỉ chấp nhận: active hoặc inactive.' });
+      }
+
+      if (status !== undefined) {
+        const validStatuses = ['no_data', 'unknown', 'normal', 'warning', 'critical', 'offline'];
+        if (!validStatuses.includes(String(status).toLowerCase())) {
+          return res.status(400).json({
+            message: 'Trạng thái giám sát không hợp lệ. Chấp nhận: no_data, unknown, normal, warning, critical, offline.'
+          });
+        }
+      }
+
+      const ipAddress = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+      // Chỉ truyền các trường được phép sửa đổi, bảo vệ tính bất biến của id, code, lineId
+      const allowedUpdates = {
+        name: name !== undefined ? name.trim() : undefined,
+        type: type !== undefined ? type.trim() : undefined,
+        location: location !== undefined ? location.trim() : undefined,
+        description: description !== undefined ? description.trim() : undefined,
+        managementStatus,
+        status,
+      };
+
+      const updatedMachine = await mysqlDb.updateMachine(req.params.id, allowedUpdates, req.user, ipAddress);
+
+      broadcast({ type: 'machine_updated', data: updatedMachine });
+      res.json({
+        message: 'Cập nhật thông tin máy thành công.',
+        machine: updatedMachine,
+      });
+    } catch (err) {
+      console.error('[Update Machine Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi cập nhật máy.',
+        errorCode: err.errorCode,
+      });
+    }
+  }
+);
+
+// Lưu trữ / Dừng vận hành máy (Chỉ Admin)
+app.patch(
+  '/api/machines/:id/archive',
+  authenticateToken,
+  requireRole(['ADMIN']),
+  async (req, res) => {
+    try {
+      const ipAddress = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+      const result = await mysqlDb.archiveMachine(req.params.id, req.user, ipAddress);
+
+      broadcast({ type: 'machine_archived', data: result });
+      res.json({
+        message: 'Lưu trữ / Dừng hoạt động máy thành công.',
+        ...result,
+      });
+    } catch (err) {
+      console.error('[Archive Machine Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi lưu trữ máy.',
+      });
+    }
+  }
+);
+
+// =========================================================================
+// PLC ASSIGNMENT & DETACHMENT APIS (GÁN, CHUYỂN GIAO & GỠ TRẠM PLC - BƯỚC 2B)
+// =========================================================================
+
+// =========================================================================
+// KIẾN TRÚC PLC THEO DÂY CHUYỀN (LINE-LEVEL PLC ARCHITECTURE)
+// =========================================================================
+
+// Gán hoặc chuyển giao trạm PLC cho Dây chuyền sản xuất (Admin & Maintenance)
+const handleAssignLinePLC = async (req, res) => {
+  try {
+    const { plcId, confirmDestReplace = false, confirmSourceTransfer = false } = req.body;
+    if (!plcId || typeof plcId !== 'string' || !plcId.trim()) {
+      return res.status(400).json({ message: 'Mã trạm PLC (plcId) là bắt buộc.' });
+    }
+
+    const ipAddress = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+    const result = await mysqlDb.assignPLCToLine(
+      req.params.id,
+      plcId.trim(),
+      {
+        confirmDestReplace: Boolean(confirmDestReplace),
+        confirmSourceTransfer: Boolean(confirmSourceTransfer),
+      },
+      req.user,
+      ipAddress
+    );
+
+    broadcast({ type: 'line_plc_assigned', data: result });
+    res.json({
+      message: 'Gán trạm PLC cho dây chuyền thành công.',
+      ...result,
+    });
+  } catch (err) {
+    console.error('[Assign PLC To Line Error]:', err);
+    res.status(err.statusCode || 500).json({
+      message: err.message || 'Lỗi khi gán trạm PLC cho dây chuyền.',
+      errorCode: err.errorCode,
+      sourceLineId: err.sourceLineId,
+      sourceLineName: err.sourceLineName,
+      currentPlcId: err.currentPlcId,
+      currentPlcName: err.currentPlcName,
+    });
+  }
+};
+
+app.put('/api/lines/:id/plc', authenticateToken, requireRole(['ADMIN', 'MAINTENANCE']), handleAssignLinePLC);
+app.post('/api/lines/:id/plc', authenticateToken, requireRole(['ADMIN', 'MAINTENANCE']), handleAssignLinePLC);
+
+// Gỡ bỏ trạm PLC khỏi Dây chuyền sản xuất (Admin & Maintenance)
+app.delete(
+  '/api/lines/:id/plc',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE']),
+  async (req, res) => {
+    try {
+      const ipAddress = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+      const result = await mysqlDb.unassignPLCFromLine(req.params.id, req.user, ipAddress);
+
+      broadcast({ type: 'line_plc_unassigned', data: result });
+      res.json({
+        message: 'Gỡ trạm PLC khỏi dây chuyền thành công.',
+        ...result,
+      });
+    } catch (err) {
+      console.error('[Unassign PLC From Line Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi gỡ trạm PLC khỏi dây chuyền.',
+        errorCode: err.errorCode,
+      });
+    }
+  }
+);
+
+// Vô hiệu hóa gán PLC trực tiếp vào từng máy (Deprecated theo kiến trúc mới)
+app.put(
+  '/api/machines/:id/plc',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE']),
+  async (req, res) => {
+    return res.status(400).json({
+      message: 'Chức năng gán PLC trực tiếp cho từng máy đã bị vô hiệu hóa theo kiến trúc mới (1 Dây chuyền gắn tối đa 1 PLC). Vui lòng sử dụng API cấp Dây chuyền: /api/lines/:id/plc.',
+      errorCode: 'DEPRECATED_MACHINE_PLC_ASSIGNMENT',
+    });
+  }
+);
+
+app.post(
+  '/api/machines/:id/plc',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE']),
+  async (req, res) => {
+    return res.status(400).json({
+      message: 'Chức năng gán PLC trực tiếp cho từng máy đã bị vô hiệu hóa theo kiến trúc mới (1 Dây chuyền gắn tối đa 1 PLC). Vui lòng sử dụng API cấp Dây chuyền: /api/lines/:id/plc.',
+      errorCode: 'DEPRECATED_MACHINE_PLC_ASSIGNMENT',
+    });
+  }
+);
+
+app.delete(
+  '/api/machines/:id/plc',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE']),
+  async (req, res) => {
+    return res.status(400).json({
+      message: 'Chức năng gỡ PLC khỏi từng máy đã bị vô hiệu hóa theo kiến trúc mới (1 Dây chuyền gắn tối đa 1 PLC). Vui lòng sử dụng API cấp Dây chuyền: /api/lines/:id/plc.',
+      errorCode: 'DEPRECATED_MACHINE_PLC_ASSIGNMENT',
+    });
+  }
+);
+
+// =========================================================================
+// GIAI ĐOẠN 2 - BƯỚC 2C: METRIC MAPPINGS, THRESHOLDS & COLLECTION SCHEDULES
+// =========================================================================
+
+// 1. METRIC MAPPINGS APIS
+
+// Lấy danh sách Metric Mappings kèm bộ lọc
+app.get(
+  '/api/mappings',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE', 'OPERATOR']),
+  async (req, res) => {
+    try {
+      const mappings = await mysqlDb.getMetricMappings(req.query);
+      res.json({ mappings });
+    } catch (err) {
+      console.error('[Get Metric Mappings Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi lấy danh sách Metric Mappings.',
+      });
+    }
+  }
+);
+
+// Lấy chi tiết Metric Mapping theo ID
+app.get(
+  '/api/mappings/:id',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE', 'OPERATOR']),
+  async (req, res) => {
+    try {
+      const mapping = await mysqlDb.getMetricMappingById(req.params.id);
+      if (!mapping) {
+        return res.status(404).json({ message: `Không tìm thấy Metric Mapping: ${req.params.id}` });
+      }
+      res.json({ mapping });
+    } catch (err) {
+      console.error('[Get Metric Mapping By ID Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi lấy thông tin Metric Mapping.',
+      });
+    }
+  }
+);
+
+// Tạo mới Metric Mapping (Chỉ Admin)
+app.post(
+  '/api/mappings',
+  authenticateToken,
+  requireRole(['ADMIN']),
+  async (req, res) => {
+    try {
+      const { machine_id, metric_id, mapping_code, channel_name } = req.body;
+      if (!machine_id || typeof machine_id !== 'string' || !machine_id.trim()) {
+        return res.status(400).json({ message: 'Mã máy liên kết (machine_id) là bắt buộc.' });
+      }
+      if (!metric_id || typeof metric_id !== 'string' || !metric_id.trim()) {
+        return res.status(400).json({ message: 'Mã danh mục metric (metric_id) là bắt buộc.' });
+      }
+      if (!mapping_code || typeof mapping_code !== 'string' || !mapping_code.trim()) {
+        return res.status(400).json({ message: 'Mã mapping_code là bắt buộc.' });
+      }
+      if (!channel_name || typeof channel_name !== 'string' || !channel_name.trim()) {
+        return res.status(400).json({ message: 'Tên kênh (channel_name) là bắt buộc.' });
+      }
+
+      const ipAddress = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+      const created = await mysqlDb.createMetricMapping(req.body, req.user, ipAddress);
+
+      broadcast({ type: 'mapping_created', data: created });
+      res.status(201).json({
+        message: 'Tạo Metric Mapping mới thành công.',
+        mapping: created,
+      });
+    } catch (err) {
+      console.error('[Create Metric Mapping Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi tạo Metric Mapping.',
+        errorCode: err.errorCode,
+      });
+    }
+  }
+);
+
+// Cập nhật cấu hình Metric Mapping (Admin & Maintenance)
+app.put(
+  '/api/mappings/:id',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE']),
+  async (req, res) => {
+    try {
+      const ipAddress = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+      const updated = await mysqlDb.updateMetricMapping(req.params.id, req.body, req.user, ipAddress);
+
+      broadcast({ type: 'mapping_updated', data: updated });
+      res.json({
+        message: 'Cập nhật Metric Mapping thành công.',
+        mapping: updated,
+      });
+    } catch (err) {
+      console.error('[Update Metric Mapping Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi cập nhật Metric Mapping.',
+        errorCode: err.errorCode,
+      });
+    }
+  }
+);
+
+// Ngừng hoạt động (Deactivate) Metric Mapping (Admin & Maintenance) - Bảo toàn lịch sử
+app.patch(
+  '/api/mappings/:id/deactivate',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE']),
+  async (req, res) => {
+    try {
+      const ipAddress = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+      const result = await mysqlDb.deactivateMetricMapping(req.params.id, req.user, ipAddress);
+
+      broadcast({ type: 'mapping_deactivated', data: result });
+      res.json({
+        message: 'Ngừng hoạt động Metric Mapping thành công (Bảo toàn lịch sử dữ liệu).',
+        ...result,
+      });
+    } catch (err) {
+      console.error('[Deactivate Metric Mapping Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi ngừng hoạt động Metric Mapping.',
+        errorCode: err.errorCode,
+      });
+    }
+  }
+);
+
+// Gỡ bỏ / Xóa Metric Mapping khỏi thiết bị (Admin & Maintenance)
+app.delete(
+  '/api/mappings/:id',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE']),
+  async (req, res) => {
+    try {
+      const ipAddress = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+      const result = await mysqlDb.deleteMetricMapping(req.params.id, req.user, ipAddress);
+
+      broadcast({ type: 'mapping_deleted', data: result });
+      res.json({
+        message: 'Gỡ bỏ Metric Mapping thành công.',
+        ...result,
+      });
+    } catch (err) {
+      console.error('[Delete Metric Mapping Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi gỡ bỏ Metric Mapping.',
+        errorCode: err.errorCode,
+      });
+    }
+  }
+);
+
+// Kích hoạt / Tạm dừng Giám sát (Toggle Monitoring) (Admin & Maintenance)
+app.patch(
+  '/api/mappings/:id/monitoring',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE']),
+  async (req, res) => {
+    try {
+      const { enable } = req.body;
+      if (enable === undefined) {
+        return res.status(400).json({ message: 'Trường enable (true hoặc false) là bắt buộc.' });
+      }
+
+      const ipAddress = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+      const updated = await mysqlDb.toggleMetricMappingMonitoring(req.params.id, Boolean(enable), req.user, ipAddress);
+
+      broadcast({ type: 'mapping_monitoring_toggled', data: updated });
+      res.json({
+        message: enable ? 'Kích hoạt giám sát kênh thành công.' : 'Tạm dừng giám sát kênh thành công.',
+        mapping: updated,
+      });
+    } catch (err) {
+      console.error('[Toggle Mapping Monitoring Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi bật/tắt giám sát kênh.',
+        errorCode: err.errorCode,
+      });
+    }
+  }
+);
+
+// 2. METRIC THRESHOLDS APIS
+
+// Lấy ngưỡng cảnh báo của mapping
+app.get(
+  '/api/mappings/:id/thresholds',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE', 'OPERATOR']),
+  async (req, res) => {
+    try {
+      const thresholds = await mysqlDb.getMetricThresholds(req.params.id);
+      res.json({ thresholds });
+    } catch (err) {
+      console.error('[Get Metric Thresholds Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi lấy thông tin ngưỡng cảnh báo.',
+        errorCode: err.errorCode,
+      });
+    }
+  }
+);
+
+// Thiết lập / Cập nhật ngưỡng cảnh báo (Admin & Maintenance)
+app.put(
+  '/api/mappings/:id/thresholds',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE']),
+  async (req, res) => {
+    try {
+      const ipAddress = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+      const updated = await mysqlDb.setMetricThresholds(req.params.id, req.body, req.user, ipAddress);
+
+      broadcast({ type: 'thresholds_updated', data: { mappingId: req.params.id, thresholds: updated } });
+      res.json({
+        message: 'Thiết lập ngưỡng cảnh báo thành công.',
+        thresholds: updated,
+      });
+    } catch (err) {
+      console.error('[Set Metric Thresholds Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi thiết lập ngưỡng cảnh báo.',
+        errorCode: err.errorCode,
+      });
+    }
+  }
+);
+
+// 3. COLLECTION SCHEDULES APIS
+
+// Lấy lịch thu thập dữ liệu của mapping
+app.get(
+  '/api/mappings/:id/schedule',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE', 'OPERATOR']),
+  async (req, res) => {
+    try {
+      const schedule = await mysqlDb.getCollectionSchedule(req.params.id);
+      res.json({ schedule });
+    } catch (err) {
+      console.error('[Get Collection Schedule Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi lấy lịch thu thập dữ liệu.',
+        errorCode: err.errorCode,
+      });
+    }
+  }
+);
+
+// Thiết lập / Cập nhật lịch thu thập dữ liệu (Admin & Maintenance)
+app.put(
+  '/api/mappings/:id/schedule',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE']),
+  async (req, res) => {
+    try {
+      const ipAddress = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+      const updated = await mysqlDb.setCollectionSchedule(req.params.id, req.body, req.user, ipAddress);
+
+      broadcast({ type: 'schedule_updated', data: { mappingId: req.params.id, schedule: updated } });
+      res.json({
+        message: 'Thiết lập lịch thu thập dữ liệu thành công.',
+        schedule: updated,
+      });
+    } catch (err) {
+      console.error('[Set Collection Schedule Error]:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.message || 'Lỗi khi thiết lập lịch thu thập.',
+        errorCode: err.errorCode,
+      });
+    }
+  }
+);
+
+// =========================================================================
 // PLC STATIONS APIS (MYSQL KÈM FALLBACK)
 // =========================================================================
 app.get('/api/plc-stations', authenticateToken, async (req, res) => {
@@ -618,6 +1338,370 @@ app.post('/api/plc-stations/:id/toggle', authenticateToken, async (req, res) => 
     res.json({ station: updatedStation });
   } catch (err) {
     res.status(500).json({ message: 'Lỗi chuyển trạng thái PLC: ' + err.message });
+  }
+});
+
+// =========================================================================
+// METRIC CATALOG APIS (DANH MỤC METRIC TOÀN NHÀ MÁY)
+// =========================================================================
+
+app.get('/api/metrics', authenticateToken, async (req, res) => {
+  try {
+    const result = await mysqlDb.getMetrics(req.query);
+    res.json(result);
+  } catch (err) {
+    console.error('[Get Metrics Error]:', err);
+    res.status(500).json({ message: 'Lỗi tải danh mục Metric: ' + err.message });
+  }
+});
+
+app.get('/api/metrics/summary', authenticateToken, async (req, res) => {
+  try {
+    const summary = await mysqlDb.getMetricSummary();
+    res.json({ summary });
+  } catch (err) {
+    console.error('[Get Metric Summary Error]:', err);
+    res.status(500).json({ message: 'Lỗi tải tóm tắt Metric: ' + err.message });
+  }
+});
+
+app.get('/api/metrics/:id/usage', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const usage = await mysqlDb.getMetricUsage(id);
+    if (!usage) {
+      return res.status(404).json({ message: 'Không tìm thấy thông tin metric.' });
+    }
+    res.json({ usage });
+  } catch (err) {
+    console.error('[Get Metric Usage Error]:', err);
+    res.status(500).json({ message: 'Lỗi tra cứu sử dụng metric: ' + err.message });
+  }
+});
+
+app.get('/api/metrics/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const metric = await mysqlDb.getMetricById(id);
+    if (!metric) {
+      return res.status(404).json({ message: 'Không tìm thấy metric trong danh mục.' });
+    }
+    res.json({ metric });
+  } catch (err) {
+    console.error('[Get Metric By Id Error]:', err);
+    res.status(500).json({ message: 'Lỗi truy vấn metric: ' + err.message });
+  }
+});
+
+app.post('/api/metrics', authenticateToken, requireRole(['ADMIN']), async (req, res) => {
+  try {
+    const { code, name, category, unit, dataType, validMin, validMax, description, status } = req.body;
+
+    // Validate Code format (Chữ hoa, số, gạch dưới: 2-64 ký tự)
+    if (!code || typeof code !== 'string') {
+      return res.status(400).json({ message: 'Mã metric là bắt buộc.' });
+    }
+    const cleanCode = code.trim().toUpperCase();
+    if (!/^[A-Z0-9_]{2,64}$/.test(cleanCode)) {
+      return res.status(400).json({
+        message: 'Mã metric không hợp lệ. Chỉ chấp nhận chữ in hoa (A-Z), số (0-9) và dấu gạch dưới (_), độ dài 2-64 ký tự.',
+      });
+    }
+
+    // Kiểm tra trùng lặp mã metric
+    const existing = await mysqlDb.getMetricByCode(cleanCode);
+    if (existing) {
+      return res.status(400).json({
+        message: `Mã metric "${cleanCode}" đã tồn tại trong hệ thống. Vui lòng chọn mã khác.`,
+      });
+    }
+
+    // Validate Tên metric
+    if (!name || typeof name !== 'string' || name.trim().length < 2 || name.trim().length > 128) {
+      return res.status(400).json({ message: 'Tên metric bắt buộc và phải từ 2 đến 128 ký tự.' });
+    }
+
+    // Validate Category
+    if (!category || !mysqlDb.VALID_METRIC_CATEGORIES.includes(category)) {
+      return res.status(400).json({
+        message: `Danh mục phân loại không hợp lệ. Chấp nhận: ${mysqlDb.VALID_METRIC_CATEGORIES.join(', ')}`,
+      });
+    }
+
+    // Validate Đơn vị đo
+    if (!unit || typeof unit !== 'string' || !unit.trim() || unit.trim().length > 32) {
+      return res.status(400).json({ message: 'Đơn vị đo bắt buộc và tối đa 32 ký tự.' });
+    }
+
+    // Validate Kiểu dữ liệu
+    const finalDataType = (dataType || 'FLOAT').toUpperCase();
+    if (!mysqlDb.VALID_METRIC_DATA_TYPES.includes(finalDataType)) {
+      return res.status(400).json({
+        message: `Kiểu dữ liệu không hợp lệ. Chấp nhận: ${mysqlDb.VALID_METRIC_DATA_TYPES.join(', ')}`,
+      });
+    }
+
+    // Validate Ngưỡng hợp lý: validMin < validMax
+    const numMin = validMin !== undefined && validMin !== null && validMin !== '' ? Number(validMin) : null;
+    const numMax = validMax !== undefined && validMax !== null && validMax !== '' ? Number(validMax) : null;
+    if (numMin !== null && isNaN(numMin)) {
+      return res.status(400).json({ message: 'Giá trị validMin phải là số hợp lệ.' });
+    }
+    if (numMax !== null && isNaN(numMax)) {
+      return res.status(400).json({ message: 'Giá trị validMax phải là số hợp lệ.' });
+    }
+    if (numMin !== null && numMax !== null && numMin >= numMax) {
+      return res.status(400).json({
+        message: 'Giá trị tối thiểu (validMin) phải nhỏ hơn giá trị tối đa (validMax).',
+      });
+    }
+
+    const newMetric = await mysqlDb.createMetric({
+      code: cleanCode,
+      name: name.trim(),
+      category,
+      unit: unit.trim(),
+      dataType: finalDataType,
+      validMin: numMin,
+      validMax: numMax,
+      description: description ? String(description).trim() : null,
+      status: (status || 'ACTIVE').toUpperCase(),
+      createdBy: req.user.email,
+    });
+
+    const ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
+    // Đồng bộ gán thiết bị nếu có
+    if (Array.isArray(req.body.assignedMachineIds)) {
+      await mysqlDb.syncMetricMachineAssignments(newMetric.id, req.body.assignedMachineIds, req.user, ipAddress);
+    }
+
+    await mysqlDb.addAuditLog({
+      userId: req.user.id,
+      userEmail: req.user.email,
+      userName: req.user.fullName,
+      employeeId: req.user.employeeId,
+      action: 'CREATE_METRIC',
+      target: newMetric.code,
+      details: `Tạo metric mới trong danh mục: ${newMetric.name} (${newMetric.code}), đơn vị: ${newMetric.unit}, kiểu: ${newMetric.dataType}`,
+      ipAddress,
+    });
+
+    broadcast({ type: 'metric_created', metric: newMetric });
+    res.status(201).json({ message: 'Tạo metric mới thành công.', metric: newMetric });
+  } catch (err) {
+    console.error('[Create Metric Error]:', err);
+    res.status(500).json({ message: 'Lỗi tạo metric trong CSDL: ' + err.message });
+  }
+});
+
+app.put('/api/metrics/:id', authenticateToken, requireRole(['ADMIN']), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const targetMetric = await mysqlDb.getMetricById(id);
+    if (!targetMetric) {
+      return res.status(404).json({ message: 'Không tìm thấy metric trong hệ thống.' });
+    }
+
+    const { code, name, category, unit, dataType, validMin, validMax, description, status } = req.body;
+    const updates = {};
+
+    if (code !== undefined) {
+      const cleanCode = String(code).trim().toUpperCase();
+      if (!/^[A-Z0-9_]{2,64}$/.test(cleanCode)) {
+        return res.status(400).json({
+          message: 'Mã metric không hợp lệ. Chỉ chấp nhận chữ hoa, số và dấu gạch dưới (2-64 ký tự).',
+        });
+      }
+      if (cleanCode !== targetMetric.code) {
+        const existing = await mysqlDb.getMetricByCode(cleanCode);
+        if (existing && existing.id !== targetMetric.id) {
+          return res.status(400).json({ message: `Mã metric "${cleanCode}" đã được sử dụng bởi metric khác.` });
+        }
+      }
+      updates.code = cleanCode;
+    }
+
+    if (name !== undefined) {
+      if (typeof name !== 'string' || name.trim().length < 2 || name.trim().length > 128) {
+        return res.status(400).json({ message: 'Tên metric bắt buộc và phải từ 2 đến 128 ký tự.' });
+      }
+      updates.name = name.trim();
+    }
+
+    if (category !== undefined) {
+      if (!mysqlDb.VALID_METRIC_CATEGORIES.includes(category)) {
+        return res.status(400).json({
+          message: `Danh mục phân loại không hợp lệ. Chấp nhận: ${mysqlDb.VALID_METRIC_CATEGORIES.join(', ')}`,
+        });
+      }
+      updates.category = category;
+    }
+
+    if (unit !== undefined) {
+      if (typeof unit !== 'string' || !unit.trim() || unit.trim().length > 32) {
+        return res.status(400).json({ message: 'Đơn vị đo bắt buộc và tối đa 32 ký tự.' });
+      }
+      updates.unit = unit.trim();
+    }
+
+    if (dataType !== undefined) {
+      const cleanType = String(dataType).toUpperCase();
+      if (!mysqlDb.VALID_METRIC_DATA_TYPES.includes(cleanType)) {
+        return res.status(400).json({
+          message: `Kiểu dữ liệu không hợp lệ. Chấp nhận: ${mysqlDb.VALID_METRIC_DATA_TYPES.join(', ')}`,
+        });
+      }
+      updates.dataType = cleanType;
+    }
+
+    // Validate Range
+    let finalMin = targetMetric.validMin;
+    let finalMax = targetMetric.validMax;
+
+    if (validMin !== undefined) {
+      finalMin = validMin !== null && validMin !== '' ? Number(validMin) : null;
+      if (finalMin !== null && isNaN(finalMin)) {
+        return res.status(400).json({ message: 'Giá trị validMin phải là số.' });
+      }
+      updates.validMin = finalMin;
+    }
+
+    if (validMax !== undefined) {
+      finalMax = validMax !== null && validMax !== '' ? Number(validMax) : null;
+      if (finalMax !== null && isNaN(finalMax)) {
+        return res.status(400).json({ message: 'Giá trị validMax phải là số.' });
+      }
+      updates.validMax = finalMax;
+    }
+
+    if (finalMin !== null && finalMax !== null && finalMin >= finalMax) {
+      return res.status(400).json({
+        message: 'Giá trị tối thiểu (validMin) phải nhỏ hơn giá trị tối đa (validMax).',
+      });
+    }
+
+    if (description !== undefined) {
+      updates.description = description ? String(description).trim() : null;
+    }
+
+    if (status !== undefined) {
+      const cleanStatus = String(status).toUpperCase();
+      if (!['ACTIVE', 'INACTIVE'].includes(cleanStatus)) {
+        return res.status(400).json({ message: 'Trạng thái chỉ có thể là ACTIVE hoặc INACTIVE.' });
+      }
+      updates.status = cleanStatus;
+    }
+
+    updates.updatedBy = req.user.email;
+
+    const updatedMetric = await mysqlDb.updateMetric(targetMetric.id, updates);
+
+    const ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
+    // Đồng bộ gán thiết bị nếu có
+    if (Array.isArray(req.body.assignedMachineIds)) {
+      await mysqlDb.syncMetricMachineAssignments(targetMetric.id, req.body.assignedMachineIds, req.user, ipAddress);
+    }
+
+    await mysqlDb.addAuditLog({
+      userId: req.user.id,
+      userEmail: req.user.email,
+      userName: req.user.fullName,
+      employeeId: req.user.employeeId,
+      action: 'UPDATE_METRIC',
+      target: updatedMetric.code,
+      details: `Cập nhật thông tin metric: ${updatedMetric.name} (${updatedMetric.code})`,
+      ipAddress,
+    });
+
+    broadcast({ type: 'metric_updated', metric: updatedMetric });
+    res.json({ message: 'Cập nhật metric thành công.', metric: updatedMetric });
+  } catch (err) {
+    console.error('[Update Metric Error]:', err);
+    res.status(500).json({ message: 'Lỗi cập nhật metric: ' + err.message });
+  }
+});
+
+// Gán / Bỏ gán metric vào danh sách thiết bị
+app.post('/api/metrics/:id/assign', authenticateToken, requireRole(['ADMIN']), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { machineIds } = req.body;
+    if (!Array.isArray(machineIds)) {
+      return res.status(400).json({ message: 'machineIds phải là mảng chuỗi mã thiết bị.' });
+    }
+    const ipAddress = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+    const result = await mysqlDb.syncMetricMachineAssignments(id, machineIds, req.user, ipAddress);
+    broadcast({ type: 'metric_assignments_updated', data: result });
+    res.json({ message: 'Cập nhật gán thiết bị cho metric thành công.', ...result });
+  } catch (err) {
+    console.error('[Assign Metric Machines Error]:', err);
+    res.status(err.statusCode || 500).json({ message: err.message });
+  }
+});
+
+app.patch('/api/metrics/:id/status', authenticateToken, requireRole(['ADMIN']), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const targetMetric = await mysqlDb.getMetricById(id);
+    if (!targetMetric) {
+      return res.status(404).json({ message: 'Không tìm thấy metric trong hệ thống.' });
+    }
+
+    const { status } = req.body;
+    const cleanStatus = String(status).toUpperCase();
+    if (!['ACTIVE', 'INACTIVE'].includes(cleanStatus)) {
+      return res.status(400).json({ message: 'Trạng thái chỉ có thể là ACTIVE hoặc INACTIVE.' });
+    }
+
+    const updatedMetric = await mysqlDb.updateMetricStatus(targetMetric.id, cleanStatus, req.user.email);
+    const actionName = cleanStatus === 'ACTIVE' ? 'ACTIVATE_METRIC' : 'DEACTIVATE_METRIC';
+
+    const ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
+    await mysqlDb.addAuditLog({
+      userId: req.user.id,
+      userEmail: req.user.email,
+      userName: req.user.fullName,
+      employeeId: req.user.employeeId,
+      action: actionName,
+      target: updatedMetric.code,
+      details: `${cleanStatus === 'ACTIVE' ? 'Kích hoạt lại' : 'Vô hiệu hóa (Deactivate)'} metric: ${updatedMetric.name} (${updatedMetric.code})`,
+      ipAddress,
+    });
+
+    broadcast({ type: 'metric_status_changed', metric: updatedMetric });
+    res.json({
+      message: `Đã ${cleanStatus === 'ACTIVE' ? 'kích hoạt' : 'vô hiệu hóa'} metric "${updatedMetric.name}" thành công.`,
+      metric: updatedMetric,
+    });
+  } catch (err) {
+    console.error('[Update Metric Status Error]:', err);
+    res.status(500).json({ message: 'Lỗi thay đổi trạng thái metric: ' + err.message });
+  }
+});
+
+// Xóa thông số khỏi danh mục chuẩn (Chỉ ADMIN, kiểm tra chặt chẽ dữ liệu phụ thuộc)
+app.delete('/api/metrics/:id', authenticateToken, requireRole(['ADMIN']), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const ipAddress = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+    const result = await mysqlDb.deleteMetric(id, req.user, ipAddress);
+
+    broadcast({
+      type: 'metric_deleted',
+      id,
+      code: result.metric?.code,
+    });
+
+    res.json({
+      success: true,
+      message: `Đã xóa thông số "${result.metric?.name}" (${result.metric?.code}) thành công.`,
+      metric: result.metric,
+    });
+  } catch (err) {
+    console.error('[Delete Metric Error]:', err);
+    res.status(err.statusCode || 500).json({
+      message: err.message || 'Lỗi khi xóa thông số.',
+    });
   }
 });
 
@@ -850,9 +1934,138 @@ app.get(
 );
 
 // =========================================================================
+// API LẤY DỮ LIỆU ĐO LƯỜNG MỚI NHẤT CHO DASHBOARD (TẦNG 2 & TẦNG 3)
+// =========================================================================
+app.get(
+  '/api/telemetry/latest',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE', 'OPERATOR']),
+  async (req, res) => {
+    try {
+      if (!isDbConnected || !mysqlDb.getPool()) {
+        return res.status(503).json({
+          success: false,
+          message: 'CSDL chưa sẵn sàng hoặc đang ngoại tuyến.',
+          data: [],
+        });
+      }
+
+      const { machineId, lineId } = req.query;
+
+      let query = `
+        SELECT 
+          mth.id,
+          mth.lineId,
+          mth.lineName,
+          mth.machineId,
+          mth.machineName,
+          mth.metricId,
+          mth.metricName,
+          mth.value,
+          mth.unit,
+          mth.status,
+          mth.source,
+          mth.plcStationId,
+          mth.timestamp,
+          mm.id AS mappingId,
+          mm.channel_name,
+          mm.data_source_type,
+          mm.file_tag_name,
+          mm.sampling_rate_ms,
+          mc.name AS catalogMetricName,
+          mt.warning_min,
+          mt.warning_max,
+          mt.critical_min,
+          mt.critical_max
+        FROM machine_telemetry_history mth
+        INNER JOIN (
+          SELECT machineId, metricId, MAX(timestamp) as maxTs
+          FROM machine_telemetry_history
+          WHERE (? IS NULL OR machineId = ?)
+          GROUP BY machineId, metricId
+        ) latest ON mth.machineId = latest.machineId 
+               AND mth.metricId = latest.metricId 
+               AND mth.timestamp = latest.maxTs
+        LEFT JOIN metric_mappings mm ON mth.machineId = mm.machine_id AND mth.metricId = mm.mapping_code
+        LEFT JOIN metric_catalog mc ON mm.metric_id = mc.id
+        LEFT JOIN metric_thresholds mt ON mm.id = mt.mapping_id
+        WHERE 1=1
+      `;
+      const params = [machineId || null, machineId || null];
+
+      if (lineId && lineId !== 'all') {
+        query += ' AND mth.lineId = ?';
+        params.push(lineId);
+      }
+
+      query += ' ORDER BY mth.machineId, mth.metricId';
+
+      const [rows] = await mysqlDb.getPool().query(query, params);
+
+      // Tính toán độ mới của dữ liệu (Data Freshness / Quality) cho từng metric
+      const now = Date.now();
+      const enriched = rows.map((r) => {
+        const measuredTime = new Date(r.timestamp).getTime();
+        const ageMs = now - measuredTime;
+        const isLive = ageMs <= 10 * 60 * 1000; // <= 10 phút
+        const isStale = ageMs > 30 * 60 * 1000;  // > 30 phút
+
+        let quality = 'GOOD';
+        if (ageMs < -30000) quality = 'UNCERTAIN'; // Lệch đồng hồ tương lai
+        else if (isStale) quality = 'UNCERTAIN';
+
+        return {
+          id: r.id,
+          lineId: r.lineId,
+          lineName: r.lineName,
+          machineId: r.machineId,
+          machineName: r.machineName,
+          metricId: r.metricId,
+          metricName: r.channel_name || r.metricName || r.catalogMetricName,
+          value: Number(r.value),
+          unit: r.unit || 'raw',
+          status: r.status,
+          source: r.source,
+          dataSourceType: r.data_source_type || (r.source === 'device' ? 'FILE_INGEST' : 'SIMULATED'),
+          fileTagName: r.file_tag_name,
+          quality,
+          isLive,
+          isStale,
+          ageSeconds: Math.round(ageMs / 1000),
+          measuredAt: new Date(r.timestamp).toISOString(),
+          plcStationId: r.plcStationId,
+          thresholds: {
+            warningMin: r.warning_min !== null ? Number(r.warning_min) : null,
+            warningMax: r.warning_max !== null ? Number(r.warning_max) : null,
+            criticalMin: r.critical_min !== null ? Number(r.critical_min) : null,
+            criticalMax: r.critical_max !== null ? Number(r.critical_max) : null,
+          },
+        };
+      });
+
+      res.json({
+        success: true,
+        count: enriched.length,
+        total: enriched.length,
+        timestamp: new Date().toISOString(),
+        data: enriched,
+      });
+    } catch (err) {
+      console.error('[Latest Telemetry API Error]:', err);
+      res.status(500).json({
+        success: false,
+        message: 'Lỗi truy vấn dữ liệu đo lường mới nhất: ' + err.message,
+      });
+    }
+  }
+);
+
+// =========================================================================
 // WEBSOCKET REAL-TIME IoT SIMULATION ENGINE
 // =========================================================================
 wss.on('connection', (ws) => {
+  wsService.handleConnection(ws);
+
   ws.on('error', (err) => {
     console.error('[WS Client Error]:', err.message);
   });
@@ -906,9 +2119,13 @@ setInterval(() => {
 // =========================================================================
 let isDbConnected = false;
 
-// Cứ mỗi 5 giây, backend tự động ghi một batch dữ liệu telemetry của các máy vào MySQL
+// Cứ mỗi 5 giây, backend tự động ghi một batch dữ liệu telemetry của các máy vào MySQL nếu được cấu hình tường minh
 setInterval(async () => {
   if (!isDbConnected) return;
+
+  // BẢO VỆ CSDL: Mặc định KHÔNG ghi dữ liệu mô phỏng vào CSDL MySQL denso_iot
+  const RECORD_SIMULATION_TO_DB = process.env.RECORD_SIMULATION_TO_DB === 'true';
+  if (!RECORD_SIMULATION_TO_DB) return;
 
   try {
     const channels = mysqlDb.CANONICAL_TELEMETRY_CHANNELS || [];
@@ -969,8 +2186,162 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     database: isDbConnected ? 'connected' : 'connecting',
+    databaseName: process.env.DB_NAME || 'denso_iot_phase1_test',
     timestamp: new Date().toISOString(),
   });
+});
+
+// =========================================================================
+// TELEMETRY ENGINE CONTROL ENDPOINTS
+// =========================================================================
+
+// Kiểm tra trạng thái hoạt động của Telemetry Engine & Batch Buffer
+app.get('/api/telemetry/engine-status', authenticateToken, (req, res) => {
+  res.json({
+    status: 'ok',
+    engine: telemetryEngine.getStatus(),
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Dừng thu thập dữ liệu phần mềm khẩn cấp (Software Polling Abort)
+app.post('/api/telemetry/engine/abort-polling', authenticateToken, requireRole(['ADMIN', 'MAINTENANCE']), (req, res) => {
+  telemetryEngine.abortPolling();
+  res.json({
+    success: true,
+    message: 'Đã kích hoạt dừng thu thập dữ liệu phần mềm (Software Polling Aborted).',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// =========================================================================
+// FILE INGESTION SERVICE CONTROL & MONITORING ENDPOINTS
+// =========================================================================
+
+// Lấy trạng thái tổng quan của File Ingestion Service
+app.get('/api/ingestion/status', authenticateToken, async (req, res) => {
+  const isEnabled = process.env.ENABLE_FILE_INGESTION === 'true';
+  let stats = null;
+
+  if (isDbConnected && mysqlDb.getPool()) {
+    try {
+      const [rows] = await mysqlDb.getPool().query(`
+        SELECT status, COUNT(*) AS count
+        FROM ingested_files_log
+        GROUP BY status
+      `);
+      stats = rows.reduce((acc, r) => {
+        acc[r.status] = Number(r.count);
+        return acc;
+      }, {});
+    } catch {
+      stats = null;
+    }
+  }
+
+  res.json({
+    enabled: isEnabled,
+    status: fileIngestionService
+      ? fileIngestionService.fileWatcher?.isWatching
+        ? 'RUNNING'
+        : 'PAUSED'
+      : 'DISABLED',
+    watchDirectory: fileIngestionService ? fileIngestionService.watchDirectory : null,
+    activeProfiles: defaultProfileRegistry.getAllProfiles().length,
+    profiles: defaultProfileRegistry.getAllProfiles().map((p) => ({
+      profileId: p.profileId,
+      name: p.name,
+      mode: p.mode,
+      expectedCycleSeconds: p.expectedCycleSeconds,
+    })),
+    stats,
+    database: process.env.DB_NAME || 'denso_iot',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Lấy danh sách lịch sử file ingestion
+app.get('/api/ingestion/files', authenticateToken, async (req, res) => {
+  if (!isDbConnected || !mysqlDb.getPool()) {
+    return res.status(503).json({ message: 'CSDL chưa sẵn sàng.' });
+  }
+
+  try {
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 200);
+    const status = req.query.status;
+    const machineId = req.query.machineId;
+
+    let query = 'SELECT * FROM ingested_files_log WHERE 1=1';
+    const params = [];
+
+    if (status) {
+      query += ' AND status = ?';
+      params.push(status);
+    }
+    if (machineId) {
+      query += ' AND machine_id = ?';
+      params.push(machineId);
+    }
+
+    query += ' ORDER BY ingested_at DESC LIMIT ?';
+    params.push(limit);
+
+    const [rows] = await mysqlDb.getPool().query(query, params);
+    res.json({ files: rows, total: rows.length, limit });
+  } catch (err) {
+    res.status(500).json({ message: 'Lỗi truy vấn lịch sử file ingestion: ' + err.message });
+  }
+});
+
+// Lấy danh sách xung đột dữ liệu đo lường (Data Conflicts)
+app.get('/api/ingestion/conflicts', authenticateToken, async (req, res) => {
+  if (!isDbConnected || !mysqlDb.getPool()) {
+    return res.status(503).json({ message: 'CSDL chưa sẵn sàng.' });
+  }
+
+  try {
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 200);
+    const fileId = req.query.fileId;
+    const machineId = req.query.machineId;
+
+    let query = 'SELECT * FROM ingested_file_conflicts WHERE 1=1';
+    const params = [];
+
+    if (fileId) {
+      query += ' AND file_id = ?';
+      params.push(fileId);
+    }
+    if (machineId) {
+      query += ' AND machine_id = ?';
+      params.push(machineId);
+    }
+
+    query += ' ORDER BY detected_at DESC LIMIT ?';
+    params.push(limit);
+
+    const [rows] = await mysqlDb.getPool().query(query, params);
+    res.json({ conflicts: rows, total: rows.length, limit });
+  } catch (err) {
+    res.status(500).json({ message: 'Lỗi truy vấn xung đột dữ liệu: ' + err.message });
+  }
+});
+
+// Tạm dừng File Watcher
+app.post('/api/ingestion/pause', authenticateToken, requireRole(['ADMIN', 'MAINTENANCE']), (req, res) => {
+  if (!fileIngestionService) {
+    return res.status(400).json({ message: 'File Ingestion Service chưa được kích hoạt.' });
+  }
+  fileIngestionService.pause();
+  res.json({ success: true, message: 'Đã tạm dừng File Watcher.', status: 'PAUSED' });
+});
+
+// Tiếp tục File Watcher
+app.post('/api/ingestion/resume', authenticateToken, requireRole(['ADMIN', 'MAINTENANCE']), (req, res) => {
+  if (!fileIngestionService) {
+    return res.status(400).json({ message: 'File Ingestion Service chưa được kích hoạt.' });
+  }
+  fileIngestionService.resume();
+  res.json({ success: true, message: 'Đã tiếp tục File Watcher.', status: 'RUNNING' });
 });
 
 // Global Error Handlers để đảm bảo server hoạt động ổn định
@@ -981,6 +2352,24 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (reason) => {
   console.error('[DENSO IoT Backend Unhandled Rejection]:', reason);
 });
+
+// Graceful Shutdown an toàn
+async function handleGracefulShutdown(signal) {
+  console.log(`[DENSO IoT Backend] Nhận tín hiệu ${signal}. Đang tắt dịch vụ an toàn...`);
+  try {
+    if (fileIngestionService) {
+      fileIngestionService.stop();
+    }
+    telemetryEngine.abortPolling();
+    wsService.destroy();
+    await batchBuffer.shutdown(mysqlDb.getPool(), 2500);
+  } catch (err) {
+    console.warn('[Graceful Shutdown Warning]:', err.message);
+  }
+}
+
+process.on('SIGINT', () => handleGracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => handleGracefulShutdown('SIGTERM'));
 
 // Khởi chạy HTTP & WebSocket Server
 server.on('error', (err) => {
@@ -993,7 +2382,40 @@ async function connectDatabaseWithRetry(maxRetries = 10, delayMs = 4000) {
       console.log(`[DENSO IoT Backend] Đang kết nối CSDL MySQL (lần ${attempt}/${maxRetries})...`);
       await mysqlDb.initDatabase();
       isDbConnected = true;
+      telemetryEngine.pool = mysqlDb.getPool();
+      batchBuffer.startFlusher(mysqlDb.getPool());
+
+      // Phục hồi dữ liệu chưa commit từ WAL nếu có
+      const replayed = batchBuffer.replayWal();
+      if (replayed.length > 0) {
+        console.log(`[BatchBuffer] Đã phục hồi ${replayed.length} bản ghi chưa commit từ tệp WAL.`);
+      }
+
       console.log(`[DENSO IoT Backend] Kết nối CSDL MySQL thành công! CSDL sẵn sàng.`);
+
+      // Khởi tạo File Ingestion Service nếu được cấu hình bật
+      const ENABLE_FILE_INGESTION = process.env.ENABLE_FILE_INGESTION === 'true';
+      if (ENABLE_FILE_INGESTION) {
+        try {
+          const ingestionWatchDir =
+            process.env.FILE_INGESTION_WATCH_DIR || path.join(__dirname, '..', 'data_ingestion_watch');
+          fileIngestionService = new FileIngestionService({
+            pool: mysqlDb.getPool(),
+            profileRegistry: defaultProfileRegistry,
+            telemetryEngine: telemetryEngine,
+            wsService: wsService,
+            watchDirectory: ingestionWatchDir,
+            chunkSize: 500,
+          });
+          await fileIngestionService.start();
+          console.log(`[FileIngestionService] Đã kích hoạt giám sát thư mục: ${ingestionWatchDir}`);
+        } catch (ingestionErr) {
+          console.error('[FileIngestionService] Khởi động thất bại:', ingestionErr.message);
+        }
+      } else {
+        console.log('[FileIngestionService] Dịch vụ đang tắt (ENABLE_FILE_INGESTION !== true).');
+      }
+
       return;
     } catch (err) {
       console.warn(`[DENSO IoT Backend] Thử kết nối CSDL lần ${attempt} chưa thành công: ${err.message}`);

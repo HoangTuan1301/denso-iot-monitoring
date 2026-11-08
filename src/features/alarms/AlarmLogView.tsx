@@ -25,6 +25,7 @@ import { useAlarmStore } from '../../stores/useAlarmStore';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useMonitoringStore } from '../../stores/useMonitoringStore';
 import { AlarmEvent } from '../../types/alarm';
+import { ModalPortal } from '../../components/common/ModalPortal';
 
 export function AlarmLogView() {
   const { alarms, acknowledgeAlarm, resolveAlarm } = useAlarmStore();
@@ -521,8 +522,11 @@ export function AlarmLogView() {
       {/* MODAL XÁC NHẬN HOÀN THÀNH SỰ CỐ & NHẬP GHI CHÚ                            */}
       {/* ========================================================================= */}
       {resolvingAlarm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
-          <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 w-full max-w-lg overflow-hidden">
+        <ModalPortal isOpen={!!resolvingAlarm} onClose={() => setResolvingAlarm(null)}>
+          <div
+            className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 w-full max-w-lg overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header */}
             <div className="flex items-center justify-between p-6 pb-4 border-b border-slate-100 dark:border-slate-700/60">
               <div className="flex items-center gap-2.5">
@@ -610,7 +614,7 @@ export function AlarmLogView() {
               </div>
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </div>
   );

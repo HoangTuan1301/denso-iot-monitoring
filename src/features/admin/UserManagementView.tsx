@@ -36,6 +36,7 @@ import {
   X,
 } from 'lucide-react';
 import { CustomSwitch } from '../../components/common/CustomSwitch';
+import { ModalPortal } from '../../components/common/ModalPortal';
 import { apiClient } from '../../services/api';
 import { socketClient } from '../../services/socket';
 import { useAuthStore } from '../../stores/useAuthStore';
@@ -919,8 +920,11 @@ export function UserManagementView() {
       {/* MODAL THÊM / CHỈNH SỬA NGƯỜI DÙNG CHUẨN 100% THIẾT KẾ MẪU                  */}
       {/* ========================================================================= */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-slate-200 dark:border-slate-700 relative animate-in fade-in zoom-in-95 duration-150">
+        <ModalPortal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+          <div
+            className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-slate-200 dark:border-slate-700 relative animate-in fade-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header: Tiêu đề "Thêm người dùng" và nút icon đóng ✕ ở góc trên bên phải */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700/60">
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">
@@ -1067,7 +1071,7 @@ export function UserManagementView() {
               </div>
             </form>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </div>
   );

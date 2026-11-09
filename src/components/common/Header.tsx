@@ -24,6 +24,7 @@ const BREADCRUMBS: Record<string, { group: string; page: string }> = {
   audit:      { group: "Cấu hình",  page: "Nhật ký Hệ thống" },
   alarms:     { group: "Giám sát",  page: "Cảnh báo & Sự cố" },
   history:    { group: "Giám sát",  page: "Lịch sử Dữ liệu" },
+  ai:         { group: "Giám sát",  page: "AI Giám sát & Dự đoán" },
   qr:         { group: "Tiện ích",  page: "Quét mã QR" },
   settings:   { group: "Cấu hình",  page: "Danh mục Thông số & Hệ thống" },
 };

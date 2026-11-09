@@ -6,6 +6,7 @@
 
 import {
   LayoutDashboard,
+  BrainCircuit,
   GitBranch,
   Bell,
   ArrowLeftRight,
@@ -68,6 +69,7 @@ export function Sidebar() {
     { id: "devices",    group: "monitoring", label: "Giám sát Thiết bị",   icon: Cpu },
     { id: "alarms",     group: "monitoring", label: "Cảnh báo & Sự cố",    icon: Bell, badgeCount: pendingCount },
     { id: "history",    group: "monitoring", label: "Lịch sử Dữ liệu",     icon: History },
+    { id: "ai",         group: "monitoring", label: "AI Giám sát & Dự đoán", icon: BrainCircuit },
   ];
 
   /* -------- Render 1 button menu -------- */

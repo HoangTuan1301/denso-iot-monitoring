@@ -14,7 +14,7 @@ import { useAlarmStore } from './useAlarmStore';
 import { apiClient } from '../services/api';
 import { useHistoryStore } from './useHistoryStore';
 
-export type NavigationTab = 'dashboard' | 'lines' | 'devices' | 'thresholds' | 'alarms' | 'history' | 'users' | 'audit' | 'qr' | 'settings' | 'metrics';
+export type NavigationTab = 'dashboard' | 'lines' | 'devices' | 'thresholds' | 'alarms' | 'history' | 'users' | 'audit' | 'qr' | 'settings' | 'metrics' | 'ai';
 
 export interface PLCStation {
   id: string;

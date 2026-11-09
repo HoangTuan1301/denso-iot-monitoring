@@ -15,6 +15,7 @@ import { AuditLogView } from './features/audit/AuditLogView';
 import { AlarmLogView } from './features/alarms/AlarmLogView';
 import { MachineHistoryView } from './features/history/MachineHistoryView';
 import { MetricCatalogView } from './features/metrics/MetricCatalogView';
+import { AIIntelligenceView } from './features/ai-intelligence/AIIntelligenceView';
 import { LoginPage } from './features/auth/LoginPage';
 import { useMonitoringStore } from './stores/useMonitoringStore';
 import { useAuthStore } from './stores/useAuthStore';
@@ -208,6 +209,9 @@ export default function App() {
 
       case 'history':
         return <MachineHistoryView />;
+
+      case 'ai':
+        return <AIIntelligenceView />;
 
       case 'qr':
         return (

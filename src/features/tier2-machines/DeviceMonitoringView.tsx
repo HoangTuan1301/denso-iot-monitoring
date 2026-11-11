@@ -28,9 +28,11 @@ import { useMonitoringStore } from '../../stores/useMonitoringStore';
 import { useAlarmStore } from '../../stores/useAlarmStore';
 import { socketClient } from '../../services/socket';
 import { MachineComponent } from '../../types/hierarchy';
-import { MachineDetailModal } from '../tier3-metrics/MachineDetailModal';
 import { QRCodeModal } from '../../components/qr/QRCodeModal';
 import { Tooltip } from '../../components/common/Tooltip';
+import { MachineDetailView } from './MachineDetailView';
+import { CheckSheetView } from '../checksheet/CheckSheetView';
+import { MachineImage } from '../../config/machineImages';
 
 export function DeviceMonitoringView() {
   const {
@@ -45,9 +47,10 @@ export function DeviceMonitoringView() {
 
   const { alarms } = useAlarmStore();
 
-  // Modal states
+  // Modal & Navigation states (Thống nhất Flow B với MachineDetailView & CheckSheetView)
   const [selectedMachine, setSelectedMachine] = useState<MachineComponent | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [detailMachineId, setDetailMachineId] = useState<string | null>(null);
+  const [isCheckSheetOpen, setIsCheckSheetOpen] = useState(false);
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
 
   // Filter & Search states
@@ -198,10 +201,11 @@ export function DeviceMonitoringView() {
     });
   }, [allMachines, lineFilter, statusFilter, sourceFilter, searchTerm, lines]);
 
-  // Mở modal xem chi tiết
+  // Mở xem chi tiết máy (Thống nhất Flow B dùng MachineDetailView)
   const handleOpenDetails = (machine: MachineComponent) => {
     setSelectedMachine(machine);
-    setIsDetailModalOpen(true);
+    setDetailMachineId(machine.id);
+    setIsCheckSheetOpen(false);
   };
 
   // Mở modal xem mã QR
@@ -209,6 +213,34 @@ export function DeviceMonitoringView() {
     setSelectedMachine(machine);
     setIsQRModalOpen(true);
   };
+
+  // =========================================================================
+  // ĐIỀU HƯỚNG MÀN HÌNH CHI TIẾT THỐNG NHẤT (FLOW B -> MachineDetailView)
+  // Khi chọn máy trong Giám sát Thiết bị, render trực tiếp MachineDetailView
+  // Nút quay lại sẽ đưa người dùng về danh sách Giám sát Thiết bị
+  // Nút Mở CHECK SHEET sẽ điều hướng đến CheckSheetView của chính máy đó
+  // =========================================================================
+  if (detailMachineId) {
+    if (isCheckSheetOpen) {
+      return (
+        <CheckSheetView
+          machineId={detailMachineId}
+          onBackToMachineDetail={() => setIsCheckSheetOpen(false)}
+        />
+      );
+    }
+
+    return (
+      <MachineDetailView
+        machineId={detailMachineId}
+        onBackToLine={() => setDetailMachineId(null)}
+        onOpenCheckSheet={(mId) => {
+          setDetailMachineId(mId);
+          setIsCheckSheetOpen(true);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -536,27 +568,43 @@ export function DeviceMonitoringView() {
                     </div>
                   </div>
 
-                  {/* Dòng 2: Tên thiết bị & Vị trí */}
-                  <div>
-                    <h3
-                      className="text-base font-bold text-slate-900 dark:text-white leading-snug line-clamp-1 hover:text-emerald-600 transition-colors cursor-pointer"
+                  {/* Dòng 2: Minh họa CAD & Tên thiết bị & Vị trí */}
+                  <div className="flex items-center gap-3">
+                    <div
                       onClick={() => handleOpenDetails(machine)}
+                      className="w-14 h-14 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-center shrink-0 p-1 overflow-hidden cursor-pointer hover:border-emerald-500 transition-colors"
+                      title={`Xem chi tiết ${machine.name}`}
                     >
-                      {machine.name}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      <span className="truncate" title={lineInfo.name}>
-                        {lineInfo.name}
-                      </span>
-                      {machine.location && (
-                        <>
-                          <span>&bull;</span>
-                          <span className="inline-flex items-center gap-1 truncate">
-                            <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                            {machine.location}
-                          </span>
-                        </>
-                      )}
+                      <MachineImage
+                        machineId={machine.id}
+                        machineCode={machine.code}
+                        imageUrl={machine.imageUrl}
+                        alt={machine.name}
+                        className="max-h-12 w-auto object-contain"
+                        fallbackIconClassName="w-6 h-6 text-emerald-600/70 dark:text-emerald-400/70"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3
+                        className="text-base font-bold text-slate-900 dark:text-white leading-snug line-clamp-1 hover:text-emerald-600 transition-colors cursor-pointer"
+                        onClick={() => handleOpenDetails(machine)}
+                      >
+                        {machine.name}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        <span className="truncate" title={lineInfo.name}>
+                          {lineInfo.name}
+                        </span>
+                        {machine.location && (
+                          <>
+                            <span>&bull;</span>
+                            <span className="inline-flex items-center gap-1 truncate">
+                              <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                              {machine.location}
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -711,9 +759,27 @@ export function DeviceMonitoringView() {
                       key={machine.id}
                       className="hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors"
                     >
-                      {/* Cột 1: Mã thiết bị */}
-                      <td className="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white">
-                        {machine.code || machine.id}
+                      {/* Cột 1: Mã thiết bị & Ảnh CAD thu nhỏ */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-2.5">
+                          <div
+                            onClick={() => handleOpenDetails(machine)}
+                            className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 p-0.5 overflow-hidden cursor-pointer hover:border-emerald-500 transition-colors"
+                            title={`Xem chi tiết ${machine.name}`}
+                          >
+                            <MachineImage
+                              machineId={machine.id}
+                              machineCode={machine.code}
+                              imageUrl={machine.imageUrl}
+                              alt={machine.name}
+                              className="max-h-7 w-auto object-contain"
+                              fallbackIconClassName="w-4 h-4 text-emerald-600/70"
+                            />
+                          </div>
+                          <span className="font-mono font-bold text-slate-900 dark:text-white">
+                            {machine.code || machine.id}
+                          </span>
+                        </div>
                       </td>
 
                       {/* Cột 2: Tên thiết bị & Vị trí */}
@@ -835,23 +901,7 @@ export function DeviceMonitoringView() {
       )}
 
       {/* ========================================================================= */}
-      {/* 5. TÁI SỬ DỤNG MODAL CHI TIẾT THIẾT BỊ (MachineDetailModal)               */}
-      {/* ========================================================================= */}
-      {selectedMachine && (
-        <MachineDetailModal
-          machine={selectedMachine}
-          lineName={getLineInfo(selectedMachine.lineId).name}
-          isOpen={isDetailModalOpen}
-          onClose={() => setIsDetailModalOpen(false)}
-          onOpenQR={() => {
-            setIsDetailModalOpen(false);
-            setIsQRModalOpen(true);
-          }}
-        />
-      )}
-
-      {/* ========================================================================= */}
-      {/* 6. TÁI SỬ DỤNG MODAL MÃ QR (QRCodeModal)                                 */}
+      {/* 5. TÁI SỬ DỤNG MODAL MÃ QR (QRCodeModal)                                 */}
       {/* ========================================================================= */}
       {selectedMachine && (
         <QRCodeModal

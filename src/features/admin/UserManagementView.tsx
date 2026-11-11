@@ -21,7 +21,6 @@ import {
   Users,
   UserPlus,
   Shield,
-  ShieldCheck,
   Eye,
   Search,
   CheckCircle2,
@@ -583,7 +582,6 @@ export function UserManagementView() {
                 <th className="py-3.5 px-3">TÀI KHOẢN</th>
                 <th className="py-3.5 px-3">HỌ TÊN</th>
                 <th className="py-3.5 px-3">QUYỀN TRUY CẬP</th>
-                <th className="py-3.5 px-3">PHẠM VI THẤY ĐƯỢC</th>
                 <th className="py-3.5 px-3 text-center">KÍCH HOẠT</th>
                 <th className="py-3.5 px-3 text-right">THAO TÁC</th>
               </tr>
@@ -591,13 +589,13 @@ export function UserManagementView() {
             <tbody className="divide-y divide-factory-border">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400 text-xs">
+                  <td colSpan={5} className="py-12 text-center text-slate-400 text-xs">
                     Đang tải danh sách tài khoản từ CSDL MySQL...
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400 text-xs">
+                  <td colSpan={5} className="py-12 text-center text-slate-400 text-xs">
                     Không tìm thấy tài khoản nào phù hợp với điều kiện tìm kiếm.
                   </td>
                 </tr>
@@ -688,20 +686,6 @@ export function UserManagementView() {
                         </select>
                       </td>
 
-                      {/* Cột 4: PHẠM VI THẤY ĐƯỢC (Tự động tính dựa trên quyền) */}
-                      <td className="py-3.5 px-3">
-                        {roleUpper === 'ADMIN' ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
-                            <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-                            9 màn — cấu hình + giám sát
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20">
-                            <Eye className="w-3.5 h-3.5 shrink-0" />
-                            3 màn — chỉ giám sát
-                          </span>
-                        )}
-                      </td>
 
                       {/* Cột 5: KÍCH HOẠT (CustomSwitch) */}
                       <td className="py-3.5 px-3 text-center">

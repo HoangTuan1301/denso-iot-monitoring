@@ -1,0 +1,262 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2200 1350" width="2200" height="1350">
+  <defs>
+    <style>
+      text { font-family: 'Segoe UI', Arial, sans-serif; }
+      .code-font { font-family: Consolas, monospace; }
+      .shadow { filter: drop-shadow(0px 8px 16px rgba(15, 23, 42, 0.08)); }
+    </style>
+    <linearGradient id="headerGrad4" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7F1D1D" />
+      <stop offset="100%" stop-color="#B91C1C" />
+    </linearGradient>
+    <marker id="arrRed4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#DC2626" />
+    </marker>
+    <marker id="arrGreen4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#059669" />
+    </marker>
+  </defs>
+
+  <rect width="100%" height="100%" fill="#F8FAFC" />
+  <rect x="30" y="30" width="2140" height="1290" rx="20" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2" class="shadow" />
+
+  <!-- Banner -->
+  <g transform="translate(60, 60)">
+    <rect width="2080" height="80" rx="10" fill="url(#headerGrad4)" />
+    <rect x="0" y="0" width="8" height="80" rx="4" fill="#FBBF24" />
+    <text x="30" y="38" fill="#FFFFFF" font-size="24" font-weight="700">QUY TRÌNH XỬ LÝ CẢNH BÁO &amp; SỰ CỐ THIẾT BỊ (ALARM HANDLING WORKFLOW)</text>
+    <text x="30" y="64" fill="#FDE68A" font-size="14" font-weight="500">VI PHẠM NGƯỠNG CẢM BIẾN -> KÍCH HOẠT ANDON BOARD -> TIẾP NHẬN (ACK) -> KHẮC PHỤC (RESOLVE) -> GHI AUDIT LOG</text>
+    <text x="2040" y="48" fill="#E2E8F0" font-size="13" font-weight="600" text-anchor="end">FLOW 4 / 5</text>
+  </g>
+
+  <!-- 4 PHASES -->
+  <!-- PHASE 1: TRIGGER -->
+  <g transform="translate(60, 180)">
+    <rect width="480" height="740" rx="12" fill="#FEF2F2" stroke="#F87171" stroke-width="2" />
+    <rect width="480" height="50" rx="12" fill="#DC2626" />
+    <rect x="0" y="36" width="480" height="14" fill="#DC2626" />
+    <text x="240" y="32" fill="#FFFFFF" font-size="15" font-weight="700" text-anchor="middle">PHA 1: PHÁT SINH CẢNH BÁO</text>
+
+    <g transform="translate(20, 70)">
+      <rect width="440" height="200" rx="8" fill="#FFFFFF" stroke="#FECACA" class="shadow" />
+      <text x="15" y="28" fill="#991B1B" font-size="14" font-weight="700">1. Phát Hiện Vi Phạm Ngưỡng</text>
+      <text x="15" y="52" fill="#374151" font-size="12">• Sensor đo được giá trị vượt biên độ:</text>
+      <text x="25" y="72" fill="#DC2626" font-size="12">- Nhiệt độ trục chính: 85°C (> 80°C Critical)</text>
+      <text x="25" y="92" fill="#D97706" font-size="12">- Độ rung ổ trục: 3.8 mm/s (> 3.5 mm/s Warning)</text>
+      <text x="15" y="118" fill="#374151" font-size="12">• Phân loại cấp độ sự cố:</text>
+      <text x="25" y="138" fill="#D97706" font-size="12">- WARNING: Thiết bị có dấu hiệu bất thường</text>
+      <text x="25" y="158" fill="#DC2626" font-size="12">- CRITICAL: Nguy cơ hư hỏng nặng, dừng chuyền</text>
+      <text x="15" y="185" fill="#475569" font-size="12">• Máy chuyển trạng thái sang WARNING hoặc ERROR</text>
+    </g>
+
+    <g transform="translate(20, 290)">
+      <rect width="440" height="190" rx="8" fill="#FFFFFF" stroke="#FECACA" class="shadow" />
+      <text x="15" y="28" fill="#991B1B" font-size="14" font-weight="700">2. Bật Bảng Đèn Digital Andon</text>
+      <text x="15" y="52" fill="#374151" font-size="12">• WebSocket broadcast sự kiện 'alarm_trigger'</text>
+      <text x="15" y="72" fill="#374151" font-size="12">• Giao diện hiển thị cảnh báo đa giác quan:</text>
+      <text x="25" y="92" fill="#DC2626" font-size="12">- Header nhấp nháy đèn đỏ / vàng liên tục</text>
+      <text x="25" y="112" fill="#DC2626" font-size="12">- Banner cảnh báo hiện tên máy, vị trí Line</text>
+      <text x="25" y="132" fill="#DC2626" font-size="12">- Loa phát âm thanh còi hú báo động (Buzzer)</text>
+      <text x="15" y="157" fill="#374151" font-size="12">• Thẻ máy trên Dashboard Cấp 2 đổi màu viền</text>
+      <text x="15" y="177" fill="#475569" font-size="12">• Tạo bản ghi cảnh báo trong Zustand RAM Store</text>
+    </g>
+
+    <g transform="translate(20, 500)">
+      <rect width="440" height="210" rx="8" fill="#FFFBEB" stroke="#FDE68A" />
+      <text x="15" y="28" fill="#92400E" font-size="13" font-weight="700">Ghi Chú Nợ Kỹ Thuật (TD-01)</text>
+      <text x="15" y="52" fill="#78350F" font-size="12">Hiện tại, bảng 'alarms' CHƯA TỒN TẠI</text>
+      <text x="15" y="70" fill="#78350F" font-size="12">trong CSDL MySQL vật lý.</text>
+      <text x="15" y="95" fill="#78350F" font-size="12">Toàn bộ danh sách cảnh báo đang được duy trì</text>
+      <text x="15" y="115" fill="#78350F" font-size="12">trên bộ nhớ RAM Zustand của Client.</text>
+      <text x="15" y="140" fill="#B45309" font-size="12">• Hậu quả: Khi F5 / Reload trang web, danh</text>
+      <text x="25" y="158" fill="#B45309" font-size="12">sách cảnh báo chưa xử lý sẽ bị làm mới.</text>
+      <text x="15" y="185" fill="#059669" font-size="12" font-weight="600">-> Đã đưa vào lộ trình Giai đoạn 5 để bổ sung</text>
+      <text x="25" y="202" fill="#059669" font-size="12" font-weight="600">bảng alarms vật lý vào MySQL.</text>
+    </g>
+  </g>
+
+  <!-- PHASE 2: ACKNOWLEDGE -->
+  <g transform="translate(580, 180)">
+    <rect width="480" height="740" rx="12" fill="#EFF6FF" stroke="#93C5FD" stroke-width="2" />
+    <rect width="480" height="50" rx="12" fill="#1D4ED8" />
+    <rect x="0" y="36" width="480" height="14" fill="#1D4ED8" />
+    <text x="240" y="32" fill="#FFFFFF" font-size="15" font-weight="700" text-anchor="middle">PHA 2: TIẾP NHẬN SỰ CỐ (ACKNOWLEDGE)</text>
+
+    <g transform="translate(20, 70)">
+      <rect width="440" height="200" rx="8" fill="#FFFFFF" stroke="#BFDBFE" class="shadow" />
+      <text x="15" y="28" fill="#1E40AF" font-size="14" font-weight="700">1. Vận Hành Viên Bấm Xác Nhận</text>
+      <text x="15" y="52" fill="#374151" font-size="12">• Đối tượng thực hiện: VẬN HÀNH VIÊN (OPERATOR)</text>
+      <text x="15" y="72" fill="#374151" font-size="12">• Điều kiện: Đã đăng nhập tài khoản có quyền</text>
+      <text x="15" y="92" fill="#374151" font-size="12">• Thao tác: Nhấn nút "XÁC NHẬN" (Acknowledge)</text>
+      <text x="15" y="115" fill="#374151" font-size="12">• Ý nghĩa nghiệp vụ:</text>
+      <text x="25" y="135" fill="#15803D" font-size="12">Xác nhận con người đã nhận được thông tin</text>
+      <text x="25" y="152" fill="#15803D" font-size="12">cảnh báo từ hệ thống, đang tiếp cận hiện trường</text>
+      <text x="25" y="170" fill="#15803D" font-size="12">để kiểm tra dây chuyền sản xuất.</text>
+    </g>
+
+    <g transform="translate(20, 290)">
+      <rect width="440" height="190" rx="8" fill="#FFFFFF" stroke="#BFDBFE" class="shadow" />
+      <text x="15" y="28" fill="#1E40AF" font-size="14" font-weight="700">2. Thay Đổi Trạng Thái Hệ Thống</text>
+      <text x="15" y="52" fill="#374151" font-size="12">• Trạng thái cảnh báo chuyển sang ACKNOWLEDGED</text>
+      <text x="15" y="72" fill="#374151" font-size="12">• Còi hú báo động tự động tắt âm thanh</text>
+      <text x="15" y="92" fill="#374151" font-size="12">• Đèn Andon chuyển từ đỏ chớp sang vàng tĩnh</text>
+      <text x="15" y="112" fill="#374151" font-size="12">• Ghi nhận mốc thời gian tiếp nhận: acknowledgedAt</text>
+      <text x="15" y="132" fill="#374151" font-size="12">• Ghi nhận nhân viên tiếp nhận: acknowledgedBy</text>
+      <text x="15" y="160" fill="#059669" font-size="12" font-weight="600">✓ Tính toán chỉ số MTTA (Mean Time To Acknowledge)</text>
+    </g>
+
+    <g transform="translate(20, 500)">
+      <rect width="440" height="210" rx="8" fill="#EFF6FF" stroke="#93C5FD" />
+      <text x="15" y="28" fill="#1E40AF" font-size="13" font-weight="700">Ghi Nhật Ký Kiểm Toán (BR-04)</text>
+      <text x="15" y="52" fill="#374151" font-size="12">Backend tự động lưu vết vào bảng audit_logs:</text>
+      <text x="20" y="75" fill="#1E40AF" font-size="11" class="code-font">• action: 'ACK_ALARM'</text>
+      <text x="20" y="92" fill="#1E40AF" font-size="11" class="code-font">• target: alarmId, machineId</text>
+      <text x="20" y="110" fill="#1E40AF" font-size="11" class="code-font">• details: 'Vận hành viên đã nhận sự cố'</text>
+      <text x="20" y="128" fill="#1E40AF" font-size="11" class="code-font">• userId: operatorId, timestamp: UTC</text>
+      <text x="15" y="155" fill="#15803D" font-size="12">Phát tín hiệu thông báo cho Bộ phận Bảo trì:</text>
+      <text x="25" y="175" fill="#15803D" font-size="12">Kỹ thuật viên bảo trì nhận thông báo để mang</text>
+      <text x="25" y="195" fill="#15803D" font-size="12">dụng cụ chuyên dụng vào xưởng xử lý.</text>
+    </g>
+  </g>
+
+  <!-- PHASE 3: RESOLVE -->
+  <g transform="translate(1100, 180)">
+    <rect width="480" height="740" rx="12" fill="#FFFBEB" stroke="#FDE68A" stroke-width="2" />
+    <rect width="480" height="50" rx="12" fill="#D97706" />
+    <rect x="0" y="36" width="480" height="14" fill="#D97706" />
+    <text x="240" y="32" fill="#FFFFFF" font-size="15" font-weight="700" text-anchor="middle">PHA 3: KHẮC PHỤC &amp; ĐÓNG SỰ CỐ</text>
+
+    <g transform="translate(20, 70)">
+      <rect width="440" height="200" rx="8" fill="#FFFFFF" stroke="#FCD34D" class="shadow" />
+      <text x="15" y="28" fill="#92400E" font-size="14" font-weight="700">1. Kỹ Thuật Viên Xử Lý Phần Cứng</text>
+      <text x="15" y="52" fill="#374151" font-size="12">• Đối tượng: KỸ THUẬT VIÊN BẢO TRÌ (MAINTENANCE)</text>
+      <text x="15" y="72" fill="#374151" font-size="12">• Kiểm tra thực địa tại máy:</text>
+      <text x="25" y="92" fill="#475569" font-size="12">- Bôi trơn ổ bi, siết bu lông chống rung</text>
+      <text x="25" y="112" fill="#475569" font-size="12">- Bổ sung dung dịch làm mát trục chính</text>
+      <text x="25" y="132" fill="#475569" font-size="12">- Hiệu chỉnh áp suất van khí nén</text>
+      <text x="15" y="157" fill="#374151" font-size="12">• Chờ cảm biến hồi phục về dải an toàn</text>
+      <text x="15" y="177" fill="#374151" font-size="12">• Mở hộp thoại "KHẮC PHỤC SỰ CỐ" (Resolve Modal)</text>
+    </g>
+
+    <g transform="translate(20, 290)">
+      <rect width="440" height="190" rx="8" fill="#FFFFFF" stroke="#FCD34D" class="shadow" />
+      <text x="15" y="28" fill="#92400E" font-size="14" font-weight="700">2. Nhập Báo Cáo Nghiệm Thu</text>
+      <text x="15" y="52" fill="#374151" font-size="12">• Bắt buộc nhập biên bản nghiệm thu (BR-05):</text>
+      <text x="25" y="72" fill="#78350F" font-size="12">- Nguyên nhân gốc rễ (Root Cause)</text>
+      <text x="25" y="90" fill="#78350F" font-size="12">- Phương án khắc phục đã áp dụng</text>
+      <text x="25" y="108" fill="#78350F" font-size="12">- Vật tư linh kiện đã thay thế</text>
+      <text x="15" y="132" fill="#374151" font-size="12">• Không cho phép đóng sự cố nếu để trống ghi chú</text>
+      <text x="15" y="155" fill="#374151" font-size="12">• Nhấn nút "Xác nhận đã khắc phục"</text>
+      <text x="15" y="175" fill="#059669" font-size="12" font-weight="600">✓ Đảm bảo trách nhiệm bảo trì minh bạch</text>
+    </g>
+
+    <g transform="translate(20, 500)">
+      <rect width="440" height="210" rx="8" fill="#FFFBEB" stroke="#FCD34D" />
+      <text x="15" y="28" fill="#92400E" font-size="13" font-weight="700">Lưu Vết Nghiệm Thu (Audit Log)</text>
+      <text x="15" y="52" fill="#78350F" font-size="12">Ghi bản ghi kiểm toán hoàn tất sự cố:</text>
+      <text x="20" y="75" fill="#78350F" font-size="11" class="code-font">• action: 'RESOLVE_ALARM'</text>
+      <text x="20" y="92" fill="#78350F" font-size="11" class="code-font">• details: JSON payload ghi chú nghiệm thu</text>
+      <text x="20" y="110" fill="#78350F" font-size="11" class="code-font">• resolvedBy: techId, resolvedAt: UTC</text>
+      <text x="15" y="135" fill="#78350F" font-size="12">• Trạng thái cảnh báo đổi thành RESOLVED</text>
+      <text x="15" y="155" fill="#78350F" font-size="12">• Đóng hộp thoại, loại bỏ khỏi hàng đợi cảnh báo</text>
+      <text x="15" y="180" fill="#059669" font-size="12" font-weight="600">✓ Tính toán chỉ số MTTR (Mean Time To Recovery)</text>
+    </g>
+  </g>
+
+  <!-- PHASE 4: RECOVERY & CLOSURE -->
+  <g transform="translate(1620, 180)">
+    <rect width="520" height="740" rx="12" fill="#F0FDF4" stroke="#86EFAC" stroke-width="2" />
+    <rect width="520" height="50" rx="12" fill="#15803D" />
+    <rect x="0" y="36" width="520" height="14" fill="#15803D" />
+    <text x="260" y="32" fill="#FFFFFF" font-size="15" font-weight="700" text-anchor="middle">PHA 4: HỒI PHỤC VẬN HÀNH &amp; LƯU TRỮ</text>
+
+    <g transform="translate(20, 70)">
+      <rect width="480" height="200" rx="8" fill="#FFFFFF" stroke="#BBF7D0" class="shadow" />
+      <text x="15" y="28" fill="#166534" font-size="14" font-weight="700">1. Máy Trở Lại Trạng Thái Bình Thường</text>
+      <text x="15" y="52" fill="#374151" font-size="12">• Trạng thái máy móc cập nhật sang OPERATIONAL</text>
+      <text x="15" y="72" fill="#374151" font-size="12">• Thẻ Line Card và Machine Card chuyển sang màu xanh lá</text>
+      <text x="15" y="92" fill="#374151" font-size="12">• Đèn Andon tắt hoàn toàn, bảng điều khiển trở về trạng thái an toàn</text>
+      <text x="15" y="112" fill="#374151" font-size="12">• Tiếp tục quy trình sản xuất theo kế hoạch ca</text>
+      <text x="15" y="137" fill="#15803D" font-size="12">• Bộ đếm sản lượng mục tiêu và sản lượng thực tế tiếp tục ghi nhận</text>
+      <text x="15" y="165" fill="#059669" font-size="12" font-weight="600">✓ Khôi phục hoạt động nhà xưởng không làm gián đoạn dây chuyền</text>
+    </g>
+
+    <g transform="translate(20, 290)">
+      <rect width="480" height="190" rx="8" fill="#FFFFFF" stroke="#BBF7D0" class="shadow" />
+      <text x="15" y="28" fill="#166534" font-size="14" font-weight="700">2. Cập Nhật KPI Hiệu Suất Thiết Bị (OEE)</text>
+      <text x="15" y="52" fill="#374151" font-size="12">• Ghi nhận thời gian dừng máy phát sinh (Downtime Duration):</text>
+      <text x="25" y="72" fill="#0369A1" font-size="11" class="code-font">downtime = resolvedAt - triggeredAt</text>
+      <text x="15" y="95" fill="#374151" font-size="12">• Tính toán lại các chỉ số hiệu suất OEE cấp nhà máy:</text>
+      <text x="25" y="115" fill="#475569" font-size="12">- Tính khả dụng (Availability) = (Operating Time / Planned Time)</text>
+      <text x="25" y="135" fill="#475569" font-size="12">- Hiệu suất vận hành (Performance) và Tỷ lệ chất lượng (Quality)</text>
+      <text x="15" y="160" fill="#059669" font-size="12" font-weight="600">✓ Cung cấp số liệu chính xác cho báo cáo giao ban ca kíp</text>
+    </g>
+
+    <g transform="translate(20, 500)">
+      <rect width="480" height="210" rx="8" fill="#DCFCE7" stroke="#4ADE80" />
+      <text x="15" y="28" fill="#14532D" font-size="13" font-weight="700">Khép Kín Vòng Đời Cảnh Báo (Closed-loop)</text>
+      <text x="15" y="52" fill="#166534" font-size="12">Toàn bộ thông tin sự cố từ lúc phát sinh, tiếp nhận đến khi khắc phục</text>
+      <text x="15" y="70" fill="#166534" font-size="12">được lưu trữ đầy đủ trong Audit Trail phục vụ:</text>
+      <text x="20" y="92" fill="#15803D" font-size="12">1. Tra cứu lịch sử bảo dưỡng máy móc định kỳ.</text>
+      <text x="20" y="112" fill="#15803D" font-size="12">2. Đánh giá tay nghề và thời gian phản ứng của kỹ thuật viên.</text>
+      <text x="20" y="132" fill="#15803D" font-size="12">3. Phân tích nguyên nhân gốc rễ (Root Cause Analysis - RCA).</text>
+      <text x="20" y="152" fill="#15803D" font-size="12">4. Xây dựng dữ liệu huấn luyện cho bảo trì dự đoán (PdM) tương lai.</text>
+      <text x="15" y="180" fill="#047857" font-size="12" font-weight="600">✓ Đạt chuẩn quản lý sản xuất tinh gọn Lean Manufacturing.</text>
+    </g>
+  </g>
+
+  <!-- Connective Arrows -->
+  <line x1="540" y1="280" x2="580" y2="280" stroke="#0284C7" stroke-width="4" marker-end="url(#arrGreen4)" />
+  <line x1="1060" y1="280" x2="1100" y2="280" stroke="#D97706" stroke-width="4" marker-end="url(#arrGreen4)" />
+  <line x1="1580" y1="280" x2="1620" y2="280" stroke="#059669" stroke-width="4" marker-end="url(#arrGreen4)" />
+
+  <!-- Flow Summary Table -->
+  <g transform="translate(60, 950)">
+    <rect width="2080" height="340" rx="14" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1.5" />
+    <text x="30" y="35" fill="#0F172A" font-size="16" font-weight="700">TỔNG HỢP VÒNG ĐỜI CẢNH BÁO (ALARM LIFECYCLE SUMMARY)</text>
+
+    <g transform="translate(30, 60)">
+      <rect width="480" height="255" rx="8" fill="#FFFFFF" stroke="#E2E8F0" />
+      <text x="20" y="30" fill="#DC2626" font-size="14" font-weight="700">1. Kích Hoạt (Trigger)</text>
+      <text x="20" y="60" fill="#475569" font-size="12">• Actor/Nguồn: Threshold Evaluator (Backend/Client).</text>
+      <text x="20" y="85" fill="#475569" font-size="12">• Dữ liệu vào: Giá trị đo rung, nhiệt, áp, dòng điện.</text>
+      <text x="20" y="110" fill="#475569" font-size="12">• Hành động: So sánh ngưỡng, tạo sự kiện cảnh báo.</text>
+      <text x="20" y="135" fill="#475569" font-size="12">• Đầu ra: Còi hú Andon, đèn chớp đỏ, thẻ máy ERROR.</text>
+      <text x="20" y="160" fill="#475569" font-size="12">• Trạng thái: ACTIVE_UNACK (Chờ tiếp nhận).</text>
+      <text x="20" y="190" fill="#DC2626" font-size="12" font-weight="600">! Cảnh báo tức thì &lt; 200ms đến nhân viên xưởng.</text>
+    </g>
+
+    <g transform="translate(540, 60)">
+      <rect width="480" height="255" rx="8" fill="#FFFFFF" stroke="#E2E8F0" />
+      <text x="20" y="30" fill="#0284C7" font-size="14" font-weight="700">2. Tiếp Nhận (Acknowledge)</text>
+      <text x="20" y="60" fill="#475569" font-size="12">• Actor: Vận hành viên (OPERATOR) có thẩm quyền.</text>
+      <text x="20" y="85" fill="#475569" font-size="12">• Dữ liệu vào: Lệnh nhấn nút Xác nhận trên Andon.</text>
+      <text x="20" y="110" fill="#475569" font-size="12">• Hành động: Tắt còi, đổi đèn vàng tĩnh, ghi audit.</text>
+      <text x="20" y="135" fill="#475569" font-size="12">• Đầu ra: Bản ghi audit_logs (action: 'ACK_ALARM').</text>
+      <text x="20" y="160" fill="#475569" font-size="12">• Trạng thái: ACKNOWLEDGED (Đang xử lý).</text>
+      <text x="20" y="190" fill="#0284C7" font-size="12" font-weight="600">✓ Ghi nhận mốc thời gian phản hồi MTTA.</text>
+    </g>
+
+    <g transform="translate(1050, 60)">
+      <rect width="480" height="255" rx="8" fill="#FFFFFF" stroke="#E2E8F0" />
+      <text x="20" y="30" fill="#D97706" font-size="14" font-weight="700">3. Khắc Phục (Resolve)</text>
+      <text x="20" y="60" fill="#475569" font-size="12">• Actor: Kỹ thuật viên (MAINTENANCE).</text>
+      <text x="20" y="85" fill="#475569" font-size="12">• Dữ liệu vào: Biên bản nghiệm thu và ghi chú sửa chữa.</text>
+      <text x="20" y="110" fill="#475569" font-size="12">• Hành động: Sửa chữa thiết bị, nhập mô tả, bấm Resolve.</text>
+      <text x="20" y="135" fill="#475569" font-size="12">• Đầu ra: Bản ghi audit_logs (action: 'RESOLVE_ALARM').</text>
+      <text x="20" y="160" fill="#475569" font-size="12">• Trạng thái: RESOLVED (Đã khắc phục xong).</text>
+      <text x="20" y="190" fill="#D97706" font-size="12" font-weight="600">✓ Ghi nhận mốc thời gian hồi phục MTTR.</text>
+    </g>
+
+    <g transform="translate(1560, 60)">
+      <rect width="480" height="255" rx="8" fill="#FFFFFF" stroke="#E2E8F0" />
+      <text x="20" y="30" fill="#059669" font-size="14" font-weight="700">4. Đóng Hồ Sơ &amp; Khôi Phục</text>
+      <text x="20" y="60" fill="#475569" font-size="12">• Actor/Thành phần: Hệ thống giám sát KaiLink.</text>
+      <text x="20" y="85" fill="#475569" font-size="12">• Dữ liệu vào: Tín hiệu cảm biến trở về dải an toàn.</text>
+      <text x="20" y="110" fill="#475569" font-size="12">• Hành động: Chuyển máy sang OPERATIONAL, tắt Andon.</text>
+      <text x="20" y="135" fill="#475569" font-size="12">• Đầu ra: Khôi phục dây chuyền, cập nhật OEE.</text>
+      <text x="20" y="160" fill="#475569" font-size="12">• Trạng thái: CLOSED &amp; ARCHIVED.</text>
+      <text x="20" y="190" fill="#059669" font-size="12" font-weight="600">✓ Đảm bảo quy trình sản xuất liên tục, an toàn.</text>
+    </g>
+  </g>
+</svg>

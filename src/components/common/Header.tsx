@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { Sun, Moon, RefreshCw, Flame, AlertOctagon, LogOut, Radio } from "lucide-react";
+import { Sun, Moon, RefreshCw, Flame, AlertOctagon, LogOut, Radio, RotateCcw } from "lucide-react";
 import { useMonitoringStore } from "../../stores/useMonitoringStore";
 import { useAuthStore }       from "../../stores/useAuthStore";
 import { useThemeStore }      from "../../stores/useThemeStore";
@@ -40,7 +40,15 @@ export function Header() {
     toggleRealtime,
     simulateTick,
     triggerEmergencyDemo,
+    resetEmergencyDemo,
     setActiveTab,
+    dashboardViewLevel,
+    selectedLineId,
+    selectedMachineId,
+    lines,
+    setDashboardViewLevel,
+    setSelectedLineId,
+    activeEmergencyMetricId,
   } = useMonitoringStore();
   const { currentUser, logout, setAvatarUrl } = useAuthStore();
   const { theme, toggleTheme }  = useThemeStore();
@@ -104,15 +112,27 @@ export function Header() {
     .join("")
     .toUpperCase() || "DN";
 
+  const [hasActiveEmergency, setHasActiveEmergency] = useState(false);
+  const isEmergencyActive = hasActiveEmergency || !!activeEmergencyMetricId;
+
   /* Xử lý kích hoạt sự cố giả lập demo */
   const handleTriggerEmergency = () => {
     const triggered = triggerEmergencyDemo();
     if (triggered) {
+      setHasActiveEmergency(true);
       setDemoNotice(
         `Đã kích hoạt sự cố tại ${triggered.machineName}: ${triggered.metricName} tăng vọt ${triggered.value} ${triggered.unit}!`
       );
-      setTimeout(() => setDemoNotice(null), 5000);
+      setTimeout(() => setDemoNotice(null), 8000);
     }
+  };
+
+  /* Xử lý khôi phục trạng thái chuẩn sau diễn tập */
+  const handleRestoreEmergency = () => {
+    resetEmergencyDemo();
+    setHasActiveEmergency(false);
+    setDemoNotice("Đã khôi phục toàn bộ hệ thống về trạng thái chuẩn.");
+    setTimeout(() => setDemoNotice(null), 3000);
   };
 
   return (
@@ -121,20 +141,86 @@ export function Header() {
       {/* ---- Thông báo Toast khi bấm Giả lập sự cố ---- */}
       {demoNotice && (
         <div 
-          onClick={() => setActiveTab('alarms')}
-          className="absolute top-[66px] right-6 z-50 flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 text-white px-4 py-2.5 shadow-2xl shadow-rose-950/40 text-xs font-semibold cursor-pointer transition-all hover:scale-102"
+          className="absolute top-[66px] right-6 z-50 flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 text-white px-4 py-2.5 shadow-2xl shadow-rose-950/40 text-xs font-semibold select-none transition-all"
         >
           <AlertOctagon className="w-4.5 h-4.5 shrink-0 animate-bounce" />
-          <span>{demoNotice}</span>
-          <span className="underline ml-1">Xem chi tiết &rarr;</span>
+          <span onClick={() => setActiveTab('alarms')} className="cursor-pointer hover:underline">{demoNotice}</span>
+          <button
+            type="button"
+            onClick={handleRestoreEmergency}
+            className="ml-2 px-2.5 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-[11px] font-bold cursor-pointer transition-colors"
+          >
+            Khôi phục ngay
+          </button>
         </div>
       )}
 
-      {/* ---- Góc trái: Breadcrumb ---- */}
-      <div className="flex items-center gap-1.5 text-sm select-none">
-        <span className="text-slate-500 dark:text-slate-400 font-medium">{group}</span>
-        <span className="text-slate-400 dark:text-slate-500 font-normal">/</span>
-        <span className="font-bold text-slate-900 dark:text-white">{page}</span>
+      {/* ---- Góc trái: Breadcrumb phân tầng thông minh ---- */}
+      <div className="flex items-center gap-1.5 text-xs sm:text-sm select-none">
+        {activeTab === 'dashboard' && dashboardViewLevel !== 'factory_layout' ? (
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => {
+                setDashboardViewLevel('factory_layout');
+                setSelectedLineId(null);
+              }}
+              className="text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 font-medium transition-colors cursor-pointer"
+            >
+              Dashboard Tổng quan
+            </button>
+
+            <span className="text-slate-400 dark:text-slate-500">&gt;</span>
+
+            {dashboardViewLevel === 'line_overview' && (
+              <span className="font-bold text-slate-900 dark:text-white">
+                Dây chuyền {lines.find((l) => l.id === selectedLineId || l.code === selectedLineId)?.code || selectedLineId || 'LN-PRS-01'}
+              </span>
+            )}
+
+            {dashboardViewLevel === 'machine_detail' && (
+              <>
+                <button
+                  onClick={() => setDashboardViewLevel('line_overview')}
+                  className="text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 font-medium transition-colors cursor-pointer"
+                >
+                  Dây chuyền {lines.find((l) => l.id === selectedLineId || l.code === selectedLineId)?.code || selectedLineId || 'LN-PRS-01'}
+                </button>
+                <span className="text-slate-400 dark:text-slate-500">&gt;</span>
+                <span className="font-bold text-slate-900 dark:text-white">
+                  Máy {lines.flatMap((l) => l.machines || []).find((m) => m.id === selectedMachineId || m.code === selectedMachineId)?.code || selectedMachineId || 'OP50'}
+                </span>
+              </>
+            )}
+
+            {dashboardViewLevel === 'check_sheet' && (
+              <>
+                <button
+                  onClick={() => setDashboardViewLevel('line_overview')}
+                  className="text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 font-medium transition-colors cursor-pointer hidden md:inline"
+                >
+                  Dây chuyền {lines.find((l) => l.id === selectedLineId || l.code === selectedLineId)?.code || selectedLineId || 'LN-PRS-01'}
+                </button>
+                <span className="text-slate-400 dark:text-slate-500 hidden md:inline">&gt;</span>
+                <button
+                  onClick={() => setDashboardViewLevel('machine_detail')}
+                  className="text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 font-medium transition-colors cursor-pointer"
+                >
+                  Máy {lines.flatMap((l) => l.machines || []).find((m) => m.id === selectedMachineId || m.code === selectedMachineId)?.code || selectedMachineId || 'OP50'}
+                </button>
+                <span className="text-slate-400 dark:text-slate-500">&gt;</span>
+                <span className="font-bold text-blue-600 dark:text-blue-400">
+                  CHECK SHEET
+                </span>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5">
+            <span className="text-slate-500 dark:text-slate-400 font-medium">{group}</span>
+            <span className="text-slate-400 dark:text-slate-500 font-normal">/</span>
+            <span className="font-bold text-slate-900 dark:text-white">{page}</span>
+          </div>
+        )}
       </div>
 
       {/* ---- Góc phải: các pill & nút ---- */}
@@ -150,6 +236,20 @@ export function Header() {
             <Flame className="h-3.5 w-3.5 text-rose-500 animate-pulse" />
             <span className="hidden sm:inline">Giả lập Sự cố</span>
             <span className="sm:hidden">Sự cố</span>
+          </button>
+        )}
+
+        {/* Nút Khôi phục Trạng thái Chuẩn khi có sự cố */}
+        {isAdmin && isEmergencyActive && (
+          <button
+            type="button"
+            onClick={handleRestoreEmergency}
+            title="Khôi phục ngay toàn bộ máy và điểm an toàn về trạng thái chuẩn"
+            className="flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 active:scale-95 transition-all cursor-pointer shadow-xs animate-in fade-in"
+          >
+            <RotateCcw className="h-3.5 w-3.5 text-emerald-500" />
+            <span className="hidden sm:inline">Khôi phục Sự cố</span>
+            <span className="sm:hidden">Khôi phục</span>
           </button>
         )}
 

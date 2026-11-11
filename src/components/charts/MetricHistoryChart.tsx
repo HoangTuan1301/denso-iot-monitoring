@@ -66,8 +66,9 @@ export function MetricHistoryChart({
 
   // Tính toán dải trục Y tối ưu
   const values = chartData.map((h) => h.value);
-  const minVal = values.length > 0 ? Math.min(...values, metric.criticalMin, metric.warningMin) : 0;
-  const maxVal = values.length > 0 ? Math.max(...values, metric.criticalMax, metric.warningMax) : 100;
+  const validLimits = [metric.criticalMin, metric.warningMin, metric.warningMax, metric.criticalMax].filter((v): v is number => v != null && !isNaN(Number(v)));
+  const minVal = values.length > 0 ? Math.min(...values, ...(validLimits.length > 0 ? validLimits : [0])) : 0;
+  const maxVal = values.length > 0 ? Math.max(...values, ...(validLimits.length > 0 ? validLimits : [100])) : 100;
   const padding = (maxVal - minVal) * 0.15 || 5;
 
   const yDomainMin = Number((minVal - padding).toFixed(1));
@@ -87,11 +88,11 @@ export function MetricHistoryChart({
         <div className="flex items-center gap-3 text-[11px] font-mono">
           <span className="flex items-center gap-1">
             <span className="w-2.5 h-0.5 bg-rose-500 inline-block"></span>
-            <span>Critical Max ({metric.criticalMax})</span>
+            <span>Critical Max ({metric.criticalMax != null ? metric.criticalMax : '—'})</span>
           </span>
           <span className="flex items-center gap-1">
             <span className="w-2.5 h-0.5 bg-amber-500 inline-block"></span>
-            <span>Warning Max ({metric.warningMax})</span>
+            <span>Warning Max ({metric.warningMax != null ? metric.warningMax : '—'})</span>
           </span>
           <span className="flex items-center gap-1">
             <span className="w-2.5 h-1.5 rounded-sm bg-emerald-500 inline-block"></span>
@@ -132,9 +133,9 @@ export function MetricHistoryChart({
             <Tooltip content={<CustomTooltip unit={metric.unit} />} />
 
             {/* Đường ngưỡng Nguy hiểm trên (Critical Max) */}
-            {metric.criticalMax !== undefined && (
+            {metric.criticalMax != null && (
               <ReferenceLine
-                y={metric.criticalMax}
+                y={Number(metric.criticalMax)}
                 stroke="#EF4444"
                 strokeDasharray="4 4"
                 strokeWidth={1.5}
@@ -148,9 +149,9 @@ export function MetricHistoryChart({
             )}
 
             {/* Đường ngưỡng Cảnh báo trên (Warning Max) */}
-            {metric.warningMax !== undefined && (
+            {metric.warningMax != null && (
               <ReferenceLine
-                y={metric.warningMax}
+                y={Number(metric.warningMax)}
                 stroke="#F59E0B"
                 strokeDasharray="3 3"
                 strokeWidth={1.2}
@@ -164,9 +165,9 @@ export function MetricHistoryChart({
             )}
 
             {/* Đường ngưỡng Cảnh báo dưới (Warning Min) nếu có giá trị khác 0 */}
-            {metric.warningMin > 0 && (
+            {metric.warningMin != null && metric.warningMin > 0 && (
               <ReferenceLine
-                y={metric.warningMin}
+                y={Number(metric.warningMin)}
                 stroke="#F59E0B"
                 strokeDasharray="3 3"
                 strokeWidth={1.2}
@@ -180,9 +181,9 @@ export function MetricHistoryChart({
             )}
 
             {/* Đường ngưỡng Nguy hiểm dưới (Critical Min) nếu có */}
-            {metric.criticalMin > 0 && (
+            {metric.criticalMin != null && metric.criticalMin > 0 && (
               <ReferenceLine
-                y={metric.criticalMin}
+                y={Number(metric.criticalMin)}
                 stroke="#EF4444"
                 strokeDasharray="4 4"
                 strokeWidth={1.5}

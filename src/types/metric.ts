@@ -149,6 +149,7 @@ export interface MetricMappingItem {
   sampling_rate_ms: number;
   monitoring_enabled: number | boolean;
   status: MappingStatus;
+  data_source_type?: 'FILE_INGEST' | 'PLC_DIRECT' | 'SIMULATED' | string;
   created_at: string;
   updated_at: string;
   // Threshold fields (từ LEFT JOIN CSDL)

@@ -152,6 +152,8 @@ export function ThresholdConfigView() {
       ]);
       setAllMappings(mappingsRes.mappings || []);
       setCatalogMetrics(metricsRes.metrics || []);
+      // Đồng bộ vào Monitoring Store để Machine Detail & CheckSheet phản ánh ngay
+      fetchMachines();
     } catch (err: any) {
       console.warn('[Load Data Error]:', err);
       setActionAlert({

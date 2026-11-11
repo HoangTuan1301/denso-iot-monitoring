@@ -1,0 +1,244 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1300" width="2000" height="1300">
+  <defs>
+    <style>
+      text { font-family: 'Segoe UI', Arial, sans-serif; }
+      .code-font { font-family: Consolas, monospace; }
+      .shadow { filter: drop-shadow(0px 8px 16px rgba(15, 23, 42, 0.08)); }
+    </style>
+    <linearGradient id="headerGrad3" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#002B5B" />
+      <stop offset="100%" stop-color="#1E3A8A" />
+    </linearGradient>
+    <marker id="arrBlue3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0284C7" />
+    </marker>
+    <marker id="arrRed3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#DC2626" />
+    </marker>
+  </defs>
+
+  <rect width="100%" height="100%" fill="#F8FAFC" />
+  <rect x="30" y="30" width="1940" height="1240" rx="20" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2" class="shadow" />
+
+  <!-- Banner -->
+  <g transform="translate(60, 60)">
+    <rect width="1880" height="80" rx="10" fill="url(#headerGrad3)" />
+    <rect x="0" y="0" width="8" height="80" rx="4" fill="#E60012" />
+    <text x="30" y="38" fill="#FFFFFF" font-size="24" font-weight="700">LUỒNG XÁC THỰC &amp; PHÂN QUYỀN NGƯỜI DÙNG (AUTHENTICATION &amp; RBAC FLOW)</text>
+    <text x="30" y="64" fill="#93C5FD" font-size="14" font-weight="500">ĐĂNG NHẬP -> XÁC THỰC BCRYPT 10 ROUNDS -> KIỂM TRA ROLE -> GHI AUDIT LOG -> PHÂN QUYỀN MÀN HÌNH VÀ THAO TÁC</text>
+    <text x="1840" y="48" fill="#E2E8F0" font-size="13" font-weight="600" text-anchor="end">FLOW 1 / 5</text>
+  </g>
+
+  <!-- 4 COLUMNS: USER -> FRONTEND -> BACKEND -> MYSQL -->
+  <!-- ACTOR / USER -->
+  <g transform="translate(60, 180)">
+    <rect width="380" height="700" rx="12" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="2" />
+    <rect width="380" height="50" rx="12" fill="#334155" />
+    <rect x="0" y="36" width="380" height="14" fill="#334155" />
+    <text x="190" y="32" fill="#FFFFFF" font-size="15" font-weight="700" text-anchor="middle">NGƯỜI DÙNG (ACTORS)</text>
+
+    <g transform="translate(20, 70)">
+      <rect width="340" height="180" rx="8" fill="#FFFFFF" stroke="#E2E8F0" class="shadow" />
+      <text x="15" y="28" fill="#1E293B" font-size="14" font-weight="700">3 Nhóm Vai Trò Hệ Thống</text>
+      <text x="15" y="55" fill="#DC2626" font-size="13" font-weight="600">• QUẢN TRỊ VIÊN (ADMIN):</text>
+      <text x="25" y="75" fill="#475569" font-size="12">Toàn quyền cấu hình, User CRUD, Audit</text>
+      <text x="15" y="100" fill="#0284C7" font-size="13" font-weight="600">• VẬN HÀNH VIÊN (OPERATOR):</text>
+      <text x="25" y="120" fill="#475569" font-size="12">Giám sát ca kíp, xác nhận sự cố (Ack)</text>
+      <text x="15" y="145" fill="#D97706" font-size="13" font-weight="600">• KỸ THUẬT VIÊN (MAINTENANCE):</text>
+      <text x="25" y="165" fill="#475569" font-size="12">Chẩn đoán thông số, khắc phục lỗi (Resolve)</text>
+    </g>
+
+    <g transform="translate(20, 270)">
+      <rect width="340" height="160" rx="8" fill="#FFFFFF" stroke="#E2E8F0" class="shadow" />
+      <text x="15" y="28" fill="#1E293B" font-size="14" font-weight="700">Thao Tác Đăng Nhập</text>
+      <text x="15" y="52" fill="#475569" font-size="12">1. Nhập Mã nhân viên (employeeId)</text>
+      <text x="25" y="72" fill="#475569" font-size="12">hoặc Địa chỉ Email hợp lệ.</text>
+      <text x="15" y="95" fill="#475569" font-size="12">2. Nhập Mật khẩu cá nhân.</text>
+      <text x="15" y="118" fill="#475569" font-size="12">3. Nhấn nút "Đăng nhập".</text>
+      <text x="15" y="142" fill="#059669" font-size="12" font-weight="600">-> Gửi thông tin đến Frontend</text>
+    </g>
+
+    <g transform="translate(20, 450)">
+      <rect width="340" height="220" rx="8" fill="#EFF6FF" stroke="#93C5FD" />
+      <text x="15" y="28" fill="#1D4ED8" font-size="13" font-weight="700">Tài Khoản Seed Mặc Định</text>
+      <text x="15" y="52" fill="#374151" font-size="12">• Admin:</text>
+      <text x="25" y="70" fill="#1E40AF" font-size="11" class="code-font">admin@denso.com / admin123</text>
+      <text x="15" y="92" fill="#374151" font-size="12">• Operator:</text>
+      <text x="25" y="110" fill="#1E40AF" font-size="11" class="code-font">operator@denso.com / op123</text>
+      <text x="15" y="132" fill="#374151" font-size="12">• Maintenance:</text>
+      <text x="25" y="150" fill="#1E40AF" font-size="11" class="code-font">tech@denso.com / tech123</text>
+      <text x="15" y="178" fill="#B45309" font-size="12" font-weight="600">! Khuyến cáo đổi mật khẩu khi</text>
+      <text x="15" y="198" fill="#B45309" font-size="12" font-weight="600">triển khai lên môi trường Production.</text>
+    </g>
+  </g>
+
+  <!-- FRONTEND SPA LAYER -->
+  <g transform="translate(480, 180)">
+    <rect width="440" height="700" rx="12" fill="#F0FDF4" stroke="#86EFAC" stroke-width="2" />
+    <rect width="440" height="50" rx="12" fill="#15803D" />
+    <rect x="0" y="36" width="440" height="14" fill="#15803D" />
+    <text x="220" y="32" fill="#FFFFFF" font-size="15" font-weight="700" text-anchor="middle">FRONTEND CLIENT (REACT SPA)</text>
+
+    <g transform="translate(20, 70)">
+      <rect width="400" height="180" rx="8" fill="#FFFFFF" stroke="#BBF7D0" class="shadow" />
+      <text x="15" y="28" fill="#166534" font-size="14" font-weight="700">Form Đăng Nhập &amp; Validation</text>
+      <text x="15" y="52" fill="#374151" font-size="12">• Kiểm tra định dạng client-side (Email/Mã NV)</text>
+      <text x="15" y="72" fill="#374151" font-size="12">• Chống click đúp (isSubmitting flag)</text>
+      <text x="15" y="92" fill="#374151" font-size="12">• Gửi yêu cầu HTTP RESTful:</text>
+      <text x="25" y="112" fill="#0369A1" font-size="11" class="code-font">POST /api/auth/login</text>
+      <text x="25" y="130" fill="#0369A1" font-size="11" class="code-font">Payload: { email, password }</text>
+      <text x="15" y="155" fill="#475569" font-size="12">• Bật icon loading trạng thái chờ phản hồi</text>
+    </g>
+
+    <g transform="translate(20, 270)">
+      <rect width="400" height="200" rx="8" fill="#FFFFFF" stroke="#BBF7D0" class="shadow" />
+      <text x="15" y="28" fill="#166534" font-size="14" font-weight="700">Xử Lý Phản Hồi Thành Công</text>
+      <text x="15" y="52" fill="#374151" font-size="12">• Nhận đối tượng: { user: { id, fullName, role } }</text>
+      <text x="15" y="72" fill="#374151" font-size="12">• Lưu session vào localStorage &amp; Zustand</text>
+      <text x="15" y="95" fill="#15803D" font-size="13" font-weight="700">Phân Phối Quyền Trên Giao Diện (RBAC):</text>
+      <text x="20" y="118" fill="#DC2626" font-size="12">- Nếu role == 'ADMIN': Hiển thị tab Quản lý User,</text>
+      <text x="25" y="135" fill="#DC2626" font-size="12">Tab Audit Logs, nút Xuất dữ liệu Lịch sử.</text>
+      <text x="20" y="155" fill="#0284C7" font-size="12">- Nếu role == 'OPERATOR': Mở khóa nút Xác nhận (Ack).</text>
+      <text x="20" y="175" fill="#D97706" font-size="12">- Nếu role == 'MAINTENANCE': Mở khóa nút Khắc phục.</text>
+    </g>
+
+    <g transform="translate(20, 490)">
+      <rect width="400" height="180" rx="8" fill="#FEF2F2" stroke="#F87171" />
+      <text x="15" y="28" fill="#991B1B" font-size="13" font-weight="700">Xử Lý Thất Bại &amp; Bị Chặn Quyền</text>
+      <text x="15" y="52" fill="#7F1D1D" font-size="12">• Sai mật khẩu: Hiển thị thông báo đỏ "Mật khẩu</text>
+      <text x="25" y="70" fill="#7F1D1D" font-size="12">hoặc tài khoản không chính xác".</text>
+      <text x="15" y="92" fill="#7F1D1D" font-size="12">• Tài khoản bị khóa (status == 'INACTIVE'): Từ chối.</text>
+      <text x="15" y="115" fill="#7F1D1D" font-size="12">• Cố tình truy cập trang cấm bằng URL:</text>
+      <text x="25" y="135" fill="#991B1B" font-size="12">Protected Route chặn lại và redirect về Dashboard</text>
+      <text x="25" y="155" fill="#991B1B" font-size="12">đồng thời hiện Toast cảnh báo không có quyền.</text>
+    </g>
+  </g>
+
+  <!-- BACKEND CONTROLLER LAYER -->
+  <g transform="translate(960, 180)">
+    <rect width="460" height="700" rx="12" fill="#EFF6FF" stroke="#93C5FD" stroke-width="2" />
+    <rect width="460" height="50" rx="12" fill="#1D4ED8" />
+    <rect x="0" y="36" width="460" height="14" fill="#1D4ED8" />
+    <text x="230" y="32" fill="#FFFFFF" font-size="15" font-weight="700" text-anchor="middle">BACKEND AUTH SERVICE (EXPRESS)</text>
+
+    <g transform="translate(20, 70)">
+      <rect width="420" height="190" rx="8" fill="#FFFFFF" stroke="#BFDBFE" class="shadow" />
+      <text x="15" y="28" fill="#1E40AF" font-size="14" font-weight="700">Truy Vấn Tài Khoản &amp; So Khớp Hash</text>
+      <text x="15" y="52" fill="#374151" font-size="12">1. Truy vấn MySQL lấy thông tin người dùng:</text>
+      <text x="25" y="72" fill="#0369A1" font-size="11" class="code-font">SELECT * FROM users WHERE email = ?</text>
+      <text x="25" y="90" fill="#0369A1" font-size="11" class="code-font">OR employeeId = ? LIMIT 1</text>
+      <text x="15" y="115" fill="#374151" font-size="12">2. Kiểm tra mật khẩu qua thư viện Bcrypt:</text>
+      <text x="25" y="135" fill="#0369A1" font-size="11" class="code-font">const match = await bcrypt.compare(</text>
+      <text x="25" y="152" fill="#0369A1" font-size="11" class="code-font">  plainPassword, user.passwordHash)</text>
+      <text x="15" y="175" fill="#059669" font-size="12" font-weight="600">✓ Bcrypt 10 rounds chống tấn công Rainbow Table</text>
+    </g>
+
+    <g transform="translate(20, 280)">
+      <rect width="420" height="190" rx="8" fill="#FFFFFF" stroke="#BFDBFE" class="shadow" />
+      <text x="15" y="28" fill="#1E40AF" font-size="14" font-weight="700">Tự Động Ghi Vết Kiểm Toán (Audit Trail)</text>
+      <text x="15" y="52" fill="#374151" font-size="12">Dù đăng nhập THÀNH CÔNG hay THẤT BẠI,</text>
+      <text x="15" y="70" fill="#374151" font-size="12">Backend đều lập tức ghi bản ghi vào audit_logs:</text>
+      <text x="25" y="92" fill="#475569" font-size="11" class="code-font">INSERT INTO audit_logs (userId, action,</text>
+      <text x="25" y="108" fill="#475569" font-size="11" class="code-font"> target, details, ipAddress, timestamp)</text>
+      <text x="25" y="124" fill="#475569" font-size="11" class="code-font">VALUES (?, 'LOGIN_SUCCESS', ...)</text>
+      <text x="15" y="150" fill="#374151" font-size="12">Thu thập thông tin:</text>
+      <text x="25" y="170" fill="#475569" font-size="12">• Địa chỉ IP client, User-Agent trình duyệt</text>
+    </g>
+
+    <g transform="translate(20, 490)">
+      <rect width="420" height="180" rx="8" fill="#FEF3C7" stroke="#FCD34D" />
+      <text x="15" y="28" fill="#92400E" font-size="13" font-weight="700">Cập Nhật Mốc Đăng Nhập Gần Nhất</text>
+      <text x="15" y="52" fill="#78350F" font-size="12">• Cập nhật trường lastLoginAt trong bảng users:</text>
+      <text x="25" y="75" fill="#78350F" font-size="11" class="code-font">UPDATE users SET lastLoginAt = UTC_TIMESTAMP()</text>
+      <text x="25" y="92" fill="#78350F" font-size="11" class="code-font">WHERE id = ?</text>
+      <text x="15" y="120" fill="#78350F" font-size="12">• Trả về JSON chứa User DTO sạch (đã bóc tách</text>
+      <text x="25" y="138" fill="#78350F" font-size="12">loại bỏ trường password hash để đảm bảo an toàn).</text>
+      <text x="15" y="160" fill="#059669" font-size="12" font-weight="600">✓ Hoàn tất chu trình xác thực.</text>
+    </g>
+  </g>
+
+  <!-- DATABASE MYSQL LAYER -->
+  <g transform="translate(1460, 180)">
+    <rect width="480" height="700" rx="12" fill="#FFFBEB" stroke="#FDE68A" stroke-width="2" />
+    <rect width="480" height="50" rx="12" fill="#D97706" />
+    <rect x="0" y="36" width="480" height="14" fill="#D97706" />
+    <text x="240" y="32" fill="#FFFFFF" font-size="15" font-weight="700" text-anchor="middle">CƠ SỞ DỮ LIỆU (MYSQL 8.0)</text>
+
+    <g transform="translate(20, 70)">
+      <rect width="440" height="270" rx="8" fill="#FFFFFF" stroke="#FCD34D" class="shadow" />
+      <text x="15" y="28" fill="#92400E" font-size="14" font-weight="700">Bảng: users (Lưu Danh Tính)</text>
+      <text x="15" y="55" fill="#475569" font-size="12">• id: varchar(36) PK</text>
+      <text x="15" y="75" fill="#475569" font-size="12">• employeeId: varchar(20) UNIQUE (Mã thẻ DENSO)</text>
+      <text x="15" y="95" fill="#475569" font-size="12">• fullName: varchar(100) (Họ và tên)</text>
+      <text x="15" y="115" fill="#475569" font-size="12">• email: varchar(100) UNIQUE (Thư điện tử)</text>
+      <text x="15" y="135" fill="#475569" font-size="12">• password: varchar(255) (Bcrypt Salt 10 rounds)</text>
+      <text x="15" y="155" fill="#DC2626" font-size="12" font-weight="600">• role: enum('ADMIN', 'OPERATOR', 'MAINTENANCE')</text>
+      <text x="15" y="175" fill="#475569" font-size="12">• assignedLineId: varchar(36) (Dây chuyền phụ trách)</text>
+      <text x="15" y="195" fill="#475569" font-size="12">• avatarUrl: text (Ảnh đại diện cá nhân)</text>
+      <text x="15" y="215" fill="#475569" font-size="12">• status: enum('ACTIVE', 'INACTIVE')</text>
+      <text x="15" y="235" fill="#475569" font-size="12">• lastLoginAt: datetime(3) UTC</text>
+      <text x="15" y="255" fill="#059669" font-size="12" font-weight="600">✓ Toàn bộ mật khẩu được hash một chiều an toàn</text>
+    </g>
+
+    <g transform="translate(20, 360)">
+      <rect width="440" height="310" rx="8" fill="#FFFFFF" stroke="#FCD34D" class="shadow" />
+      <text x="15" y="28" fill="#92400E" font-size="14" font-weight="700">Bảng: audit_logs (Bảo Đảm Tính Bất Khả Chối Bỏ)</text>
+      <text x="15" y="55" fill="#475569" font-size="12">• id: varchar(36) PK</text>
+      <text x="15" y="75" fill="#475569" font-size="12">• userId: varchar(36) Logic FK</text>
+      <text x="15" y="95" fill="#475569" font-size="12">• userEmail: varchar(100)</text>
+      <text x="15" y="115" fill="#475569" font-size="12">• userName: varchar(100)</text>
+      <text x="15" y="135" fill="#475569" font-size="12">• action: varchar(50) INDEX (VD: LOGIN_SUCCESS)</text>
+      <text x="15" y="155" fill="#475569" font-size="12">• target: varchar(100) (VD: AUTH_MODULE)</text>
+      <text x="15" y="175" fill="#475569" font-size="12">• details: text (Payload JSON chi tiết thao tác)</text>
+      <text x="15" y="195" fill="#475569" font-size="12">• ipAddress: varchar(64)</text>
+      <text x="15" y="215" fill="#475569" font-size="12">• timestamp: datetime(3) UTC INDEX</text>
+      <text x="15" y="245" fill="#0369A1" font-size="12" font-weight="600">Đặc tính kỹ thuật:</text>
+      <text x="25" y="265" fill="#475569" font-size="12">- Bảng chỉ ghi thêm (Append-only), cấm sửa/xóa.</text>
+      <text x="25" y="285" fill="#475569" font-size="12">- Phục vụ tra cứu thanh tra an ninh công nghiệp.</text>
+    </g>
+  </g>
+
+  <!-- Connective Arrows -->
+  <line x1="440" y1="280" x2="480" y2="280" stroke="#0284C7" stroke-width="4" marker-end="url(#arrBlue3)" />
+  <line x1="920" y1="280" x2="960" y2="280" stroke="#0284C7" stroke-width="4" marker-end="url(#arrBlue3)" />
+  <line x1="1420" y1="280" x2="1460" y2="280" stroke="#0284C7" stroke-width="4" marker-end="url(#arrBlue3)" />
+
+  <!-- Flow Summary Card -->
+  <g transform="translate(60, 910)">
+    <rect width="1880" height="330" rx="14" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1.5" />
+    <text x="30" y="35" fill="#0F172A" font-size="16" font-weight="700">TỔNG HỢP NGUYÊN TẮC PHÂN QUYỀN VAI TRÒ (RBAC MATRIX &amp; FLOW SUMMARY)</text>
+
+    <g transform="translate(30, 60)">
+      <rect width="600" height="240" rx="8" fill="#FFFFFF" stroke="#E2E8F0" />
+      <text x="20" y="30" fill="#DC2626" font-size="14" font-weight="700">1. Quản Trị Viên (ADMIN)</text>
+      <text x="20" y="55" fill="#475569" font-size="12">• Quyền hạn cao nhất trong hệ thống.</text>
+      <text x="20" y="75" fill="#475569" font-size="12">• Được phép thêm mới, chỉnh sửa, khóa/mở khóa người dùng.</text>
+      <text x="20" y="95" fill="#475569" font-size="12">• Được phép đổi ảnh đại diện (Avatar) cho mọi nhân sự.</text>
+      <text x="20" y="115" fill="#475569" font-size="12">• Xem toàn bộ danh sách Nhật ký kiểm toán (Audit Logs).</text>
+      <text x="20" y="135" fill="#475569" font-size="12">• Xuất báo cáo lịch sử máy định dạng Excel, CSV, JSON.</text>
+      <text x="20" y="160" fill="#059669" font-size="12" font-weight="600">✓ Bảo vệ toàn vẹn cấu hình vận hành nhà xưởng.</text>
+    </g>
+
+    <g transform="translate(660, 60)">
+      <rect width="600" height="240" rx="8" fill="#FFFFFF" stroke="#E2E8F0" />
+      <text x="20" y="30" fill="#0284C7" font-size="14" font-weight="700">2. Vận Hành Viên (OPERATOR)</text>
+      <text x="20" y="55" fill="#475569" font-size="12">• Giám sát màn hình Dashboard cấp 1, cấp 2 và cấp 3.</text>
+      <text x="20" y="75" fill="#475569" font-size="12">• Tiếp nhận tín hiệu chuông/đèn từ Digital Andon Board.</text>
+      <text x="20" y="95" fill="#475569" font-size="12">• Có quyền bấm nút "Xác nhận sự cố" (Acknowledge).</text>
+      <text x="20" y="115" fill="#475569" font-size="12">• Xem danh mục máy móc và chỉ số OEE dây chuyền phụ trách.</text>
+      <text x="20" y="135" fill="#DC2626" font-size="12">• BỊ CHẶN: Không thể sửa User, không thể đóng sự cố (Resolve).</text>
+      <text x="20" y="160" fill="#059669" font-size="12" font-weight="600">✓ Tách biệt trách nhiệm giữa vận hành và bảo trì kỹ thuật.</text>
+    </g>
+
+    <g transform="translate(1290, 60)">
+      <rect width="600" height="240" rx="8" fill="#FFFFFF" stroke="#E2E8F0" />
+      <text x="20" y="30" fill="#D97706" font-size="14" font-weight="700">3. Kỹ Thuật Viên Bảo Trì (MAINTENANCE)</text>
+      <text x="20" y="55" fill="#475569" font-size="12">• Giám sát chuyên sâu đồ thị sóng cảm biến cấp 3.</text>
+      <text x="20" y="75" fill="#475569" font-size="12">• Chẩn đoán rung động vòng bi, nhiệt độ trục chính và áp suất khí.</text>
+      <text x="20" y="95" fill="#475569" font-size="12">• Có quyền bấm nút "Khắc phục xong" (Resolve) sau khi sửa chữa.</text>
+      <text x="20" y="115" fill="#475569" font-size="12">• Bắt buộc nhập ghi chú nguyên nhân và phương án khắc phục.</text>
+      <text x="20" y="135" fill="#475569" font-size="12">• Đóng sự cố và đưa trạng thái máy trở lại OPERATIONAL.</text>
+      <text x="20" y="160" fill="#059669" font-size="12" font-weight="600">✓ Khép kín vòng đời xử lý sự cố thiết bị công nghiệp.</text>
+    </g>
+  </g>
+</svg>

@@ -71,17 +71,24 @@ export function convertPLCRawToEngineering(rawValue: number, config?: PLCMapping
  */
 export function evaluateMetricStatus(
   value: number,
-  warningMin: number,
-  warningMax: number,
-  criticalMin: number,
-  criticalMax: number
+  warningMin?: number | null,
+  warningMax?: number | null,
+  criticalMin?: number | null,
+  criticalMax?: number | null
 ): SystemStatus {
   // Ưu tiên kiểm tra ngưỡng Nguy hiểm (Critical) trước
-  if (value <= criticalMin || value >= criticalMax) {
+  // Hỗ trợ ngưỡng một phía: nếu null thì không kiểm tra biên đó, tuyệt đối không ép null thành 0
+  if (criticalMin != null && !isNaN(Number(criticalMin)) && value <= Number(criticalMin)) {
+    return 'critical';
+  }
+  if (criticalMax != null && !isNaN(Number(criticalMax)) && value >= Number(criticalMax)) {
     return 'critical';
   }
   // Kiểm tra ngưỡng Cảnh báo (Warning)
-  if (value <= warningMin || value >= warningMax) {
+  if (warningMin != null && !isNaN(Number(warningMin)) && value <= Number(warningMin)) {
+    return 'warning';
+  }
+  if (warningMax != null && !isNaN(Number(warningMax)) && value >= Number(warningMax)) {
     return 'warning';
   }
   // Nằm trong dải an toàn

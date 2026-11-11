@@ -1,0 +1,299 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2200 1400" width="2200" height="1400">
+  <defs>
+    <style>
+      text { font-family: 'Segoe UI', Arial, sans-serif; }
+      .code-font { font-family: Consolas, 'Courier New', monospace; }
+      .shadow { filter: drop-shadow(0px 8px 16px rgba(15, 23, 42, 0.08)); }
+    </style>
+    <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#002B5B" />
+      <stop offset="100%" stop-color="#004080" />
+    </linearGradient>
+    <marker id="arrBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0284C7" />
+    </marker>
+    <marker id="arrRed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#DC2626" />
+    </marker>
+    <marker id="arrGreen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#059669" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="#F8FAFC" />
+  <rect x="30" y="30" width="2140" height="1340" rx="20" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2" class="shadow" />
+
+  <!-- Title Banner -->
+  <g transform="translate(60, 60)">
+    <rect width="2080" height="80" rx="10" fill="url(#headerGrad)" />
+    <rect x="0" y="0" width="8" height="80" rx="4" fill="#E60012" />
+    <text x="30" y="38" fill="#FFFFFF" font-size="24" font-weight="700">SƠ ĐỒ KIẾN TRÚC TỔNG THỂ HỆ THỐNG (SYSTEM ARCHITECTURE DIAGRAM)</text>
+    <text x="30" y="64" fill="#93C5FD" font-size="14" font-weight="500">DENSO INDUSTRIAL IoT MONITORING SYSTEM (KaiLink) | FRONTEND - BACKEND - WEBSOCKET - DATABASE</text>
+    <text x="2040" y="48" fill="#E2E8F0" font-size="13" font-weight="600" text-anchor="end">TECHNICAL OVERVIEW</text>
+  </g>
+
+  <!-- COLUMN 1: PRESENTATION TIER (CLIENT SPA) -->
+  <g transform="translate(60, 170)">
+    <rect width="460" height="920" rx="14" fill="#F0FDF4" stroke="#86EFAC" stroke-width="2" />
+    <rect width="460" height="50" rx="14" fill="#15803D" />
+    <rect x="0" y="36" width="460" height="14" fill="#15803D" />
+    <text x="230" y="32" fill="#FFFFFF" font-size="16" font-weight="700" text-anchor="middle">1. TẦNG TRÌNH DIỄN (FRONTEND SPA)</text>
+
+    <!-- Box 1: UI Engine -->
+    <g transform="translate(20, 70)">
+      <rect width="420" height="130" rx="10" fill="#FFFFFF" stroke="#BBF7D0" stroke-width="1.5" class="shadow" />
+      <text x="20" y="30" fill="#166534" font-size="15" font-weight="700">Giao diện Người dùng (UI Framework)</text>
+      <text x="20" y="55" fill="#374151" font-size="13">• React 18 (SPA) + TypeScript + Vite Bundler</text>
+      <text x="20" y="78" fill="#374151" font-size="13">• Tailwind CSS 3.4 (Responsive Factory Theme)</text>
+      <text x="20" y="101" fill="#374151" font-size="13">• Lucide React Icons + Recharts (Live Telemetry)</text>
+    </g>
+
+    <!-- Box 2: 3-Tier Dashboard Views -->
+    <g transform="translate(20, 220)">
+      <rect width="420" height="150" rx="10" fill="#FFFFFF" stroke="#BBF7D0" stroke-width="1.5" class="shadow" />
+      <text x="20" y="30" fill="#166534" font-size="15" font-weight="700">Các Màn hình Giám sát 3 Cấp</text>
+      <text x="20" y="55" fill="#374151" font-size="13">• Cấp 1 (Factory): KPI Nhà máy, thẻ Line, OEE</text>
+      <text x="20" y="78" fill="#374151" font-size="13">• Cấp 2 (Line): Danh mục 4 máy, trạng thái Run/Idle</text>
+      <text x="20" y="101" fill="#374151" font-size="13">• Cấp 3 (Machine): Đồ thị rung động, áp suất, nhiệt</text>
+      <text x="20" y="124" fill="#374151" font-size="13">• Digital Andon Board: Bảng đèn cảnh báo thời gian thực</text>
+    </g>
+
+    <!-- Box 3: Client State & Real-time -->
+    <g transform="translate(20, 390)">
+      <rect width="420" height="160" rx="10" fill="#FFFFFF" stroke="#BBF7D0" stroke-width="1.5" class="shadow" />
+      <text x="20" y="30" fill="#166534" font-size="15" font-weight="700">Quản lý State & Kết nối Real-time</text>
+      <text x="20" y="55" fill="#374151" font-size="13">• Zustand Store (useAlarmStore - In-memory RAM)</text>
+      <text x="20" y="78" fill="#374151" font-size="13">• Socket.io-client (useSocket Hook kết nối WSS)</text>
+      <text x="20" y="101" fill="#374151" font-size="13">• Axios / Fetch Client (Gọi RESTful Endpoints)</text>
+      <text x="20" y="124" fill="#DC2626" font-size="12" font-weight="600">! Cảnh báo lưu tạm trên RAM Zustand (Volatile)</text>
+    </g>
+
+    <!-- Box 4: Administrative & Export Views -->
+    <g transform="translate(20, 570)">
+      <rect width="420" height="150" rx="10" fill="#FFFFFF" stroke="#BBF7D0" stroke-width="1.5" class="shadow" />
+      <text x="20" y="30" fill="#166534" font-size="15" font-weight="700">Quản trị & Báo cáo Lịch sử</text>
+      <text x="20" y="55" fill="#374151" font-size="13">• Machine History: Bộ lọc Line, Machine, Metric</text>
+      <text x="20" y="78" fill="#374151" font-size="13">• Xuất file: Nút tải 3 định dạng Excel, CSV, JSON</text>
+      <text x="20" y="101" fill="#374151" font-size="13">• Quản lý Người dùng & Phân quyền RBAC</text>
+      <text x="20" y="124" fill="#374151" font-size="13">• Nhật ký thao tác kiểm toán (Audit Logs Viewer)</text>
+    </g>
+
+    <!-- Deployment Pill -->
+    <g transform="translate(20, 740)">
+      <rect width="420" height="150" rx="10" fill="#DCFCE7" stroke="#4ADE80" stroke-width="1.5" />
+      <text x="20" y="30" fill="#14532D" font-size="14" font-weight="700">Hạ tầng Triển khai Frontend</text>
+      <text x="20" y="55" fill="#15803D" font-size="13">• Nền tảng: Vercel Edge Network (Global CDN)</text>
+      <text x="20" y="78" fill="#15803D" font-size="13">• Build output: Single Page App tĩnh tối ưu hóa</text>
+      <text x="20" y="101" fill="#15803D" font-size="13">• Giao thức: HTTPS + WSS mã hóa SSL/TLS</text>
+      <text x="20" y="124" fill="#15803D" font-size="13">• Biến môi trường: VITE_API_URL, VITE_WS_URL</text>
+    </g>
+  </g>
+
+  <!-- COLUMN 2: APPLICATION SERVICES (BACKEND) -->
+  <g transform="translate(560, 170)">
+    <rect width="520" height="920" rx="14" fill="#EFF6FF" stroke="#93C5FD" stroke-width="2" />
+    <rect width="520" height="50" rx="14" fill="#1D4ED8" />
+    <rect x="0" y="36" width="520" height="14" fill="#1D4ED8" />
+    <text x="260" y="32" fill="#FFFFFF" font-size="16" font-weight="700" text-anchor="middle">2. TẦNG DỊCH VỤ ỨNG DỤNG (BACKEND API &amp; WS)</text>
+
+    <!-- Box 1: Core Framework -->
+    <g transform="translate(20, 70)">
+      <rect width="480" height="130" rx="10" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="1.5" class="shadow" />
+      <text x="20" y="30" fill="#1E40AF" font-size="15" font-weight="700">Nền tảng Máy chủ &amp; Giao tiếp</text>
+      <text x="20" y="55" fill="#374151" font-size="13">• Node.js v18/20 LTS Runtime + Express.js Framework</text>
+      <text x="20" y="78" fill="#374151" font-size="13">• Socket.IO Server (Broadcast Real-time Telemetry)</text>
+      <text x="20" y="101" fill="#374151" font-size="13">• Middleware: CORS Whitelist, Helmet, BodyParser</text>
+    </g>
+
+    <!-- Box 2: Telemetry & Simulation Engine -->
+    <g transform="translate(20, 220)">
+      <rect width="480" height="160" rx="10" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="1.5" class="shadow" />
+      <text x="20" y="30" fill="#1E40AF" font-size="15" font-weight="700">Động cơ Thu nạp &amp; Mô phỏng Telemetry</text>
+      <text x="20" y="55" fill="#374151" font-size="13">• Sinh tín hiệu tập trung tại Backend (Chu kỳ 1s - 5s)</text>
+      <text x="20" y="78" fill="#374151" font-size="13">• Chuẩn hóa ISO-8601 UTC + Hash định danh SHA-256</text>
+      <text x="20" y="101" fill="#374151" font-size="13">• Ghi tự động vào bảng machine_telemetry_history</text>
+      <text x="20" y="124" fill="#374151" font-size="13">• Đánh giá vi phạm 4 ngưỡng cảm biến (BR-01)</text>
+    </g>
+
+    <!-- Box 3: Security & Business Handlers -->
+    <g transform="translate(20, 400)">
+      <rect width="480" height="160" rx="10" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="1.5" class="shadow" />
+      <text x="20" y="30" fill="#1E40AF" font-size="15" font-weight="700">Bảo mật RBAC &amp; Bộ Xử lý Nghiệp vụ</text>
+      <text x="20" y="55" fill="#374151" font-size="13">• Auth Controller: Xác thực mật khẩu Bcrypt (10 rounds)</text>
+      <text x="20" y="78" fill="#374151" font-size="13">• Phân quyền 3 vai trò: ADMIN, OPERATOR, MAINTENANCE</text>
+      <text x="20" y="101" fill="#374151" font-size="13">• Alarm Life-cycle: Tiếp nhận (Ack) &amp; Khắc phục (Resolve)</text>
+      <text x="20" y="124" fill="#374151" font-size="13">• Audit Logger: Tự động ghi vết mọi thao tác quản trị</text>
+    </g>
+
+    <!-- Box 4: Multi-format Export Engine -->
+    <g transform="translate(20, 580)">
+      <rect width="480" height="140" rx="10" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="1.5" class="shadow" />
+      <text x="20" y="30" fill="#1E40AF" font-size="15" font-weight="700">Động cơ Xuất Dữ liệu Đa Định dạng</text>
+      <text x="20" y="55" fill="#374151" font-size="13">• ExcelJS: Định dạng Workbook XLSX với Header/Border</text>
+      <text x="20" y="78" fill="#374151" font-size="13">• Stream CSV (fast-csv) + JSON Array Stream an toàn</text>
+      <text x="20" y="101" fill="#374151" font-size="13">• Giới hạn cứng 10.000 dòng + Lọc Whitelist SQL (BR-09,10)</text>
+    </g>
+
+    <!-- Deployment Pill -->
+    <g transform="translate(20, 740)">
+      <rect width="480" height="150" rx="10" fill="#DBEAFE" stroke="#60A5FA" stroke-width="1.5" />
+      <text x="20" y="30" fill="#1E3A8A" font-size="14" font-weight="700">Hạ tầng Triển khai Backend</text>
+      <text x="20" y="55" fill="#1D4ED8" font-size="13">• Nền tảng Cloud: Render Web Service (Node.js LTS)</text>
+      <text x="20" y="78" fill="#1D4ED8" font-size="13">• Local Development: Chạy độc lập qua npm run dev</text>
+      <text x="20" y="101" fill="#1D4ED8" font-size="13">• Kết nối Database: Connection Pool (mysql2/promise)</text>
+      <text x="20" y="124" fill="#1D4ED8" font-size="13">• Cấu hình qua File: .env (PORT, DB_HOST, DB_USER, DB_NAME)</text>
+    </g>
+  </g>
+
+  <!-- COLUMN 3: PERSISTENCE TIER (DATABASE MYSQL) -->
+  <g transform="translate(1120, 170)">
+    <rect width="480" height="920" rx="14" fill="#FFFBEB" stroke="#FDE68A" stroke-width="2" />
+    <rect width="480" height="50" rx="14" fill="#D97706" />
+    <rect x="0" y="36" width="480" height="14" fill="#D97706" />
+    <text x="240" y="32" fill="#FFFFFF" font-size="16" font-weight="700" text-anchor="middle">3. TẦNG CƠ SỞ DỮ LIỆU (MYSQL 8.0)</text>
+
+    <!-- Box 1: Master Schema -->
+    <g transform="translate(20, 70)">
+      <rect width="440" height="170" rx="10" fill="#FFFFFF" stroke="#FCD34D" stroke-width="1.5" class="shadow" />
+      <text x="20" y="30" fill="#B45309" font-size="15" font-weight="700">Danh mục Dây chuyền &amp; Thiết bị</text>
+      <text x="20" y="55" fill="#374151" font-size="13">• production_lines: Mã line, trạng thái, mục tiêu ca</text>
+      <text x="20" y="78" fill="#374151" font-size="13">• machines: 4 máy (CNC, Robot, Ép dập, Sơn sấy)</text>
+      <text x="20" y="101" fill="#374151" font-size="13">• plc_stations: Trạm PLC giả lập (IP, Port, Protocol)</text>
+      <text x="20" y="124" fill="#374151" font-size="13">• Quan hệ logic qua lineId có chỉ mục B-Tree Index</text>
+      <text x="20" y="147" fill="#059669" font-size="12" font-weight="600">✓ Không tạo khóa ngoại cứng để tối ưu tốc độ ghi</text>
+    </g>
+
+    <!-- Box 2: Timeseries History -->
+    <g transform="translate(20, 260)">
+      <rect width="440" height="170" rx="10" fill="#FFFFFF" stroke="#FCD34D" stroke-width="1.5" class="shadow" />
+      <text x="20" y="30" fill="#B45309" font-size="15" font-weight="700">machine_telemetry_history (Chuỗi thời gian)</text>
+      <text x="20" y="55" fill="#374151" font-size="13">• id: Khóa chính SHA-256 (Chống ghi trùng lặp)</text>
+      <text x="20" y="78" fill="#374151" font-size="13">• timestamp: DATETIME(3) UTC chuẩn hóa quốc tế</text>
+      <text x="20" y="101" fill="#374151" font-size="13">• value: DECIMAL(10,2), metricId, unit, status</text>
+      <text x="20" y="124" fill="#374151" font-size="13">• source: 'simulation' | 'plc' | 'manual'</text>
+      <text x="20" y="147" fill="#059669" font-size="12" font-weight="600">✓ Phi chuẩn hóa lineName, machineName giảm JOIN</text>
+    </g>
+
+    <!-- Box 3: Security & Audit -->
+    <g transform="translate(20, 450)">
+      <rect width="440" height="150" rx="10" fill="#FFFFFF" stroke="#FCD34D" stroke-width="1.5" class="shadow" />
+      <text x="20" y="30" fill="#B45309" font-size="15" font-weight="700">Tài khoản &amp; Nhật ký Kiểm toán</text>
+      <text x="20" y="55" fill="#374151" font-size="13">• users: Mã nhân viên UNIQUE, Password Bcrypt hash</text>
+      <text x="20" y="78" fill="#374151" font-size="13">• audit_logs: userId, action, target, details, ipAddress</text>
+      <text x="20" y="101" fill="#374151" font-size="13">• Chỉ mục Index trên action và timestamp</text>
+      <text x="20" y="124" fill="#DC2626" font-size="12" font-weight="600">! Thiếu bảng alarms vật lý (Nợ kỹ thuật TD-01)</text>
+    </g>
+
+    <!-- Box 4: Deployment Pill -->
+    <g transform="translate(20, 620)">
+      <rect width="440" height="130" rx="10" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.5" />
+      <text x="20" y="30" fill="#78350F" font-size="14" font-weight="700">Hạ tầng Cơ sở Dữ liệu</text>
+      <text x="20" y="55" fill="#B45309" font-size="13">• Cloud: Aiven Cloud MySQL 8.0 Managed Service</text>
+      <text x="20" y="78" fill="#B45309" font-size="13">• Development: MySQL 8.0 Localhost (Port 3306)</text>
+      <text x="20" y="101" fill="#B45309" font-size="13">• Connection: mysql2 connection pool với SSL/TLS</text>
+    </g>
+  </g>
+
+  <!-- COLUMN 4: HARDWARE & SENSOR DATA SOURCE (IIoT TIER) -->
+  <g transform="translate(1640, 170)">
+    <rect width="500" height="920" rx="14" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="2" />
+    <rect width="500" height="50" rx="14" fill="#334155" />
+    <rect x="0" y="36" width="500" height="14" fill="#334155" />
+    <text x="250" y="32" fill="#FFFFFF" font-size="16" font-weight="700" text-anchor="middle">4. NGUỒN TÍN HIỆU THIẾT BỊ (IIoT LAYER)</text>
+
+    <!-- Current State -->
+    <g transform="translate(20, 70)">
+      <rect width="460" height="230" rx="10" fill="#FFFFFF" stroke="#3B82F6" stroke-width="2" class="shadow" />
+      <rect width="460" height="35" rx="10" fill="#DBEAFE" />
+      <rect x="0" y="25" width="460" height="10" fill="#DBEAFE" />
+      <text x="20" y="24" fill="#1D4ED8" font-size="14" font-weight="700">HIỆN TẠI: SIMULATION ENGINE TẬP TRUNG</text>
+      
+      <text x="20" y="65" fill="#374151" font-size="13">• Sinh tín hiệu mô phỏng ngẫu nhiên có kiểm soát</text>
+      <text x="20" y="88" fill="#374151" font-size="13">• 4 thông số: Rung (mm/s), Nhiệt (°C), Áp (bar), Điện (A)</text>
+      <text x="20" y="111" fill="#374151" font-size="13">• Chu kỳ phát nhịp: 1.000 ms - 5.000 ms</text>
+      <text x="20" y="134" fill="#374151" font-size="13">• Tự động kích hoạt dao động vi phạm ngưỡng</text>
+      <text x="20" y="157" fill="#374151" font-size="13">• Đóng dấu source = 'simulation' trong CSDL</text>
+      <text x="20" y="180" fill="#059669" font-size="12" font-weight="600">✓ Đảm bảo đồng bộ 100% giữa Dashboard và DB History</text>
+      <text x="20" y="200" fill="#059669" font-size="12" font-weight="600">✓ Loại bỏ dữ liệu ngẫu nhiên riêng lẻ của từng Browser</text>
+    </g>
+
+    <!-- Future Target -->
+    <g transform="translate(20, 320)">
+      <rect width="460" height="230" rx="10" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="6,4" class="shadow" />
+      <rect width="460" height="35" rx="10" fill="#F1F5F9" />
+      <rect x="0" y="25" width="460" height="10" fill="#F1F5F9" />
+      <text x="20" y="24" fill="#475569" font-size="14" font-weight="700">TƯƠNG LAI: KẾT NỐI PLC VẬT LÝ THỰC TẾ</text>
+      
+      <text x="20" y="65" fill="#64748B" font-size="13">• Giao thức công nghiệp: Modbus TCP / MC Protocol / S7</text>
+      <text x="20" y="88" fill="#64748B" font-size="13">• Trạm PLC thực tế: Mitsubishi MELSEC, Siemens S7-1200</text>
+      <text x="20" y="111" fill="#64748B" font-size="13">• Đọc thanh ghi thô: D100 (Vibration), D102 (Temperature)</text>
+      <text x="20" y="134" fill="#64748B" font-size="13">• Cần cài đặt IoT Gateway / Edge Box tại xưởng DENSO</text>
+      <text x="20" y="157" fill="#64748B" font-size="13">• Đóng dấu source = 'plc' khi có tín hiệu vật lý</text>
+      <text x="20" y="185" fill="#D97706" font-size="12" font-weight="600">! Chưa triển khai trong mã nguồn hiện tại</text>
+      <text x="20" y="205" fill="#D97706" font-size="12" font-weight="600">! Dữ liệu bảng plc_stations hiện là bản ghi mô phỏng</text>
+    </g>
+
+    <!-- Communication Protocols -->
+    <g transform="translate(20, 570)">
+      <rect width="460" height="180" rx="10" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5" />
+      <text x="20" y="30" fill="#1E293B" font-size="14" font-weight="700">Giao Thức Truyền Dẫn IIoT</text>
+      <text x="20" y="55" fill="#475569" font-size="13">• Mạng nội bộ nhà máy (OT Network): VLAN riêng biệt</text>
+      <text x="20" y="78" fill="#475569" font-size="13">• Port tiêu chuẩn: 502 (Modbus TCP), 102 (Siemens S7)</text>
+      <text x="20" y="101" fill="#475569" font-size="13">• Chống nhiễu công nghiệp, Polling rate 500ms - 2000ms</text>
+      <text x="20" y="124" fill="#475569" font-size="13">• Cơ chế Heartbeat &amp; Watchdog giám sát mất kết nối</text>
+      <text x="20" y="147" fill="#475569" font-size="13">• Buffer hàng đợi SQLite/Redis tại Edge khi mất mạng WAN</text>
+    </g>
+  </g>
+
+  <!-- BOTTOM BAR: ARCHITECTURE HIGHLIGHTS -->
+  <g transform="translate(60, 1110)">
+    <rect width="2080" height="220" rx="14" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1.5" />
+    <text x="30" y="35" fill="#0F172A" font-size="16" font-weight="700">CÁC ĐẶC ĐIỂM KỸ THUẬT CỐT LÕI (TECHNICAL ARCHITECTURE HIGHLIGHTS)</text>
+    
+    <g transform="translate(30, 60)">
+      <rect width="480" height="135" rx="8" fill="#FFFFFF" stroke="#E2E8F0" />
+      <text x="15" y="28" fill="#0369A1" font-size="14" font-weight="700">1. Luồng Dữ liệu Thời gian thực (Real-time)</text>
+      <text x="15" y="52" fill="#475569" font-size="12">• Socket.io duy trì kết nối Full-duplex WebSocket.</text>
+      <text x="15" y="72" fill="#475569" font-size="12">• Tần suất broadcast 1-5 giây/lần không làm nghẽn CPU.</text>
+      <text x="15" y="92" fill="#475569" font-size="12">• Client tự cập nhật đồ thị động mà không cần F5/Reload.</text>
+      <text x="15" y="112" fill="#475569" font-size="12">• Fallback an toàn sang Polling HTTP nếu chặn WSS.</text>
+    </g>
+
+    <g transform="translate(540, 60)">
+      <rect width="480" height="135" rx="8" fill="#FFFFFF" stroke="#E2E8F0" />
+      <text x="15" y="28" fill="#047857" font-size="14" font-weight="700">2. Thiết kế CSDL Tối ưu Ghi Chuỗi Thời Gian</text>
+      <text x="15" y="52" fill="#475569" font-size="12">• Khóa chính SHA-256 ngăn ngừa ghi trùng ID.</text>
+      <text x="15" y="72" fill="#475569" font-size="12">• Bỏ khóa ngoại cứng DDL loại trừ hoàn toàn Lock contention.</text>
+      <text x="15" y="92" fill="#475569" font-size="12">• Phi chuẩn hóa lineName, machineName tăng tốc xuất báo cáo.</text>
+      <text x="15" y="112" fill="#475569" font-size="12">• Chỉ mục B-Tree (machineId, timestamp) quét dải cực nhanh.</text>
+    </g>
+
+    <g transform="translate(1050, 60)">
+      <rect width="480" height="135" rx="8" fill="#FFFFFF" stroke="#E2E8F0" />
+      <text x="15" y="28" fill="#B45309" font-size="14" font-weight="700">3. An toàn Xuất Dữ liệu &amp; Giới hạn Tải</text>
+      <text x="15" y="52" fill="#475569" font-size="12">• Áp dụng SQL Whitelist kiểm soát chặt chẽ tham số lọc.</text>
+      <text x="15" y="72" fill="#475569" font-size="12">• Giới hạn cứng 10.000 dòng tránh tràn bộ nhớ Heap.</text>
+      <text x="15" y="92" fill="#475569" font-size="12">• Động cơ ExcelJS, fast-csv stream tải trực tiếp về máy trạm.</text>
+      <text x="15" y="112" fill="#475569" font-size="12">• Ghi nhật ký kiểm toán EXPORT_LOGS phục vụ tra soát.</text>
+    </g>
+
+    <g transform="translate(1560, 60)">
+      <rect width="480" height="135" rx="8" fill="#FFFFFF" stroke="#E2E8F0" />
+      <text x="15" y="28" fill="#B91C1C" font-size="14" font-weight="700">4. Nợ Kỹ thuật Cần Nâng cấp (Tech Debts)</text>
+      <text x="15" y="52" fill="#475569" font-size="12">• TD-01: Cảnh báo chưa có bảng alarms vật lý (Đang lưu RAM).</text>
+      <text x="15" y="72" fill="#475569" font-size="12">• TD-02: Chưa có driver kết nối PLC công nghiệp thực tế.</text>
+      <text x="15" y="92" fill="#475569" font-size="12">• TD-03: Cần triển khai JWT Bearer Token thay cho State.</text>
+      <text x="15" y="112" fill="#475569" font-size="12">• TD-04: Phân vùng Partition theo tháng cho bảng History.</text>
+    </g>
+  </g>
+
+  <!-- Connective Arrows -->
+  <line x1="520" y1="280" x2="560" y2="280" stroke="#0284C7" stroke-width="3" marker-end="url(#arrBlue)" />
+  <line x1="560" y1="340" x2="520" y2="340" stroke="#0284C7" stroke-width="3" marker-end="url(#arrBlue)" />
+  
+  <line x1="1080" y1="300" x2="1120" y2="300" stroke="#D97706" stroke-width="3" marker-end="url(#arrGreen)" />
+  <line x1="1120" y1="360" x2="1080" y2="360" stroke="#D97706" stroke-width="3" marker-end="url(#arrGreen)" />
+
+  <line x1="1640" y1="300" x2="1080" y2="300" stroke="#0284C7" stroke-width="3" marker-end="url(#arrBlue)" stroke-dasharray="6,4" />
+</svg>

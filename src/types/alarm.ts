@@ -43,4 +43,8 @@ export interface AlarmEvent {
   acknowledgedAt?: string;       // Thời gian bấm "Đã nhận sửa"
   resolvedAt?: string;           // Thời gian bấm "Đã hoàn thành"
   resolutionNotes?: string;      // Ghi chú cách giải quyết sự cố
+
+  // Đánh dấu nguồn cảnh báo Demo diễn tập
+  isDemo?: boolean;              // True nếu phát sinh từ chế độ Giả lập sự cố
+  source?: string;               // Nguồn phát sinh ('DEMO' | 'PLC' | 'RULE')
 }

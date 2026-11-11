@@ -1,0 +1,426 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2500 1950" width="2500" height="1950">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap');
+      text { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; }
+      .code-font { font-family: 'JetBrains Mono', Consolas, monospace; }
+      .shadow { filter: drop-shadow(0px 8px 16px rgba(15, 23, 42, 0.08)); }
+      .shadow-process { filter: drop-shadow(0px 8px 20px rgba(0, 51, 102, 0.12)); }
+    </style>
+
+    <!-- Linear Gradients for Process Bubbles -->
+    <linearGradient id="p1Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#003366" />
+      <stop offset="100%" stop-color="#005599" />
+    </linearGradient>
+
+    <linearGradient id="p2Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F4C81" />
+      <stop offset="100%" stop-color="#0284C7" />
+    </linearGradient>
+
+    <linearGradient id="p3Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C2410C" />
+      <stop offset="100%" stop-color="#EA580C" />
+    </linearGradient>
+
+    <linearGradient id="p4Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#047857" />
+      <stop offset="100%" stop-color="#10B981" />
+    </linearGradient>
+
+    <linearGradient id="p5Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155" />
+      <stop offset="100%" stop-color="#475569" />
+    </linearGradient>
+
+    <!-- Markers -->
+    <marker id="arrow-dark" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0284C7" />
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#10B981" />
+    </marker>
+    <marker id="arrow-orange" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#EA580C" />
+    </marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#6366F1" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="#F8FAFC" />
+  <rect x="40" y="40" width="2420" height="1870" rx="24" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2" class="shadow" />
+
+  <!-- Diagram Title Header Banner -->
+  <g transform="translate(80, 80)">
+    <rect width="2340" height="90" rx="12" fill="#003366" />
+    <rect x="0" y="0" width="8" height="90" rx="4" fill="#E60012" />
+    <text x="35" y="42" fill="#FFFFFF" font-size="28" font-weight="700">SƠ ĐỒ PHÂN RÃ CHỨC NĂNG MỨC 1 (DFD LEVEL 1 - DECOMPOSITION DIAGRAM)</text>
+    <text x="35" y="70" fill="#93C5FD" font-size="16" font-weight="500">PHÂN TÁCH 5 TIẾN TRÌNH CỐT LÕI, CÁC KHO DỮ LIỆU MYSQL VÀ BỘ NHỚ ĐỆM ZUSTAND THEO SOURCE CODE THỰC TẾ</text>
+    <text x="2300" y="52" fill="#E2E8F0" font-size="14" font-weight="600" text-anchor="end">CHUẨN ĐẶC TẢ BA V2.1</text>
+  </g>
+
+  <!-- ==================== EXTERNAL ENTITIES (LEFT & RIGHT) ==================== -->
+
+  <!-- ENTITY 1: DATA SOURCES (Top-Left) -->
+  <g transform="translate(80, 220)" class="shadow">
+    <rect width="360" height="180" rx="10" fill="#FFFFFF" stroke="#EA580C" stroke-width="2.5" />
+    <rect width="360" height="38" rx="10" fill="#EA580C" />
+    <text x="180" y="25" fill="#FFFFFF" font-size="16" font-weight="700" text-anchor="middle">NGUỒN DỮ LIỆU TELEMETRY</text>
+    <g transform="translate(15, 60)" font-size="12" fill="#431407">
+      <text x="0" y="0" font-weight="700" fill="#C2410C">1. Bộ giả lập tập trung (Hiện tại - 1s)</text>
+      <text x="0" y="20">• Áp suất, Nhiệt độ, Rung động, Dòng điện</text>
+      <text x="0" y="48" font-weight="700" fill="#475569">2. Trạm PLC Thực Tế (Giai đoạn 2)</text>
+      <text x="0" y="68">• Siemens S7-1500 (Modbus/TCP:502)</text>
+      <text x="0" y="88">• Omron NX1P2 (OPC-UA:4840)</text>
+    </g>
+  </g>
+
+  <!-- ENTITY 2: OPERATOR (Middle-Left) -->
+  <g transform="translate(80, 640)" class="shadow">
+    <rect width="360" height="200" rx="10" fill="#FFFFFF" stroke="#003366" stroke-width="2.5" />
+    <rect width="360" height="38" rx="10" fill="#003366" />
+    <text x="180" y="25" fill="#FFFFFF" font-size="16" font-weight="700" text-anchor="middle">VẬN HÀNH VIÊN (OPERATOR)</text>
+    <g transform="translate(15, 60)" font-size="12" fill="#334155">
+      <text x="0" y="0" font-weight="700" fill="#003366">Quyền hạn &amp; Thao tác:</text>
+      <text x="0" y="22">• Đăng nhập tài khoản xưởng (Dual Auth)</text>
+      <text x="0" y="44">• Xem màn hình Digital Andon, Tier 1, Tier 2</text>
+      <text x="0" y="66">• Xác nhận sự cố bước 1: Ack Alarm (BR-04)</text>
+      <text x="0" y="88">• Tra cứu mã QR hồ sơ bảo trì thân máy</text>
+      <text x="0" y="110">• Xem lịch sử vận hành &amp; lọc ca sản xuất</text>
+    </g>
+  </g>
+
+  <!-- ENTITY 3: MAINTENANCE (Middle-Right) -->
+  <g transform="translate(2060, 640)" class="shadow">
+    <rect width="360" height="200" rx="10" fill="#FFFFFF" stroke="#0F4C81" stroke-width="2.5" />
+    <rect width="360" height="38" rx="10" fill="#0F4C81" />
+    <text x="180" y="25" fill="#FFFFFF" font-size="16" font-weight="700" text-anchor="middle">KỸ THUẬT VIÊN BẢO TRÌ (MAINT)</text>
+    <g transform="translate(15, 60)" font-size="12" fill="#334155">
+      <text x="0" y="0" font-weight="700" fill="#0F4C81">Quyền hạn &amp; Thao tác:</text>
+      <text x="0" y="22">• Xem chi tiết linh kiện máy Tầng 3 (Tier 3)</text>
+      <text x="0" y="44">• Xem đồ thị sóng thời gian thực (60s)</text>
+      <text x="0" y="66">• Nghiệm thu đóng sự cố kèm biên bản (BR-05)</text>
+      <text x="0" y="88">• Cấu hình 4 ngưỡng kỹ thuật (Warning/Crit)</text>
+      <text x="0" y="110">• Quản lý kết nối &amp; Polling trạm PLC ảo</text>
+    </g>
+  </g>
+
+  <!-- ENTITY 4: ADMIN (Bottom-Right) -->
+  <g transform="translate(2060, 1340)" class="shadow">
+    <rect width="360" height="210" rx="10" fill="#FFFFFF" stroke="#334155" stroke-width="2.5" />
+    <rect width="360" height="38" rx="10" fill="#334155" />
+    <text x="180" y="25" fill="#FFFFFF" font-size="16" font-weight="700" text-anchor="middle">QUẢN TRỊ VIÊN HỆ THỐNG (ADMIN)</text>
+    <g transform="translate(15, 60)" font-size="12" fill="#334155">
+      <text x="0" y="0" font-weight="700" fill="#334155">Quyền hạn &amp; Thao tác:</text>
+      <text x="0" y="22">• Quản lý danh mục người dùng (CRUD Users)</text>
+      <text x="0" y="44">• Phân quyền vai trò RBAC (Admin, Op, Maint)</text>
+      <text x="0" y="66">• Khóa tài khoản, bảo vệ không tự xóa mình</text>
+      <text x="0" y="88">• Yêu cầu xuất báo cáo Excel, CSV, JSON</text>
+      <text x="0" y="110">• Tra cứu &amp; xuất nhật ký kiểm toán (Audit)</text>
+    </g>
+  </g>
+
+  <!-- ==================== 5 FUNCTIONAL PROCESSES (CENTER) ==================== -->
+
+  <!-- PROCESS 1.0: TIẾP NHẬN & XỬ LÝ TELEMETRY -->
+  <g transform="translate(560, 220)" class="shadow-process">
+    <rect width="440" height="220" rx="28" fill="url(#p1Grad)" stroke="#38BDF8" stroke-width="2.5" />
+    <rect x="140" y="15" width="160" height="28" rx="14" fill="rgba(255, 255, 255, 0.2)" />
+    <text x="220" y="34" fill="#FFFFFF" font-size="14" font-weight="700" text-anchor="middle">TIẾN TRÌNH 1.0</text>
+    <text x="220" y="70" fill="#FFFFFF" font-size="18" font-weight="800" text-anchor="middle">TIẾP NHẬN &amp; XỬ LÝ TELEMETRY</text>
+    
+    <g transform="translate(25, 95)" font-size="12" fill="#E0F2FE">
+      <text x="0" y="0">• Giải mã thanh ghi PLC thô (DEC12, BIT12) (BR-15)</text>
+      <text x="0" y="22">• Quy đổi sang đơn vị đo kỹ thuật (bar, °C, mm/s)</text>
+      <text x="0" y="44">• Chuẩn hóa mốc thời gian UTC ISO-8601 (BR-07)</text>
+      <text x="0" y="66">• Sinh khóa chính xác định SHA-256 Hash (BR-06)</text>
+      <text x="0" y="88">• Phân loại nguồn telemetry ('simulation' / 'device')</text>
+      <text x="0" y="108">• Ghi bản ghi vào CSDL qua INSERT IGNORE</text>
+    </g>
+  </g>
+
+  <!-- PROCESS 2.0: GIÁM SÁT & ĐÁNH GIÁ NGƯỠNG -->
+  <g transform="translate(1120, 220)" class="shadow-process">
+    <rect width="440" height="220" rx="28" fill="url(#p2Grad)" stroke="#7DD3FC" stroke-width="2.5" />
+    <rect x="140" y="15" width="160" height="28" rx="14" fill="rgba(255, 255, 255, 0.2)" />
+    <text x="220" y="34" fill="#FFFFFF" font-size="14" font-weight="700" text-anchor="middle">TIẾN TRÌNH 2.0</text>
+    <text x="220" y="70" fill="#FFFFFF" font-size="18" font-weight="800" text-anchor="middle">GIÁM SÁT &amp; ĐÁNH GIÁ NGƯỠNG</text>
+    
+    <g transform="translate(25, 95)" font-size="12" fill="#F0F9FF">
+      <text x="0" y="0">• So sánh giá trị đo với 4 ngưỡng vận hành (BR-01)</text>
+      <text x="0" y="22">• Phân loại trạng thái: normal, warning, critical</text>
+      <text x="0" y="44">• Tổng hợp trạng thái máy theo lỗi nặng nhất (BR-02)</text>
+      <text x="0" y="66">• Tính toán điểm an toàn Safety Score dây chuyền (BR-03)</text>
+      <text x="0" y="88">• Phát thanh WebSocket trực tiếp tới UI Client (&lt;100ms)</text>
+      <text x="0" y="108">• Phát hiện vi phạm ngưỡng chuyển tiếp sang Quản lý cảnh báo</text>
+    </g>
+  </g>
+
+  <!-- PROCESS 3.0: QUẢN LÝ CẢNH BÁO & SỰ CỐ -->
+  <g transform="translate(1120, 630)" class="shadow-process">
+    <rect width="440" height="220" rx="28" fill="url(#p3Grad)" stroke="#FDBA74" stroke-width="2.5" />
+    <rect x="140" y="15" width="160" height="28" rx="14" fill="rgba(255, 255, 255, 0.2)" />
+    <text x="220" y="34" fill="#FFFFFF" font-size="14" font-weight="700" text-anchor="middle">TIẾN TRÌNH 3.0</text>
+    <text x="220" y="70" fill="#FFFFFF" font-size="18" font-weight="800" text-anchor="middle">QUẢN LÝ CẢNH BÁO &amp; SỰ CỐ</text>
+    
+    <g transform="translate(25, 95)" font-size="12" fill="#FFF7ED">
+      <text x="0" y="0">• Tiếp nhận sự kiện vi phạm ngưỡng từ Tiến trình 2.0</text>
+      <text x="0" y="22">• Khởi tạo cảnh báo trạng thái ACTIVE, nhấp nháy còi Andon</text>
+      <text x="0" y="44">• Xử lý sự kiện Xác nhận sự cố bước 1: Ack Alarm (BR-04)</text>
+      <text x="0" y="66">• Xử lý Nghiệm thu đóng sự cố bước 2: Resolve Alarm (BR-05)</text>
+      <text x="0" y="88">• Quản lý hàng đợi cảnh báo trong bộ nhớ RAM useAlarmStore</text>
+      <text x="0" y="108">• Gửi sự kiện kiểm toán xử lý sự cố sang Tiến trình 5.0</text>
+    </g>
+  </g>
+
+  <!-- PROCESS 4.0: TRUY VẤN LỊCH SỬ & XUẤT BÁO CÁO -->
+  <g transform="translate(560, 1020)" class="shadow-process">
+    <rect width="440" height="230" rx="28" fill="url(#p4Grad)" stroke="#6EE7B7" stroke-width="2.5" />
+    <rect x="140" y="15" width="160" height="28" rx="14" fill="rgba(255, 255, 255, 0.2)" />
+    <text x="220" y="34" fill="#FFFFFF" font-size="14" font-weight="700" text-anchor="middle">TIẾN TRÌNH 4.0</text>
+    <text x="220" y="70" fill="#FFFFFF" font-size="18" font-weight="800" text-anchor="middle">TRUY VẤN LỊCH SỬ &amp; XUẤT FILE</text>
+    
+    <g transform="translate(25, 95)" font-size="12" fill="#ECFDF5">
+      <text x="0" y="0">• Tiếp nhận tham số lọc: Line, Machine, Metric, Status, Source</text>
+      <text x="0" y="22">• Quy đổi khoảng thời gian ca kíp Việt Nam sang UTC (BR-07)</text>
+      <text x="0" y="44">• Xử lý cuộn ngày của ca 3 sản xuất qua đêm (BR-08)</text>
+      <text x="0" y="66">• Kiểm tra Whitelist 7 cột sắp xếp chống SQLi (BR-14)</text>
+      <text x="0" y="88">• Kiểm tra khống chế trần an toàn 10.000 dòng dữ liệu (BR-09)</text>
+      <text x="0" y="108">• Làm sạch công thức chống tấn công CSV Injection (BR-10)</text>
+      <text x="0" y="128">• Đóng gói luồng nhị phân Excel (.xlsx), CSV, JSON tải về máy</text>
+    </g>
+  </g>
+
+  <!-- PROCESS 5.0: QUẢN TRỊ HỆ THỐNG & KIỂM TOÁN -->
+  <g transform="translate(1480, 1020)" class="shadow-process">
+    <rect width="460" height="230" rx="28" fill="url(#p5Grad)" stroke="#94A3B8" stroke-width="2.5" />
+    <rect x="150" y="15" width="160" height="28" rx="14" fill="rgba(255, 255, 255, 0.2)" />
+    <text x="230" y="34" fill="#FFFFFF" font-size="14" font-weight="700" text-anchor="middle">TIẾN TRÌNH 5.0</text>
+    <text x="230" y="70" fill="#FFFFFF" font-size="18" font-weight="800" text-anchor="middle">QUẢN TRỊ HỆ THỐNG &amp; KIỂM TOÁN</text>
+    
+    <g transform="translate(25, 95)" font-size="12" fill="#F8FAFC">
+      <text x="0" y="0">• Xác thực thông tin đăng nhập, sinh Access/Refresh Token JWT</text>
+      <text x="0" y="22">• Phân quyền vai trò RBAC: ADMIN, OPERATOR, MAINTENANCE</text>
+      <text x="0" y="44">• Quản lý tài khoản (CRUD), băm mật khẩu Bcrypt 10 vòng</text>
+      <text x="0" y="66">• Bảo vệ tài khoản quản trị tối cao không bị tự xóa (BR-11)</text>
+      <text x="0" y="88">• Xác thực và lưu trữ file ảnh Avatar qua Multer (BR-13)</text>
+      <text x="0" y="108">• Ghi nhận đầy đủ vết thao tác (Audit Logs) vào CSDL MySQL</text>
+      <text x="0" y="128">• Cung cấp dữ liệu tra cứu và xuất nhật ký kiểm toán</text>
+    </g>
+  </g>
+
+  <!-- ==================== DATA STORES ==================== -->
+
+  <!-- DATA STORE D1: machine_telemetry_history -->
+  <g transform="translate(560, 520)" class="shadow">
+    <path d="M 0 0 L 440 0 M 0 65 L 440 65" stroke="#003366" stroke-width="3" fill="none" />
+    <rect x="0" y="0" width="440" height="65" fill="#F0F9FF" opacity="0.9" />
+    <rect x="0" y="0" width="8" height="65" fill="#0284C7" />
+    <text x="25" y="26" fill="#003366" font-size="15" font-weight="700">D1: machine_telemetry_history</text>
+    <text x="25" y="48" fill="#475569" font-size="12">CSDL MySQL 8.0 (Bền Vững) - Chuỗi thời gian Telemetry UTC (BR-06, BR-07)</text>
+  </g>
+
+  <!-- DATA STORE D2 & D3: machines & production_lines -->
+  <g transform="translate(1660, 220)" class="shadow">
+    <path d="M 0 0 L 360 0 M 0 85 L 360 85" stroke="#003366" stroke-width="3" fill="none" />
+    <rect x="0" y="0" width="360" height="85" fill="#F8FAFC" opacity="0.9" />
+    <rect x="0" y="0" width="8" height="85" fill="#003366" />
+    <text x="25" y="26" fill="#003366" font-size="15" font-weight="700">D2: machines | D3: production_lines</text>
+    <text x="25" y="48" fill="#475569" font-size="12">CSDL MySQL 8.0 (Bền Vững)</text>
+    <text x="25" y="68" fill="#64748B" font-size="11">Cấu hình danh mục máy, ngưỡng &amp; chỉ tiêu</text>
+  </g>
+
+  <!-- DATA STORE M1: useAlarmStore (RAM Client - Explicitly Not Persistent) -->
+  <g transform="translate(1640, 670)" class="shadow">
+    <rect x="0" y="0" width="380" height="135" rx="8" fill="#FFF7ED" stroke="#EA580C" stroke-width="2" stroke-dasharray="6,4" />
+    <rect x="0" y="0" width="380" height="32" rx="8" fill="#EA580C" />
+    <text x="190" y="22" fill="#FFFFFF" font-size="14" font-weight="700" text-anchor="middle">M1: useAlarmStore (RAM CLIENT ZUSTAND)</text>
+    <g transform="translate(15, 52)" font-size="11" fill="#431407">
+      <text x="0" y="0" font-weight="700" fill="#C2410C">LƯU TRỮ TẠM THỜI TRONG PHIÊN (VOLATILE):</text>
+      <text x="0" y="18">• Hàng đợi danh sách cảnh báo đang diễn ra (useAlarmStore.ts)</text>
+      <text x="0" y="36">• Quản lý trạng thái: pending -> acknowledged -> resolved</text>
+      <text x="0" y="54" fill="#DC2626" font-weight="700">⚠ KHÔNG PHẢI CSDL VĨNH VIỄN: Dữ liệu mất khi F5 / đóng tab</text>
+      <text x="0" y="70" fill="#475569">• Lộ trình Giai đoạn 2: Chuyển toàn bộ vào bảng alarms trong MySQL</text>
+    </g>
+  </g>
+
+  <!-- DATA STORE D5: audit_logs -->
+  <g transform="translate(1080, 1090)" class="shadow">
+    <path d="M 0 0 L 340 0 M 0 75 L 340 75" stroke="#334155" stroke-width="3" fill="none" />
+    <rect x="0" y="0" width="340" height="75" fill="#F8FAFC" opacity="0.9" />
+    <rect x="0" y="0" width="8" height="75" fill="#334155" />
+    <text x="25" y="26" fill="#0F172A" font-size="15" font-weight="700">D5: audit_logs</text>
+    <text x="25" y="48" fill="#475569" font-size="12">CSDL MySQL 8.0 (Bền Vững)</text>
+    <text x="25" y="66" fill="#64748B" font-size="11">Vết thao tác LOGIN, ACK, RESOLVE, EXPORT...</text>
+  </g>
+
+  <!-- DATA STORE D6: users -->
+  <g transform="translate(1480, 1370)" class="shadow">
+    <path d="M 0 0 L 460 0 M 0 75 L 460 75" stroke="#334155" stroke-width="3" fill="none" />
+    <rect x="0" y="0" width="460" height="75" fill="#F8FAFC" opacity="0.9" />
+    <rect x="0" y="0" width="8" height="75" fill="#334155" />
+    <text x="25" y="26" fill="#0F172A" font-size="15" font-weight="700">D6: users</text>
+    <text x="25" y="48" fill="#475569" font-size="12">CSDL MySQL 8.0 (Bền Vững)</text>
+    <text x="25" y="66" fill="#64748B" font-size="11">Hồ sơ người dùng, phân quyền RBAC, mật khẩu Bcrypt</text>
+  </g>
+
+  <!-- ==================== DATA FLOW PIPELINES (CONNECTORS) ==================== -->
+
+  <!-- Flow 1: Sources -> Process 1.0 -->
+  <g>
+    <path d="M 440 310 L 560 310" fill="none" stroke="#EA580C" stroke-width="2.5" marker-end="url(#arrow-orange)" />
+    <rect x="445" y="285" width="110" height="20" rx="3" fill="#FFFFFF" stroke="#EA580C" stroke-width="1" />
+    <text x="500" y="299" fill="#C2410C" font-size="10" font-weight="700" text-anchor="middle">Thanh ghi thô</text>
+  </g>
+
+  <!-- Flow 2: Process 1.0 -> Data Store D1 -->
+  <g>
+    <path d="M 780 440 L 780 520" fill="none" stroke="#0284C7" stroke-width="2.5" marker-end="url(#arrow-dark)" />
+    <rect x="710" y="465" width="140" height="24" rx="4" fill="#FFFFFF" stroke="#0284C7" stroke-width="1" />
+    <text x="780" y="481" fill="#0369A1" font-size="11" font-weight="700" text-anchor="middle">Ghi bản ghi UTC (BR-06)</text>
+  </g>
+
+  <!-- Flow 3: Process 1.0 -> Process 2.0 -->
+  <g>
+    <path d="M 1000 310 L 1120 310" fill="none" stroke="#0284C7" stroke-width="2.5" marker-end="url(#arrow-dark)" />
+    <rect x="1010" y="285" width="100" height="22" rx="4" fill="#FFFFFF" stroke="#0284C7" stroke-width="1" />
+    <text x="1060" y="300" fill="#0369A1" font-size="11" font-weight="700" text-anchor="middle">Giá trị kỹ thuật</text>
+  </g>
+
+  <!-- Flow 4: Data Store D2/D3 -> Process 2.0 -->
+  <g>
+    <path d="M 1660 260 L 1560 260" fill="none" stroke="#64748B" stroke-width="2" marker-end="url(#arrow-dark)" />
+    <rect x="1565" y="235" width="90" height="20" rx="3" fill="#FFFFFF" stroke="#64748B" stroke-width="1" />
+    <text x="1610" y="249" fill="#334155" font-size="10" font-weight="600" text-anchor="middle">Ngưỡng chuẩn</text>
+  </g>
+
+  <!-- Flow 5: Process 2.0 -> WebSocket Real-time to Operator & Maintenance -->
+  <g>
+    <!-- To Operator -->
+    <path d="M 1160 440 L 1160 560 L 440 680" fill="none" stroke="#10B981" stroke-width="2" marker-end="url(#arrow-green)" />
+    <rect x="680" y="580" width="220" height="22" rx="4" fill="#FFFFFF" stroke="#10B981" stroke-width="1" />
+    <text x="790" y="595" fill="#047857" font-size="11" font-weight="700" text-anchor="middle">WebSocket Broadcast: Andon, Tier 1, Tier 2</text>
+
+    <!-- To Maintenance -->
+    <path d="M 1520 440 L 1520 560 L 2060 680" fill="none" stroke="#10B981" stroke-width="2" marker-end="url(#arrow-green)" />
+    <rect x="1640" y="580" width="220" height="22" rx="4" fill="#FFFFFF" stroke="#10B981" stroke-width="1" />
+    <text x="1750" y="595" fill="#047857" font-size="11" font-weight="700" text-anchor="middle">WebSocket: Đồ thị sóng 60s, Tier 3</text>
+  </g>
+
+  <!-- Flow 6: Process 2.0 -> Process 3.0 (Alarm Trigger) -->
+  <g>
+    <path d="M 1340 440 L 1340 630" fill="none" stroke="#EA580C" stroke-width="2.5" marker-end="url(#arrow-orange)" />
+    <rect x="1270" y="520" width="140" height="24" rx="4" fill="#FFFFFF" stroke="#EA580C" stroke-width="1" />
+    <text x="1340" y="536" fill="#C2410C" font-size="11" font-weight="700" text-anchor="middle">Sự kiện vi phạm ngưỡng</text>
+  </g>
+
+  <!-- Flow 7: Process 3.0 <-> Data Store M1 (useAlarmStore) -->
+  <g>
+    <path d="M 1560 720 L 1640 720" fill="none" stroke="#EA580C" stroke-width="2" marker-end="url(#arrow-orange)" />
+    <path d="M 1640 760 L 1560 760" fill="none" stroke="#EA580C" stroke-width="2" marker-end="url(#arrow-orange)" />
+    <rect x="1565" y="728" width="70" height="22" rx="3" fill="#FFFFFF" stroke="#EA580C" stroke-width="1" />
+    <text x="1600" y="743" fill="#C2410C" font-size="10" font-weight="700" text-anchor="middle">Sync RAM</text>
+  </g>
+
+  <!-- Flow 8: Operator & Maintenance Interactions with Process 3.0 -->
+  <g>
+    <!-- Operator Ack -->
+    <path d="M 440 730 L 1120 730" fill="none" stroke="#0284C7" stroke-width="2" marker-end="url(#arrow-dark)" />
+    <rect x="680" y="718" width="180" height="22" rx="4" fill="#FFFFFF" stroke="#0284C7" stroke-width="1" />
+    <text x="770" y="733" fill="#0369A1" font-size="11" font-weight="700" text-anchor="middle">Xác nhận sự cố: Ack (BR-04)</text>
+
+    <!-- Maintenance Resolve -->
+    <path d="M 2060 740 L 1560 740" fill="none" stroke="#0284C7" stroke-width="2" marker-end="url(#arrow-dark)" />
+    <rect x="1750" y="728" width="220" height="22" rx="4" fill="#FFFFFF" stroke="#0284C7" stroke-width="1" />
+    <text x="1860" y="743" fill="#0369A1" font-size="11" font-weight="700" text-anchor="middle">Nghiệm thu đóng lỗi: Resolve (BR-05)</text>
+  </g>
+
+  <!-- Flow 9: Process 3.0 -> Process 5.0 (Audit Log Event) -->
+  <g>
+    <path d="M 1380 850 L 1380 940 L 1600 940 L 1600 1020" fill="none" stroke="#6366F1" stroke-width="2" marker-end="url(#arrow-purple)" />
+    <rect x="1420" y="928" width="150" height="22" rx="4" fill="#FFFFFF" stroke="#6366F1" stroke-width="1" />
+    <text x="1495" y="943" fill="#4338CA" font-size="11" font-weight="700" text-anchor="middle">Sự kiện ACK &amp; RESOLVE</text>
+  </g>
+
+  <!-- Flow 10: Process 4.0 (History & Export) Reads D1 -->
+  <g>
+    <path d="M 780 585 L 780 1020" fill="none" stroke="#047857" stroke-width="2.5" marker-end="url(#arrow-green)" />
+    <rect x="680" y="870" width="200" height="38" rx="4" fill="#FFFFFF" stroke="#047857" stroke-width="1" />
+    <text x="780" y="887" fill="#065F46" font-size="11" font-weight="700" text-anchor="middle">Đọc Telemetry theo bộ lọc</text>
+    <text x="780" y="901" fill="#475569" font-size="10">UTC Conversion, Whitelist (BR-07, 14)</text>
+  </g>
+
+  <!-- Flow 11: Process 4.0 <-> Users (Operator / Maintenance / Admin) -->
+  <g>
+    <!-- Inflow from Admin / Operator -->
+    <path d="M 440 790 L 520 790 L 520 1080 L 560 1080" fill="none" stroke="#0284C7" stroke-width="2" marker-end="url(#arrow-dark)" />
+    <rect x="410" y="880" width="140" height="22" rx="4" fill="#FFFFFF" stroke="#0284C7" stroke-width="1" />
+    <text x="480" y="895" fill="#0369A1" font-size="11" font-weight="700" text-anchor="middle">Tham số lọc ca kíp</text>
+
+    <!-- Outflow to Admin: Safe Export Files -->
+    <path d="M 1000 1140 L 2060 1440" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrow-green)" />
+    <rect x="1400" y="1270" width="230" height="38" rx="4" fill="#FFFFFF" stroke="#10B981" stroke-width="1" />
+    <text x="1515" y="1287" fill="#047857" font-size="11" font-weight="700" text-anchor="middle">File tải về (.xlsx, .csv, .json)</text>
+    <text x="1515" y="1301" fill="#475569" font-size="10">Trần 10k dòng, Chống CSV Injection</text>
+  </g>
+
+  <!-- Flow 12: Process 4.0 -> Process 5.0 (Audit Export Log) -->
+  <g>
+    <path d="M 1000 1090 L 1080 1090" fill="none" stroke="#6366F1" stroke-width="2" marker-end="url(#arrow-purple)" />
+    <rect x="995" y="1065" width="120" height="22" rx="3" fill="#FFFFFF" stroke="#6366F1" stroke-width="1" />
+    <text x="1055" y="1080" fill="#4338CA" font-size="10" font-weight="700" text-anchor="middle">Log EXPORT_LOGS</text>
+  </g>
+
+  <!-- Flow 13: Process 5.0 <-> Admin & Users -->
+  <g>
+    <!-- Admin -> Process 5.0 -->
+    <path d="M 2060 1380 L 1940 1180" fill="none" stroke="#0284C7" stroke-width="2.5" marker-end="url(#arrow-dark)" />
+    <rect x="1950" y="1260" width="160" height="38" rx="4" fill="#FFFFFF" stroke="#0284C7" stroke-width="1" />
+    <text x="2030" y="1277" fill="#0369A1" font-size="11" font-weight="700" text-anchor="middle">1. Đăng nhập / Token</text>
+    <text x="2030" y="1291" fill="#475569" font-size="10">2. Quản lý CRUD User</text>
+
+    <!-- Process 5.0 -> Admin -->
+    <path d="M 1940 1210 L 2060 1410" fill="none" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrow-green)" />
+    <rect x="1950" y="1310" width="160" height="38" rx="4" fill="#FFFFFF" stroke="#10B981" stroke-width="1" />
+    <text x="2030" y="1327" fill="#047857" font-size="11" font-weight="700" text-anchor="middle">1. JWT Token, Hồ sơ</text>
+    <text x="2030" y="1341" fill="#475569" font-size="10">2. Danh sách Audit Logs</text>
+  </g>
+
+  <!-- Flow 14: Process 5.0 <-> Data Stores D5 & D6 -->
+  <g>
+    <!-- To D5 audit_logs -->
+    <path d="M 1480 1120 L 1420 1120" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow-dark)" />
+    <text x="1450" y="1110" fill="#334155" font-size="10" font-weight="700" text-anchor="middle">Ghi vết</text>
+
+    <!-- To D6 users -->
+    <path d="M 1710 1250 L 1710 1370" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow-dark)" />
+    <rect x="1660" y="1295" width="100" height="22" rx="3" fill="#FFFFFF" stroke="#334155" stroke-width="1" />
+    <text x="1710" y="1310" fill="#0F172A" font-size="10" font-weight="700" text-anchor="middle">Đọc / Ghi User</text>
+  </g>
+
+  <!-- Flow Legend Footer -->
+  <g transform="translate(80, 1840)">
+    <rect width="2340" height="55" rx="8" fill="#F8FAFC" stroke="#CBD5E1" />
+    <text x="25" y="32" fill="#0F172A" font-size="13" font-weight="700">CHÚ GIẢI KÝ HIỆU DFD MỨC 1:</text>
+    
+    <rect x="230" y="18" width="22" height="22" rx="5" fill="#003366" />
+    <text x="260" y="33" fill="#475569" font-size="12">Tiến trình xử lý (Process)</text>
+
+    <line x1="430" y1="20" x2="490" y2="20" stroke="#003366" stroke-width="3" />
+    <line x1="430" y1="38" x2="490" y2="38" stroke="#003366" stroke-width="3" />
+    <text x="500" y="33" fill="#475569" font-size="12">Kho dữ liệu MySQL bền vững (D1-D6)</text>
+
+    <rect x="730" y="18" width="30" height="20" rx="3" fill="#FFF7ED" stroke="#EA580C" stroke-width="1.5" stroke-dasharray="4,3" />
+    <text x="770" y="33" fill="#C2410C" font-size="12" font-weight="600">Kho dữ liệu RAM Zustand tạm thời (M1 - Không phải CSDL vĩnh viễn)</text>
+
+    <line x1="1260" y1="28" x2="1300" y2="28" stroke="#0284C7" stroke-width="2.5" marker-end="url(#arrow-dark)" />
+    <text x="1310" y="33" fill="#475569" font-size="12">Luồng dữ liệu điều khiển / nghiệp vụ</text>
+
+    <line x1="1560" y1="28" x2="1600" y2="28" stroke="#10B981" stroke-width="2.5" marker-end="url(#arrow-green)" />
+    <text x="1610" y="33" fill="#475569" font-size="12">Luồng dữ liệu kết quả / File / WebSocket</text>
+  </g>
+
+</svg>

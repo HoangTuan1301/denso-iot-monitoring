@@ -1,0 +1,52 @@
+flowchart TD
+    %% DENSO Industrial IoT Monitoring System (KaiLink)
+    %% Sơ đồ Luồng Dữ Liệu Mức 0 (DFD Level 0 - Context Diagram)
+    
+    subgraph SYSTEM ["0.0 HỆ THỐNG GIÁM SÁT IoT NHÀ MÁY (KaiLink)"]
+        CORE["DENSO KaiLink Core Engine
+- Chuẩn hóa Telemetry UTC
+- Đánh giá ngưỡng & Cảnh báo
+- Quản lý cảnh báo & Andon
+- Truy vấn & Xuất báo cáo
+- Quản trị RBAC & Kiểm toán"]
+    end
+
+    OP["VẬN HÀNH VIÊN
+(Operator)"]
+    MAINT["KỸ SƯ BẢO TRÌ
+(Maintenance)"]
+    ADMIN["QUẢN TRỊ VIÊN
+(Admin)"]
+    
+    subgraph SOURCES ["NGUỒN DỮ LIỆU TELEMETRY"]
+        SIM["Bộ Giả Lập Telemetry
+(Hiện tại - Simulation)"]
+        PLC["Trạm PLC Vật Lý Thực Tế
+(Giai đoạn 2 - Siemens/Omron)"]
+    end
+
+    %% Flows for Operator
+    OP -->|"Đăng nhập, Chọn ca kíp,
+Xác nhận sự cố (BR-04 Ack)"| CORE
+    CORE -->|"Trạng thái máy Real-time (WebSocket),
+Cảnh báo đèn/còi Digital Andon"| OP
+
+    %% Flows for Maintenance
+    MAINT -->|"Nghiệm thu đóng lỗi (BR-05 Resolve),
+Cấu hình ngưỡng, Lệnh quét PLC"| CORE
+    CORE -->|"Đồ thị sóng đo lường 60s (Tier 3),
+Danh sách cảnh báo chi tiết"| MAINT
+
+    %% Flows for Admin
+    ADMIN -->|"Quản trị người dùng (CRUD),
+Yêu cầu xuất báo cáo Excel/CSV/JSON,
+Tra cứu nhật ký kiểm toán"| CORE
+    CORE -->|"Luồng file báo cáo an toàn (10k dòng),
+Danh mục user, Nhật ký Audit Logs"| ADMIN
+
+    %% Flows for Telemetry
+    SIM -->|"Gói tin Telemetry chu kỳ 1s
+(Áp suất, Nhiệt độ, Rung, Dòng)"| CORE
+    PLC -.->|"Gói Modbus/TCP, OPC-UA
+(Kế hoạch Giai đoạn 2)"| CORE
+    CORE -.->|"Lệnh quét Polling & Heartbeat"| PLC

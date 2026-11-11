@@ -38,14 +38,14 @@ function generateHistoricalData(baseValue: number, variance: number, points: num
  */
 export const initialProductionLines: ProductionLine[] = [
   // ==========================================================================
-  // LINE 1: DÂY CHUYỀN LẮP RÁP ĐỘNG CƠ (ASSEMBLY LINE 1)
+  // LINE 1: DÂY CHUYỀN DẬP & HÀN KHUNG GẦM (LN-PRS-01)
   // ==========================================================================
   {
     id: 'LINE-01',
-    name: 'Dây chuyền Lắp ráp Động cơ 01',
-    code: 'LINE-ASM-01',
+    name: 'Dây chuyền Dập & Hàn Khung Gầm (Press & Welding)',
+    code: 'LN-PRS-01',
     status: 'normal',
-    safetyScore: 98,
+    safetyScore: 100,
     operatingHours: 1420,
     description: 'Chuyên gia công và lắp ghép chi tiết lốc máy & trục khuỷu động cơ',
     machines: [
@@ -242,15 +242,15 @@ export const initialProductionLines: ProductionLine[] = [
   },
 
   // ==========================================================================
-  // LINE 2: DÂY CHUYỀN KIỂM THỬ & ĐO LƯỜNG (TESTING & CALIBRATION LINE 2)
-  // Có 1 cảnh báo Warning để thể hiện visual alert
+  // LINE 2: DÂY CHUYỀN SƠN TĨNH ĐIỆN (LN-PNT-02)
+  // Trạng thái mặc định Normal Demo: Toàn bộ máy hoạt động bình thường, an toàn
   // ==========================================================================
   {
     id: 'LINE-02',
-    name: 'Dây chuyền Kiểm thử & Hiệu chuẩn 02',
-    code: 'LINE-TST-02',
-    status: 'warning',
-    safetyScore: 84,
+    name: 'Dây chuyền Sơn Tĩnh Điện (Electrostatic Paint)',
+    code: 'LN-PNT-02',
+    status: 'normal',
+    safetyScore: 100,
     operatingHours: 980,
     description: 'Kiểm tra độ kín khít rò rỉ áp suất và phân tích độ rung ồn âm học',
     machines: [
@@ -259,7 +259,7 @@ export const initialProductionLines: ProductionLine[] = [
         name: 'Bàn thử rò rỉ khí áp suất cao',
         model: 'COSMO-AIR-LEAK-800',
         lineId: 'LINE-02',
-        status: 'warning',
+        status: 'normal',
         qrCode: 'DENSO-MC-TST-01',
         location: 'Trạm T1 - Thử kín buồng nén',
         lastMaintenance: '2026-09-05',
@@ -291,9 +291,9 @@ export const initialProductionLines: ProductionLine[] = [
             id: 'MTR-TST-01-LEAK',
             name: 'Lưu lượng rò rỉ khí (Leak Rate)',
             unit: 'sccm',
-            currentValue: 4.8, // Vượt warningMax 4.0!
-            rawVal: 48,
-            status: 'warning',
+            currentValue: 1.5,
+            rawVal: 15,
+            status: 'normal',
             warningMin: 0.0,
             warningMax: 4.0,
             criticalMin: 0.0,
@@ -305,7 +305,7 @@ export const initialProductionLines: ProductionLine[] = [
               scaleOffset: 0,
               description: 'Cảm biến chênh lệch áp vi mô đo rò rỉ',
             },
-            history: generateHistoricalData(4.8, 0.6),
+            history: generateHistoricalData(1.5, 0.2),
             lastUpdated: 'Vừa xong',
           },
         ],
@@ -368,15 +368,15 @@ export const initialProductionLines: ProductionLine[] = [
   },
 
   // ==========================================================================
-  // LINE 3: DÂY CHUYỀN ĐÓNG GÓI & BĂNG CHUYỀN (PACKAGING LINE 3)
-  // Có 1 cảnh báo Critical để thử nghiệm nhấp nháy đỏ & quy trình nhận sửa
+  // LINE 3: DÂY CHUYỀN LẮP RÁP HOÀN THIỆN (LN-ASM-03)
+  // Trạng thái mặc định Normal Demo: Toàn bộ máy hoạt động bình thường, an toàn
   // ==========================================================================
   {
     id: 'LINE-03',
-    name: 'Dây chuyền Đóng gói & Vận chuyển 03',
-    code: 'LINE-PKG-03',
-    status: 'critical',
-    safetyScore: 68,
+    name: 'Dây chuyền Lắp Ráp Hoàn Thiện (Final Assembly)',
+    code: 'LN-ASM-03',
+    status: 'normal',
+    safetyScore: 100,
     operatingHours: 2310,
     description: 'Hệ thống băng chuyền phân loại tự động và robot xếp thùng lên pallet',
     machines: [
@@ -385,7 +385,7 @@ export const initialProductionLines: ProductionLine[] = [
         name: 'Động cơ Băng chuyền biến tần 01',
         model: 'MITSUBISHI-FR-A800',
         lineId: 'LINE-03',
-        status: 'critical',
+        status: 'normal',
         qrCode: 'DENSO-MC-CVY-01',
         location: 'Trạm P1 - Băng tải trung chuyển',
         lastMaintenance: '2026-08-20',
@@ -415,9 +415,9 @@ export const initialProductionLines: ProductionLine[] = [
             id: 'MTR-CVY-01-TMP',
             name: 'Nhiệt độ Vòng bi Động cơ',
             unit: '°C',
-            currentValue: 88.5, // Vượt criticalMax 85.0! (Critical)
-            rawVal: 3018,
-            status: 'critical',
+            currentValue: 52.0,
+            rawVal: 1775,
+            status: 'normal',
             warningMin: 30.0,
             warningMax: 75.0,
             criticalMin: 20.0,
@@ -431,7 +431,7 @@ export const initialProductionLines: ProductionLine[] = [
               engMax: 120,
               description: 'Nhiệt độ cảm biến PT100 tại ổ bi số 1',
             },
-            history: generateHistoricalData(88.5, 3.5),
+            history: generateHistoricalData(52.0, 1.5),
             lastUpdated: 'Vừa xong',
           },
           {
@@ -524,7 +524,7 @@ export const initialAlarms: AlarmEvent[] = [
   {
     id: 'ALM-20260927-001',
     lineId: 'LINE-03',
-    lineName: 'Dây chuyền Đóng gói 03',
+    lineName: 'Dây chuyền Lắp Ráp Hoàn Thiện',
     machineId: 'MC-CVY-01',
     machineName: 'Động cơ Băng chuyền 01',
     metricId: 'MTR-CVY-01-TMP',
@@ -535,12 +535,16 @@ export const initialAlarms: AlarmEvent[] = [
     unit: '°C',
     message: 'Nhiệt độ ổ bi vượt ngưỡng nguy hiểm 85°C. Nguy cơ cháy kẹt động cơ!',
     timestamp: '2026-09-27T16:40:00+07:00',
-    status: 'pending', // Chờ thợ nhận việc
+    status: 'resolved',
+    assignedTo: 'Trần Văn Kỹ Thuật (TECH-089)',
+    acknowledgedAt: '2026-09-27T16:42:00+07:00',
+    resolvedAt: '2026-09-27T17:15:00+07:00',
+    resolutionNotes: 'Đã bổ sung mỡ bôi trơn chịu nhiệt và thay thế vòng bi mới.',
   },
   {
     id: 'ALM-20260927-002',
     lineId: 'LINE-02',
-    lineName: 'Dây chuyền Kiểm thử 02',
+    lineName: 'Dây chuyền Sơn Tĩnh Điện',
     machineId: 'MC-TST-01',
     machineName: 'Bàn thử rò rỉ khí áp suất cao',
     metricId: 'MTR-TST-01-LEAK',
@@ -551,9 +555,11 @@ export const initialAlarms: AlarmEvent[] = [
     unit: 'sccm',
     message: 'Tỷ lệ rò rỉ khí nén vượt ngưỡng cảnh báo 4.0 sccm. Cần kiểm tra gioăng làm kín.',
     timestamp: '2026-09-27T16:25:00+07:00',
-    status: 'acknowledged',
+    status: 'resolved',
     assignedTo: 'Trần Văn Kỹ Thuật (TECH-089)',
     acknowledgedAt: '2026-09-27T16:28:15+07:00',
+    resolvedAt: '2026-09-27T16:45:00+07:00',
+    resolutionNotes: 'Đã thay mới gioăng silicon làm kín buồng thử áp suất.',
   },
   {
     id: 'ALM-20260927-003',

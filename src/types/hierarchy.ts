@@ -38,11 +38,11 @@ export interface MetricIndicator {
   rawVal?: number;               // Giá trị thô trực tiếp từ thanh ghi PLC (nếu có)
   status: SystemStatus;          // Trạng thái đánh giá dựa trên ngưỡng
   
-  // Cấu hình 4 ngưỡng kỹ thuật
-  warningMin: number;            // Ngưỡng cảnh báo dưới
-  warningMax: number;            // Ngưỡng cảnh báo trên
-  criticalMin: number;           // Ngưỡng nguy hiểm dưới
-  criticalMax: number;           // Ngưỡng nguy hiểm trên
+  // Cấu hình 4 ngưỡng kỹ thuật (Hỗ trợ ngưỡng một phía với null)
+  warningMin?: number | null;    // Ngưỡng cảnh báo dưới
+  warningMax?: number | null;    // Ngưỡng cảnh báo trên
+  criticalMin?: number | null;   // Ngưỡng nguy hiểm dưới
+  criticalMax?: number | null;   // Ngưỡng nguy hiểm trên
 
   // Cấu hình ánh xạ tín hiệu thô từ PLC
   plcMapping?: PLCMappingConfig;
@@ -62,6 +62,14 @@ export interface MetricIndicator {
   ageSeconds?: number;
   fileTagName?: string;
   mappingCode?: string;
+  nominalValue?: number;         // Giá trị danh định chuẩn (Baseline)
+  isEmergencySpike?: boolean;    // Cờ đánh dấu thông số đang kích hoạt sự cố giả lập Demo
+
+  // Các trường định danh chuẩn từ Tầng 3 Metric Mapping
+  metricId?: string;             // Khóa ngoại trỏ về metric_catalog (id)
+  mappingId?: string;            // Khóa chính bảng metric_mappings (id)
+  metricCode?: string;           // Mã danh mục chuẩn (code, ví dụ TORQUE_TIGHTENING)
+  machineId?: string;            // Mã thiết bị sở hữu (machine_id)
 }
 
 /**
@@ -87,6 +95,12 @@ export interface MachineComponent {
   qrCodeUrl?: string;            // Đường dẫn hình ảnh QR
   location?: string;             // Vị trí lắp đặt trong xưởng
   description?: string | null;   // Mô tả kỹ thuật / ghi chú thiết bị
+  imageUrl?: string | null;      // Đường dẫn hình ảnh thiết bị (upload hoặc tùy chỉnh)
+  manufacturer?: string | null;  // Hãng sản xuất (Komatsu, Fanuc, Atlas Copco...)
+  serialNumber?: string | null;  // Số serial thiết bị
+  installationDate?: string | null; // Ngày đưa vào sử dụng
+  ratedPower?: string | null;    // Công suất định mức (kW, kVA, Tấn...)
+  technicalNotes?: string | null;// Ghi chú kỹ thuật chuyên sâu
   metrics: MetricIndicator[];    // Danh sách các chỉ số kỹ thuật Tầng 3
   lastMaintenance?: string;      // Ngày bảo trì gần nhất
   plc?: {

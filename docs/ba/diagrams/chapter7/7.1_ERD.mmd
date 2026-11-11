@@ -1,0 +1,91 @@
+erDiagram
+    %% DENSO Industrial IoT Monitoring System (KaiLink)
+    %% Sơ đồ ERD - Cơ sở dữ liệu MySQL 8.0 (Commit 8ac31ea)
+    
+    production_lines ||--o{ machines : "1:N (Logic: lineId)"
+    production_lines ||--o{ machine_telemetry_history : "1:N (Logic: lineId)"
+    machines ||--o{ machine_telemetry_history : "1:N (Logic: machineId)"
+    plc_stations |o--o{ machine_telemetry_history : "0..1:N (Logic: plcStationId)"
+    users ||--o{ audit_logs : "1:N (Logic: userId)"
+    production_lines |o--o{ users : "0..1:N (Logic: assignedLineId)"
+
+    production_lines {
+        varchar(64) id PK "Mã dây chuyền"
+        varchar(128) name "Tên dây chuyền"
+        varchar(64) code "Mã ký hiệu xưởng"
+        varchar(32) status "normal | warning | critical"
+        int safetyScore "Điểm an toàn (BR-03)"
+        int targetOutput "Mục tiêu ca"
+        int actualOutput "Sản lượng lũy kế"
+        datetime createdAt "Thời điểm tạo"
+    }
+
+    machines {
+        varchar(64) id PK "Mã định danh máy"
+        varchar(64) lineId FK "Tham chiếu logic production_lines"
+        varchar(128) name "Tên máy công nghiệp"
+        varchar(64) code "Mã máy tại xưởng"
+        varchar(64) type "hydraulic_press, robot..."
+        varchar(32) status "normal | warning | critical"
+        int healthScore "Điểm sức khỏe thiết bị"
+        int uptimeHours "Số giờ chạy lũy kế"
+        varchar(255) qrCodeUrl "URL mã QR dán thân máy"
+        datetime createdAt "Thời điểm khởi tạo"
+    }
+
+    plc_stations {
+        varchar(64) id PK "Mã trạm PLC"
+        varchar(128) name "Tên trạm PLC (S7-1500...)"
+        varchar(32) protocol "Modbus/TCP, OPC-UA"
+        varchar(64) ipAddress "Địa chỉ IP mạng"
+        int port "Cổng dịch vụ (502, 4840)"
+        boolean isConnected "Trạng thái truyền thông"
+        int latencyMs "Độ trễ Ping/Polling (ms)"
+        int tagsCount "Số thanh ghi cấu hình"
+        varchar(64) lastSync "Đồng bộ gần nhất"
+        int pollingRateMs "Chu kỳ quét (1000ms)"
+    }
+
+    machine_telemetry_history {
+        varchar(96) id PK "SHA-256 Hash xác định (BR-06)"
+        datetime(3) timestamp "Mili-giây, UTC (BR-07)"
+        varchar(64) lineId FK "Tham chiếu logic production_lines"
+        varchar(128) lineName "Tên dây chuyền (Denorm)"
+        varchar(64) machineId FK "Tham chiếu logic machines"
+        varchar(128) machineName "Tên máy (Denorm)"
+        varchar(64) metricId "Mã thông số kỹ thuật"
+        varchar(128) metricName "Tên thông số (Áp suất...)"
+        decimal(10_2) value "Giá trị số đo kỹ thuật"
+        varchar(32) unit "Đơn vị (bar, C, mm/s)"
+        enum status "normal | warning | critical"
+        enum source "'simulation' | 'device'"
+        varchar(64) plcStationId FK "Tham chiếu logic plc_stations"
+        datetime createdAt "Thời điểm chèn bản ghi"
+    }
+
+    users {
+        varchar(64) id PK "usr-admin-01..."
+        varchar(32) employeeId UK "Mã thẻ nhân viên DNS"
+        varchar(128) fullName "Họ tên nhân viên"
+        varchar(128) email UK "Email công ty"
+        varchar(255) password "Bcrypt Hash (10 rounds)"
+        enum role "ADMIN | OPERATOR | MAINTENANCE"
+        varchar(64) assignedLineId FK "Mã dây chuyền hoặc 'ALL'"
+        varchar(255) avatarUrl "Ảnh đại diện Multer (BR-13)"
+        enum status "'ACTIVE' | 'INACTIVE'"
+        datetime createdAt "Ngày tạo tài khoản"
+        datetime lastLoginAt "Đăng nhập gần nhất"
+    }
+
+    audit_logs {
+        varchar(64) id PK "AUD-1718293041..."
+        varchar(64) userId FK "Tham chiếu logic users (NULL)"
+        varchar(128) userEmail "Email người thực hiện"
+        varchar(128) userName "Họ tên người thao tác"
+        varchar(32) employeeId "Mã thẻ nhân viên"
+        varchar(64) action "LOGIN, ACK, RESOLVE, EXPORT..."
+        varchar(128) target "auth, alarm, user, telemetry"
+        text details "Nội dung / Payload JSON"
+        varchar(64) ipAddress "Địa chỉ IP máy trạm"
+        datetime timestamp "Thời điểm ghi nhận"
+    }

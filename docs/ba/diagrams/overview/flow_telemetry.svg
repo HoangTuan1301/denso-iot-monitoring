@@ -1,0 +1,330 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2200 1350" width="2200" height="1350">
+  <defs>
+    <style>
+      text { font-family: 'Segoe UI', Arial, sans-serif; }
+      .code-font { font-family: Consolas, monospace; }
+      .shadow { filter: drop-shadow(0px 8px 16px rgba(15, 23, 42, 0.08)); }
+    </style>
+    <linearGradient id="headerGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#002B5B" />
+      <stop offset="100%" stop-color="#0F4C81" />
+    </linearGradient>
+    <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0284C7" />
+    </marker>
+    <marker id="arrGreen2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#059669" />
+    </marker>
+    <marker id="arrAmber2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#D97706" />
+    </marker>
+  </defs>
+
+  <rect width="100%" height="100%" fill="#F8FAFC" />
+  <rect x="30" y="30" width="2140" height="1290" rx="20" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2" class="shadow" />
+
+  <!-- Banner -->
+  <g transform="translate(60, 60)">
+    <rect width="2080" height="80" rx="10" fill="url(#headerGrad2)" />
+    <rect x="0" y="0" width="8" height="80" rx="4" fill="#E60012" />
+    <text x="30" y="38" fill="#FFFFFF" font-size="24" font-weight="700">LUỒNG DỮ LIỆU THU NẠP &amp; PHÁT TRUYỀN TELEMETRY (IoT TELEMETRY DATA FLOW)</text>
+    <text x="30" y="64" fill="#93C5FD" font-size="14" font-weight="500">QUY TRÌNH TỪ BỘ SINH DỮ LIỆU TẬP TRUNG -> CHUẨN HÓA UTC/HASH -> LƯU CSDL MYSQL -> BROADCAST WEBSOCKET -> UI</text>
+    <text x="2040" y="48" fill="#E2E8F0" font-size="13" font-weight="600" text-anchor="end">FLOW 2 / 5</text>
+  </g>
+
+  <!-- 5 STEPS HORIZONTAL LAYOUT -->
+  <!-- STEP 1: GENERATION -->
+  <g transform="translate(60, 180)">
+    <rect width="380" height="780" rx="12" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="2" />
+    <rect width="380" height="50" rx="12" fill="#334155" />
+    <rect x="0" y="36" width="380" height="14" fill="#334155" />
+    <text x="190" y="32" fill="#FFFFFF" font-size="15" font-weight="700" text-anchor="middle">BƯỚC 1: KHỞI TẠO TÍN HIỆU</text>
+
+    <g transform="translate(20, 70)">
+      <rect width="340" height="180" rx="8" fill="#FFFFFF" stroke="#E2E8F0" class="shadow" />
+      <text x="15" y="28" fill="#1E293B" font-size="14" font-weight="700">Nguồn Phát Dữ Liệu</text>
+      <text x="15" y="55" fill="#475569" font-size="12">• Backend Central Engine</text>
+      <text x="15" y="75" fill="#475569" font-size="12">• Chu kỳ phát: 1.000ms - 5.000ms</text>
+      <text x="15" y="95" fill="#475569" font-size="12">• 4 Thông số giám sát thiết bị:</text>
+      <text x="25" y="115" fill="#0369A1" font-size="12">- Rung động (Vibration: mm/s)</text>
+      <text x="25" y="135" fill="#B45309" font-size="12">- Nhiệt độ (Temperature: °C)</text>
+      <text x="25" y="155" fill="#15803D" font-size="12">- Áp suất khí nén (Pressure: bar)</text>
+      <text x="25" y="175" fill="#7C3AED" font-size="12">- Dòng điện tiêu thụ (Power: A)</text>
+    </g>
+
+    <g transform="translate(20, 270)">
+      <rect width="340" height="150" rx="8" fill="#FFFFFF" stroke="#E2E8F0" class="shadow" />
+      <text x="15" y="28" fill="#1E293B" font-size="14" font-weight="700">Đặc Điểm Sinh Tín Hiệu</text>
+      <text x="15" y="52" fill="#475569" font-size="12">• Giá trị cơ sở ổn định (Normal baseline)</text>
+      <text x="15" y="72" fill="#475569" font-size="12">• Nhiễu ngẫu nhiên Gauss biên độ nhỏ</text>
+      <text x="15" y="92" fill="#475569" font-size="12">• Kịch bản mô phỏng lỗi (Fault injection):</text>
+      <text x="25" y="112" fill="#DC2626" font-size="12">- Quá nhiệt trục chính (> 80°C)</text>
+      <text x="25" y="132" fill="#DC2626" font-size="12">- Rung lệch tâm vòng bi (> 4.5 mm/s)</text>
+    </g>
+
+    <g transform="translate(20, 440)">
+      <rect width="340" height="150" rx="8" fill="#EFF6FF" stroke="#93C5FD" />
+      <text x="15" y="28" fill="#1D4ED8" font-size="13" font-weight="700">Nguyên Tắc Thiết Kế (BR-12)</text>
+      <text x="15" y="52" fill="#374151" font-size="12">Toàn bộ dữ liệu telemetry ĐƯỢC SINH</text>
+      <text x="15" y="72" fill="#374151" font-size="12">DUY NHẤT TẠI BACKEND.</text>
+      <text x="15" y="95" fill="#374151" font-size="12">Nghiêm cấm từng trình duyệt client tự</text>
+      <text x="15" y="115" fill="#374151" font-size="12">tạo số ngẫu nhiên riêng để tránh phân</text>
+      <text x="15" y="135" fill="#374151" font-size="12">mảnh dữ liệu giữa các giám sát viên.</text>
+    </g>
+
+    <g transform="translate(20, 610)">
+      <rect width="340" height="140" rx="8" fill="#FEF2F2" stroke="#F87171" stroke-dasharray="4,3" />
+      <text x="15" y="28" fill="#991B1B" font-size="13" font-weight="700">Khả Năng Mở Rộng PLC Thật</text>
+      <text x="15" y="52" fill="#7F1D1D" font-size="12">Thay thế bộ sinh mô phỏng bằng module</text>
+      <text x="15" y="72" fill="#7F1D1D" font-size="12">Modbus TCP / Siemens S7 Client để đọc</text>
+      <text x="15" y="92" fill="#7F1D1D" font-size="12">trực tiếp thanh ghi vật lý mà KHÔNG cần</text>
+      <text x="15" y="112" fill="#7F1D1D" font-size="12">thay đổi kiến trúc các tầng phía sau.</text>
+    </g>
+  </g>
+
+  <!-- STEP 2: NORMALIZATION & ENRICHMENT -->
+  <g transform="translate(480, 180)">
+    <rect width="380" height="780" rx="12" fill="#EFF6FF" stroke="#93C5FD" stroke-width="2" />
+    <rect width="380" height="50" rx="12" fill="#1D4ED8" />
+    <rect x="0" y="36" width="380" height="14" fill="#1D4ED8" />
+    <text x="190" y="32" fill="#FFFFFF" font-size="15" font-weight="700" text-anchor="middle">BƯỚC 2: CHUẨN HÓA &amp; GÁN METADATA</text>
+
+    <g transform="translate(20, 70)">
+      <rect width="340" height="210" rx="8" fill="#FFFFFF" stroke="#BFDBFE" class="shadow" />
+      <text x="15" y="28" fill="#1E40AF" font-size="14" font-weight="700">Xử lý Chuẩn Hóa Payload</text>
+      <text x="15" y="52" fill="#374151" font-size="12">1. Định dạng mốc thời gian (BR-07):</text>
+      <text x="25" y="72" fill="#0369A1" font-size="11" class="code-font">timestamp = new Date().toISOString()</text>
+      <text x="25" y="90" fill="#475569" font-size="12">(Đảm bảo chuẩn UTC ISO-8601)</text>
+      
+      <text x="15" y="115" fill="#374151" font-size="12">2. Tính toán Khóa chính (BR-06):</text>
+      <text x="25" y="135" fill="#0369A1" font-size="11" class="code-font">id = SHA256(machineId + metricId</text>
+      <text x="25" y="152" fill="#0369A1" font-size="11" class="code-font">     + timestamp).substring(0, 32)</text>
+      <text x="25" y="172" fill="#475569" font-size="12">(Chống ghi trùng lặp khi mất mạng)</text>
+      <text x="15" y="195" fill="#374151" font-size="12">3. Gán nguồn: source = 'simulation'</text>
+    </g>
+
+    <g transform="translate(20, 300)">
+      <rect width="340" height="190" rx="8" fill="#FFFFFF" stroke="#BFDBFE" class="shadow" />
+      <text x="15" y="28" fill="#1E40AF" font-size="14" font-weight="700">Làm Giàu Dữ Liệu (Denormalization)</text>
+      <text x="15" y="52" fill="#374151" font-size="12">• Truy xuất thông tin dây chuyền &amp; máy:</text>
+      <text x="25" y="72" fill="#475569" font-size="12">- lineId: 'line-01' -> lineName: 'Line 1'</text>
+      <text x="25" y="92" fill="#475569" font-size="12">- machineId: 'cnc-01' -> machineName</text>
+      <text x="25" y="112" fill="#475569" font-size="12">- metricId: 'vibration' -> unit: 'mm/s'</text>
+      <text x="15" y="137" fill="#374151" font-size="12">• Mục đích kiến trúc:</text>
+      <text x="25" y="157" fill="#059669" font-size="12">Giúp tầng truy vấn và xuất file Excel/CSV</text>
+      <text x="25" y="175" fill="#059669" font-size="12">không phải JOIN bảng nặng nề.</text>
+    </g>
+
+    <g transform="translate(20, 510)">
+      <rect width="340" height="240" rx="8" fill="#FEF3C7" stroke="#FCD34D" />
+      <text x="15" y="28" fill="#92400E" font-size="13" font-weight="700">Đánh Giá Ngưỡng Tức Thời (BR-01)</text>
+      <text x="15" y="52" fill="#78350F" font-size="12">Hệ thống so khớp giá trị đo với 4 mốc:</text>
+      <text x="20" y="72" fill="#B45309" font-size="12">• Low Warning &lt;= value &lt;= High Warning</text>
+      <text x="20" y="92" fill="#DC2626" font-size="12">• Low Alarm &lt;= value &lt;= High Alarm</text>
+      <text x="15" y="118" fill="#78350F" font-size="12">Gán trạng thái bản ghi:</text>
+      <text x="20" y="138" fill="#059669" font-size="12">• 'normal': Giá trị trong dải cho phép</text>
+      <text x="20" y="158" fill="#D97706" font-size="12">• 'warning': Chớm vượt ngưỡng chú ý</text>
+      <text x="20" y="178" fill="#DC2626" font-size="12">• 'critical': Vượt ngưỡng dừng máy nguy cấp</text>
+      <text x="15" y="205" fill="#B91C1C" font-size="12" font-weight="600">-> Tự động bắn tín hiệu cảnh báo</text>
+      <text x="15" y="223" fill="#B91C1C" font-size="12" font-weight="600">sang phân hệ Digital Andon Board!</text>
+    </g>
+  </g>
+
+  <!-- STEP 3: PERSISTENCE LAYER -->
+  <g transform="translate(900, 180)">
+    <rect width="380" height="780" rx="12" fill="#FFFBEB" stroke="#FDE68A" stroke-width="2" />
+    <rect width="380" height="50" rx="12" fill="#D97706" />
+    <rect x="0" y="36" width="380" height="14" fill="#D97706" />
+    <text x="190" y="32" fill="#FFFFFF" font-size="15" font-weight="700" text-anchor="middle">BƯỚC 3: LƯU TRỮ CHUỖI THỜI GIAN</text>
+
+    <g transform="translate(20, 70)">
+      <rect width="340" height="230" rx="8" fill="#FFFFFF" stroke="#FCD34D" class="shadow" />
+      <text x="15" y="28" fill="#92400E" font-size="14" font-weight="700">Ghi Vào MySQL (B-Tree Index)</text>
+      <text x="15" y="52" fill="#374151" font-size="12">Bảng: machine_telemetry_history</text>
+      <text x="15" y="72" fill="#374151" font-size="12">Cơ chế ghi bất đồng bộ (Non-blocking):</text>
+      <text x="25" y="92" fill="#475569" font-size="11" class="code-font">INSERT INTO machine_telemetry_history</text>
+      <text x="25" y="108" fill="#475569" font-size="11" class="code-font">(id, timestamp, lineId, lineName,</text>
+      <text x="25" y="124" fill="#475569" font-size="11" class="code-font"> machineId, machineName, metricId,</text>
+      <text x="25" y="140" fill="#475569" font-size="11" class="code-font"> value, unit, status, source)</text>
+      <text x="25" y="156" fill="#475569" font-size="11" class="code-font">VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)</text>
+      <text x="25" y="172" fill="#475569" font-size="11" class="code-font">ON DUPLICATE KEY UPDATE value=value;</text>
+      <text x="15" y="200" fill="#059669" font-size="12" font-weight="600">✓ Đảm bảo tính Idempotency (Bất biến)</text>
+      <text x="15" y="218" fill="#059669" font-size="12" font-weight="600">✓ Không làm sập server khi trùng gói tin</text>
+    </g>
+
+    <g transform="translate(20, 320)">
+      <rect width="340" height="190" rx="8" fill="#FFFFFF" stroke="#FCD34D" class="shadow" />
+      <text x="15" y="28" fill="#92400E" font-size="14" font-weight="700">Tối Ưu Hiệu Năng Ghi (High-write)</text>
+      <text x="15" y="52" fill="#475569" font-size="12">• Tách rời luồng ghi DB và luồng WebSocket:</text>
+      <text x="25" y="72" fill="#475569" font-size="12">Nếu DB MySQL bận, WebSocket vẫn phát</text>
+      <text x="25" y="90" fill="#475569" font-size="12">thông suốt đến Dashboard không bị lag.</text>
+      <text x="15" y="115" fill="#475569" font-size="12">• Không dùng FOREIGN KEY ràng buộc cứng:</text>
+      <text x="25" y="135" fill="#475569" font-size="12">Tránh nghẽn khóa hàng (Row-lock) khi có</text>
+      <text x="25" y="152" fill="#475569" font-size="12">nhiều luồng ghi đồng thời.</text>
+      <text x="15" y="175" fill="#475569" font-size="12">• Connection Pool quản lý kết nối hiệu quả.</text>
+    </g>
+
+    <g transform="translate(20, 530)">
+      <rect width="340" height="220" rx="8" fill="#FEF2F2" stroke="#F87171" />
+      <text x="15" y="28" fill="#991B1B" font-size="13" font-weight="700">Phục Vụ Tra Cứu &amp; Xuất File</text>
+      <text x="15" y="52" fill="#7F1D1D" font-size="12">Dữ liệu trong bảng này là nguồn chân lý</text>
+      <text x="15" y="70" fill="#7F1D1D" font-size="12">(Single Source of Truth) để:</text>
+      <text x="20" y="92" fill="#B91C1C" font-size="12">1. Xem bảng Machine History trên web.</text>
+      <text x="20" y="112" fill="#B91C1C" font-size="12">2. Xuất dữ liệu Excel (.xlsx), CSV, JSON.</text>
+      <text x="20" y="132" fill="#B91C1C" font-size="12">3. Tính toán độ trễ, OEE và KPI ca kíp.</text>
+      <text x="15" y="160" fill="#78350F" font-size="12">• Hỗ trợ lọc theo dải thời gian:</text>
+      <text x="25" y="180" fill="#78350F" font-size="11" class="code-font">WHERE timestamp BETWEEN ? AND ?</text>
+      <text x="25" y="198" fill="#78350F" font-size="11" class="code-font">ORDER BY timestamp DESC LIMIT 10000</text>
+    </g>
+  </g>
+
+  <!-- STEP 4: WEBSOCKET BROADCAST -->
+  <g transform="translate(1320, 180)">
+    <rect width="380" height="780" rx="12" fill="#F0FDF4" stroke="#86EFAC" stroke-width="2" />
+    <rect width="380" height="50" rx="12" fill="#15803D" />
+    <rect x="0" y="36" width="380" height="14" fill="#15803D" />
+    <text x="190" y="32" fill="#FFFFFF" font-size="15" font-weight="700" text-anchor="middle">BƯỚC 4: PHÁT SÓNG REAL-TIME</text>
+
+    <g transform="translate(20, 70)">
+      <rect width="340" height="210" rx="8" fill="#FFFFFF" stroke="#BBF7D0" class="shadow" />
+      <text x="15" y="28" fill="#166534" font-size="14" font-weight="700">Kênh WebSocket (Socket.IO)</text>
+      <text x="15" y="52" fill="#374151" font-size="12">• Giao thức: Full-duplex WebSocket (WSS)</text>
+      <text x="15" y="72" fill="#374151" font-size="12">• Sự kiện phát sóng chính:</text>
+      <text x="25" y="92" fill="#0369A1" font-size="11" class="code-font">io.emit('telemetry_update', payload)</text>
+      <text x="25" y="112" fill="#DC2626" font-size="11" class="code-font">io.emit('alarm_trigger', alarmData)</text>
+      <text x="15" y="137" fill="#374151" font-size="12">• Cơ chế Heartbeat (Ping/Pong):</text>
+      <text x="25" y="157" fill="#475569" font-size="12">- Giữ kết nối qua firewall nhà máy</text>
+      <text x="25" y="175" fill="#475569" font-size="12">- Tự động kết nối lại khi rớt mạng</text>
+      <text x="25" y="195" fill="#475569" font-size="12">- Fallback sang HTTP Long-polling</text>
+    </g>
+
+    <g transform="translate(20, 300)">
+      <rect width="340" height="190" rx="8" fill="#FFFFFF" stroke="#BBF7D0" class="shadow" />
+      <text x="15" y="28" fill="#166534" font-size="14" font-weight="700">Phân Phối Theo Kênh (Rooms)</text>
+      <text x="15" y="52" fill="#374151" font-size="12">• Giảm tải băng thông mạng nhà máy:</text>
+      <text x="25" y="72" fill="#475569" font-size="12">- Room 'factory': Nhận tổng hợp KPI</text>
+      <text x="25" y="92" fill="#475569" font-size="12">- Room 'line-01': Nhận telemetry Line 1</text>
+      <text x="25" y="112" fill="#475569" font-size="12">- Room 'machine-cnc': Chi tiết máy CNC</text>
+      <text x="15" y="137" fill="#374151" font-size="12">• Client chỉ lắng nghe Room màn hình</text>
+      <text x="25" y="157" fill="#059669" font-size="12">đang hiển thị, giảm tiêu tốn tài nguyên</text>
+      <text x="25" y="175" fill="#059669" font-size="12">CPU của trình duyệt.</text>
+    </g>
+
+    <g transform="translate(20, 510)">
+      <rect width="340" height="240" rx="8" fill="#DCFCE7" stroke="#4ADE80" />
+      <text x="15" y="28" fill="#14532D" font-size="13" font-weight="700">Độ Trễ &amp; Dung Lượng Gói Tin</text>
+      <text x="15" y="52" fill="#166534" font-size="12">• Độ trễ truyền dẫn (End-to-End Latency):</text>
+      <text x="25" y="72" fill="#15803D" font-size="12">&lt; 150 ms trên mạng LAN nội bộ</text>
+      <text x="25" y="90" fill="#15803D" font-size="12">&lt; 350 ms qua Cloud Render/Vercel</text>
+      <text x="15" y="115" fill="#166534" font-size="12">• Kích thước gói tin JSON tối ưu:</text>
+      <text x="25" y="135" fill="#15803D" font-size="12">Trung bình ~180 bytes/bản ghi</text>
+      <text x="15" y="160" fill="#166534" font-size="12">• Băng thông tiêu thụ cực thấp:</text>
+      <text x="25" y="180" fill="#15803D" font-size="12">&lt; 25 KB/giây cho toàn bộ xưởng 4 máy,</text>
+      <text x="25" y="198" fill="#15803D" font-size="12">hoạt động mượt mà trên cả mạng WiFi</text>
+      <text x="25" y="216" fill="#15803D" font-size="12">công nghiệp hoặc 4G/5G nhà xưởng.</text>
+    </g>
+  </g>
+
+  <!-- STEP 5: CLIENT RENDERING & ANDON -->
+  <g transform="translate(1740, 180)">
+    <rect width="400" height="780" rx="12" fill="#FAF5FF" stroke="#D8B4FE" stroke-width="2" />
+    <rect width="400" height="50" rx="12" fill="#7E22CE" />
+    <rect x="0" y="36" width="400" height="14" fill="#7E22CE" />
+    <text x="200" y="32" fill="#FFFFFF" font-size="15" font-weight="700" text-anchor="middle">BƯỚC 5: CẬP NHẬT GIAO DIỆN &amp; ANDON</text>
+
+    <g transform="translate(20, 70)">
+      <rect width="360" height="190" rx="8" fill="#FFFFFF" stroke="#E9D5FF" class="shadow" />
+      <text x="15" y="28" fill="#6B21A8" font-size="14" font-weight="700">Zustand Client State Store</text>
+      <text x="15" y="52" fill="#374151" font-size="12">• useSocket nhận payload telemetry</text>
+      <text x="15" y="72" fill="#374151" font-size="12">• Cập nhật trạng thái vào bộ nhớ Client:</text>
+      <text x="25" y="92" fill="#0369A1" font-size="11" class="code-font">useAlarmStore.getState().addAlarm()</text>
+      <text x="25" y="112" fill="#0369A1" font-size="11" class="code-font">useMachineStore.updateMetrics()</text>
+      <text x="15" y="137" fill="#374151" font-size="12">• Tránh re-render toàn trang:</text>
+      <text x="25" y="157" fill="#059669" font-size="12">Chỉ các thẻ máy (Card) hoặc biểu đồ</text>
+      <text x="25" y="175" fill="#059669" font-size="12">có dữ liệu thay đổi mới được vẽ lại.</text>
+    </g>
+
+    <g transform="translate(20, 280)">
+      <rect width="360" height="190" rx="8" fill="#FFFFFF" stroke="#E9D5FF" class="shadow" />
+      <text x="15" y="28" fill="#6B21A8" font-size="14" font-weight="700">Trực Quan Hóa Đồ Thị (Recharts)</text>
+      <text x="15" y="52" fill="#374151" font-size="12">• Đồ thị sóng cuộn thời gian thực 60s:</text>
+      <text x="25" y="72" fill="#475569" font-size="12">- Giữ cố định 30 - 60 điểm gần nhất</text>
+      <text x="25" y="90" fill="#475569" font-size="12">- Tự động đẩy điểm cũ ra khỏi mảng</text>
+      <text x="25" y="108" fill="#475569" font-size="12">- Tránh tràn RAM trình duyệt</text>
+      <text x="15" y="132" fill="#374151" font-size="12">• Đường ngưỡng tham chiếu (Reference Line):</text>
+      <text x="25" y="152" fill="#D97706" font-size="12">Vạch vàng (Warning) &amp; Vạch đỏ (Alarm)</text>
+      <text x="25" y="170" fill="#475569" font-size="12">giúp kỹ thuật viên nhận biết tức thì.</text>
+    </g>
+
+    <g transform="translate(20, 490)">
+      <rect width="360" height="260" rx="8" fill="#FEF2F2" stroke="#F87171" />
+      <text x="15" y="28" fill="#991B1B" font-size="13" font-weight="700">Kích Hoạt Digital Andon Board</text>
+      <text x="15" y="52" fill="#7F1D1D" font-size="12">Khi nhận sự kiện vi phạm ngưỡng:</text>
+      <text x="20" y="74" fill="#DC2626" font-size="12">1. Header đổi màu viền chớp đỏ/vàng.</text>
+      <text x="20" y="94" fill="#DC2626" font-size="12">2. Bảng Andon Banner bật sáng toàn màn hình.</text>
+      <text x="20" y="114" fill="#DC2626" font-size="12">3. Phát âm thanh cảnh báo tần số cao (Buzzer).</text>
+      <text x="20" y="134" fill="#DC2626" font-size="12">4. Thẻ máy chuyển trạng thái sang ERROR.</text>
+      <text x="15" y="162" fill="#78350F" font-size="12">Chờ thao tác tiếp nhận từ Vận hành viên:</text>
+      <text x="25" y="184" fill="#0369A1" font-size="12">• Nút "Xác nhận sự cố" (Acknowledge)</text>
+      <text x="25" y="204" fill="#047857" font-size="12">• Nút "Khắc phục xong" (Resolve)</text>
+      <text x="25" y="224" fill="#475569" font-size="12">• Khóa nút nếu chưa đăng nhập hoặc sai Role.</text>
+      <text x="15" y="246" fill="#1E293B" font-size="11" font-weight="600">-> Chuyển tiếp sang Flow 4 (Xử lý sự cố)</text>
+    </g>
+  </g>
+
+  <!-- Connective Arrows between Steps -->
+  <line x1="440" y1="270" x2="480" y2="270" stroke="#0284C7" stroke-width="4" marker-end="url(#arr2)" />
+  <line x1="860" y1="270" x2="900" y2="270" stroke="#D97706" stroke-width="4" marker-end="url(#arrAmber2)" />
+  <line x1="1280" y1="270" x2="1320" y2="270" stroke="#059669" stroke-width="4" marker-end="url(#arrGreen2)" />
+  <line x1="1700" y1="270" x2="1740" y2="270" stroke="#7E22CE" stroke-width="4" marker-end="url(#arr2)" />
+
+  <!-- Bottom Summary Info Banner -->
+  <g transform="translate(60, 980)">
+    <rect width="2080" height="310" rx="14" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1.5" />
+    <text x="30" y="35" fill="#0F172A" font-size="16" font-weight="700">TỔNG KẾT LUỒNG DỮ LIỆU TELEMETRY (DATA FLOW SUMMARY)</text>
+
+    <g transform="translate(30, 60)">
+      <rect width="480" height="225" rx="8" fill="#FFFFFF" stroke="#E2E8F0" />
+      <text x="20" y="30" fill="#0369A1" font-size="14" font-weight="700">Nguồn Khởi Tạo &amp; Chuẩn Hóa</text>
+      <text x="20" y="60" fill="#475569" font-size="12">• Actor khởi tạo: Telemetry Simulator Hub tại Backend.</text>
+      <text x="20" y="85" fill="#475569" font-size="12">• Dữ liệu đầu vào: Cấu hình tần số, dải tham số, mã máy.</text>
+      <text x="20" y="110" fill="#475569" font-size="12">• Chuẩn hóa: Đóng mốc ISO-8601 UTC, tạo khóa băm SHA-256.</text>
+      <text x="20" y="135" fill="#475569" font-size="12">• Đánh giá ngưỡng: Phát hiện sớm rung động &amp; nhiệt độ quá tải.</text>
+      <text x="20" y="160" fill="#475569" font-size="12">• Đóng dấu nguồn: source = 'simulation' bảo đảm tính minh bạch.</text>
+      <text x="20" y="190" fill="#059669" font-size="12" font-weight="600">✓ Loại bỏ hoàn toàn sự không đồng bộ giữa các client.</text>
+    </g>
+
+    <g transform="translate(540, 60)">
+      <rect width="480" height="225" rx="8" fill="#FFFFFF" stroke="#E2E8F0" />
+      <text x="20" y="30" fill="#B45309" font-size="14" font-weight="700">Lưu Trữ Chuỗi Thời Gian</text>
+      <text x="20" y="60" fill="#475569" font-size="12">• Thành phần tham gia: MySQL 8.0, connection pool.</text>
+      <text x="20" y="85" fill="#475569" font-size="12">• Tối ưu hóa: B-Tree Index trên (machineId, timestamp).</text>
+      <text x="20" y="110" fill="#475569" font-size="12">• Chống ghi trùng: Bắt sự kiện ON DUPLICATE KEY UPDATE.</text>
+      <text x="20" y="135" fill="#475569" font-size="12">• Giảm tải JOIN: Phi chuẩn hóa lưu kèm lineName, machineName.</text>
+      <text x="20" y="160" fill="#475569" font-size="12">• Sẵn sàng mở rộng: Sắp xếp bảng theo Partition tháng.</text>
+      <text x="20" y="190" fill="#059669" font-size="12" font-weight="600">✓ Truy vấn lịch sử 10.000 dòng hoàn tất dưới 350ms.</text>
+    </g>
+
+    <g transform="translate(1050, 60)">
+      <rect width="480" height="225" rx="8" fill="#FFFFFF" stroke="#E2E8F0" />
+      <text x="20" y="30" fill="#15803D" font-size="14" font-weight="700">Truyền Dẫn &amp; Trực Quan Hóa</text>
+      <text x="20" y="60" fill="#475569" font-size="12">• Giao thức: WebSocket Full-duplex qua Socket.IO.</text>
+      <text x="20" y="85" fill="#475569" font-size="12">• Quản lý kênh: Room-based routing tránh lãng phí băng thông.</text>
+      <text x="20" y="110" fill="#475569" font-size="12">• Phía Client: Zustand store tiếp nhận và cập nhật state.</text>
+      <text x="20" y="135" fill="#475569" font-size="12">• Giao diện: Đồ thị Recharts sóng cuộn 60 giây không giật lag.</text>
+      <text x="20" y="160" fill="#475569" font-size="12">• Bảng Andon: Đèn cảnh báo âm thanh và hình ảnh tức thì.</text>
+      <text x="20" y="190" fill="#059669" font-size="12" font-weight="600">✓ Giảm 85% thời gian phát hiện sự cố cho nhân viên nhà xưởng.</text>
+    </g>
+
+    <g transform="translate(1560, 60)">
+      <rect width="480" height="225" rx="8" fill="#FFFFFF" stroke="#E2E8F0" />
+      <text x="20" y="30" fill="#991B1B" font-size="14" font-weight="700">Kết Quả Cuối Cùng &amp; Đầu Ra</text>
+      <text x="20" y="60" fill="#475569" font-size="12">• Màn hình Dashboard 3 cấp hiển thị chỉ số liên tục.</text>
+      <text x="20" y="85" fill="#475569" font-size="12">• Cơ sở dữ liệu lưu trữ lịch sử máy đầy đủ và chuẩn xác.</text>
+      <text x="20" y="110" fill="#475569" font-size="12">• Sự cố vi phạm ngưỡng được ghi nhận và cảnh báo ngay lập tức.</text>
+      <text x="20" y="135" fill="#475569" font-size="12">• Dữ liệu sẵn sàng phục vụ bộ lọc Machine History và xuất báo cáo.</text>
+      <text x="20" y="160" fill="#475569" font-size="12">• Tính toán độ sẵn sàng (Availability) và độ ổn định thiết bị.</text>
+      <text x="20" y="190" fill="#B91C1C" font-size="12" font-weight="600">✓ Đạt chuẩn tài liệu chuyển giao kỹ thuật cho dự án KaiLink.</text>
+    </g>
+  </g>
+</svg>

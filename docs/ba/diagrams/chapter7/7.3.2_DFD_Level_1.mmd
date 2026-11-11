@@ -1,0 +1,66 @@
+flowchart TD
+    %% DENSO Industrial IoT Monitoring System (KaiLink)
+    %% Sơ đồ Luồng Dữ Liệu Mức 1 (DFD Level 1 - Decomposition Diagram)
+
+    %% External Entities
+    SRC["NGUỒN TELEMETRY
+(Giả lập 1s / Trạm PLC thực)"]
+    OP["VẬN HÀNH VIÊN
+(Operator)"]
+    MAINT["KỸ SƯ BẢO TRÌ
+(Maintenance)"]
+    ADMIN["QUẢN TRỊ VIÊN
+(Admin)"]
+
+    %% Processes
+    P1(("1.0 Tiếp nhận &
+Chuẩn hóa Telemetry"))
+    P2(("2.0 Giám sát &
+Đánh giá Ngưỡng"))
+    P3(("3.0 Quản lý
+Cảnh báo & Sự cố"))
+    P4(("4.0 Truy vấn Lịch sử
+& Xuất Báo Cáo"))
+    P5(("5.0 Quản trị
+Hệ thống & Kiểm toán"))
+
+    %% Data Stores (MySQL)
+    D1[("D1: machine_telemetry_history
+(MySQL 8.0 - Bền vững)")]
+    D2D3[("D2: machines | D3: production_lines
+(MySQL 8.0 - Bền vững)")]
+    D5[("D5: audit_logs
+(MySQL 8.0 - Bền vững)")]
+    D6[("D6: users
+(MySQL 8.0 - Bền vững)")]
+
+    %% Memory Store (Zustand - Explicitly Volatile)
+    M1{{"M1: useAlarmStore
+(RAM Client Zustand - TẠM THỜI)"}}
+
+    %% Data Flows
+    SRC -->|"Thanh ghi thô (DEC12, BIT12)"| P1
+    P1 -->|"Ghi bản ghi UTC, SHA-256 (BR-06, 07)"| D1
+    P1 -->|"Luồng giá trị đo kỹ thuật"| P2
+
+    D2D3 -->|"Cấu hình 4 ngưỡng chuẩn (BR-01)"| P2
+    P2 -->|"WebSocket: Andon, Tier 1/2"| OP
+    P2 -->|"WebSocket: Đồ thị sóng 60s, Tier 3"| MAINT
+    P2 -->|"Sự kiện vi phạm ngưỡng"| P3
+
+    OP -->|"Xác nhận sự cố: Ack (BR-04)"| P3
+    MAINT -->|"Nghiệm thu đóng lỗi: Resolve (BR-05)"| P3
+    P3 <-->|"Đồng bộ hàng đợi RAM"| M1
+    P3 -->|"Ghi vết ACK_ALARM, RESOLVE_ALARM"| P5
+
+    OP -->|"Tham số lọc ca kíp, thời gian"| P4
+    MAINT -->|"Tham số tra cứu máy"| P4
+    ADMIN -->|"Yêu cầu xuất Excel/CSV/JSON"| P4
+    D1 -->|"Đọc Telemetry (BR-07 UTC, BR-14 Whitelist)"| P4
+    P4 -->|"File xuất an toàn trần 10k dòng (BR-09, 10)"| ADMIN
+    P4 -->|"Ghi vết EXPORT_LOGS"| P5
+
+    ADMIN <-->|"Quản lý User CRUD, RBAC, Đăng nhập"| P5
+    P5 <-->|"Đọc/Ghi User (Bcrypt 10 rounds)"| D6
+    P5 -->|"Ghi vết toàn bộ hành động"| D5
+    D5 -->|"Tra cứu nhật ký kiểm toán"| ADMIN

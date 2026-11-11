@@ -35,8 +35,9 @@ data_ingestion_watch/
 server/telemetry/spillover/
 *.jsonl
 
-# User Uploads (Avatars generated locally during testing)
+# User Uploads (Avatars & machine photos generated locally during testing)
 server/uploads/avatars/avatar-*
+server/uploads/machines/machine-*
 
 # OS & Editor Files
 .DS_Store

@@ -31,6 +31,7 @@ import { MachineDetailModal } from '../tier3-metrics/MachineDetailModal';
 import { QRCodeModal } from '../../components/qr/QRCodeModal';
 import { CreateMachineModal } from './CreateMachineModal';
 import { EditMachineModal } from './EditMachineModal';
+import { MachineImage } from '../../config/machineImages';
 
 export function MachineListView() {
   const { 
@@ -473,14 +474,30 @@ export function MachineListView() {
                         key={machine.id}
                         className="hover:bg-slate-100/70 dark:hover:bg-white/5 transition-colors"
                       >
-                        {/* Cột 1: Mã Component */}
-                        <td className="py-3.5 px-3 font-mono font-bold text-slate-900 dark:text-white">
-                          <span 
-                            className="hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer" 
-                            onClick={() => handleOpenDetails(machine)}
-                          >
-                            {machine.id}
-                          </span>
+                        {/* Cột 1: Mã Component & Thumbnail CAD */}
+                        <td className="py-3 px-3">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              onClick={() => handleOpenDetails(machine)}
+                              className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 p-0.5 overflow-hidden cursor-pointer hover:border-emerald-500 transition-colors"
+                              title={`Xem chi tiết ${machine.name}`}
+                            >
+                              <MachineImage
+                                machineId={machine.id}
+                                machineCode={machine.code}
+                                imageUrl={machine.imageUrl}
+                                alt={machine.name}
+                                className="max-h-6 w-auto object-contain"
+                                fallbackIconClassName="w-3.5 h-3.5 text-emerald-600/70"
+                              />
+                            </div>
+                            <span 
+                              className="font-mono font-bold text-slate-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer" 
+                              onClick={() => handleOpenDetails(machine)}
+                            >
+                              {machine.id}
+                            </span>
+                          </div>
                         </td>
 
                         {/* Cột 2: Tên hiển thị */}

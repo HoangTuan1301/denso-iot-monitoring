@@ -1,0 +1,232 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2200 1500" width="2200" height="1500">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap');
+      text { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; }
+      .code-font { font-family: 'JetBrains Mono', Consolas, monospace; }
+      .shadow { filter: drop-shadow(0px 8px 16px rgba(15, 23, 42, 0.08)); }
+      .shadow-center { filter: drop-shadow(0px 12px 28px rgba(0, 51, 102, 0.15)); }
+    </style>
+
+    <linearGradient id="centerProcessGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#003366" />
+      <stop offset="50%" stop-color="#004080" />
+      <stop offset="100%" stop-color="#0F4C81" />
+    </linearGradient>
+
+    <linearGradient id="entityOperatorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F8FAFC" />
+      <stop offset="100%" stop-color="#E2E8F0" />
+    </linearGradient>
+
+    <!-- Markers -->
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0284C7" />
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#16A34A" />
+    </marker>
+    <marker id="arrow-orange" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#EA580C" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="#F8FAFC" />
+  <rect x="40" y="40" width="2120" height="1420" rx="24" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2" class="shadow" />
+
+  <!-- Diagram Title Header Banner -->
+  <g transform="translate(80, 80)">
+    <rect width="2040" height="90" rx="12" fill="#003366" />
+    <rect x="0" y="0" width="8" height="90" rx="4" fill="#E60012" />
+    <text x="35" y="42" fill="#FFFFFF" font-size="28" font-weight="700">SƠ ĐỒ LUỒNG DỮ LIỆU MỨC 0 (DFD LEVEL 0 - CONTEXT DIAGRAM)</text>
+    <text x="35" y="70" fill="#93C5FD" font-size="16" font-weight="500">MÔ HÌNH HÓA RANH GIỚI HỆ THỐNG VÀ LUỒNG THÔNG TIN TƯƠNG TÁC VỚI CÁC TÁC NHÂN NGOÀI (EXTERNAL ENTITIES)</text>
+    <text x="2000" y="52" fill="#E2E8F0" font-size="14" font-weight="600" text-anchor="end">CHUẨN YOURDON &amp; COAD</text>
+  </g>
+
+  <!-- ==================== CENTRAL PROCESS 0.0 ==================== -->
+  <g transform="translate(820, 560)" class="shadow-center">
+    <rect width="560" height="380" rx="40" fill="url(#centerProcessGrad)" stroke="#38BDF8" stroke-width="3" />
+    
+    <!-- Top badge in process -->
+    <rect x="200" y="25" width="160" height="36" rx="18" fill="rgba(255, 255, 255, 0.15)" stroke="rgba(255, 255, 255, 0.3)" />
+    <text x="280" y="49" fill="#FFFFFF" font-size="16" font-weight="700" text-anchor="middle" letter-spacing="1">TIẾN TRÌNH 0.0</text>
+
+    <!-- System Name -->
+    <text x="280" y="115" fill="#FFFFFF" font-size="28" font-weight="800" text-anchor="middle" letter-spacing="0.5">HỆ THỐNG GIÁM SÁT IoT</text>
+    <text x="280" y="155" fill="#38BDF8" font-size="26" font-weight="800" text-anchor="middle" letter-spacing="1">DENSO KAILINK</text>
+    <line x1="80" y1="180" x2="480" y2="180" stroke="rgba(255, 255, 255, 0.25)" stroke-width="1.5" />
+
+    <!-- Core Responsibilities -->
+    <g transform="translate(60, 210)" font-size="14" fill="#E2E8F0">
+      <text x="0" y="0">✓ Tiếp nhận &amp; chuẩn hóa chuỗi thời gian Telemetry UTC (BR-07)</text>
+      <text x="0" y="28">✓ Đánh giá 4 ngưỡng kỹ thuật (BR-01) &amp; Cảnh báo Andon tức thì</text>
+      <text x="0" y="56">✓ Tính toán chỉ số an toàn Safety Score theo ca kíp (BR-03)</text>
+      <text x="0" y="84">✓ Xuất báo cáo đa định dạng (.xlsx, .csv, .json) trần 10.000 dòng</text>
+      <text x="0" y="112">✓ Phân quyền bảo mật RBAC &amp; Nhật ký kiểm toán toàn diện</text>
+    </g>
+
+    <rect x="130" y="340" width="300" height="24" rx="12" fill="#E60012" />
+    <text x="280" y="356" fill="#FFFFFF" font-size="11" font-weight="700" text-anchor="middle" letter-spacing="0.5">NỀN TẢNG GIÁM SÁT SẢN XUẤT THÔNG MINH</text>
+  </g>
+
+  <!-- ==================== EXTERNAL ENTITIES ==================== -->
+
+  <!-- ENTITY 1: OPERATOR (Top-Left) -->
+  <g transform="translate(100, 260)" class="shadow">
+    <rect width="460" height="230" rx="12" fill="#FFFFFF" stroke="#003366" stroke-width="2.5" />
+    <path d="M 0 12 Q 0 0 12 0 L 448 0 Q 460 0 460 12 L 460 45 L 0 45 Z" fill="#003366" />
+    <text x="20" y="30" fill="#FFFFFF" font-size="18" font-weight="700">TÁC NHÂN: VẬN HÀNH VIÊN (OPERATOR)</text>
+    
+    <g transform="translate(20, 75)" font-size="13" fill="#334155">
+      <text x="0" y="0" font-weight="600" fill="#003366">Vai trò nghiệp vụ:</text>
+      <text x="0" y="22">• Trực tiếp theo dõi dây chuyền dập, hàn, sơn, lắp ráp.</text>
+      <text x="0" y="44">• Quan sát bảng Digital Andon toàn màn hình tại xưởng.</text>
+      <text x="0" y="66">• Thực hiện Xác nhận cảnh báo sự cố bước 1 (BR-04 Ack Alarm).</text>
+      <text x="0" y="88">• Tra cứu nhanh thông số vận hành và mã QR thiết bị.</text>
+      <text x="0" y="110">• Quyền hạn hệ thống: Giám sát Tier 1/2/3, Andon, Xác nhận lỗi.</text>
+    </g>
+  </g>
+
+  <!-- ENTITY 2: MAINTENANCE (Bottom-Left) -->
+  <g transform="translate(100, 1020)" class="shadow">
+    <rect width="460" height="230" rx="12" fill="#FFFFFF" stroke="#0F4C81" stroke-width="2.5" />
+    <path d="M 0 12 Q 0 0 12 0 L 448 0 Q 460 0 460 12 L 460 45 L 0 45 Z" fill="#0F4C81" />
+    <text x="20" y="30" fill="#FFFFFF" font-size="18" font-weight="700">TÁC NHÂN: KỸ SƯ BẢO TRÌ (MAINTENANCE)</text>
+    
+    <g transform="translate(20, 75)" font-size="13" fill="#334155">
+      <text x="0" y="0" font-weight="600" fill="#0F4C81">Vai trò nghiệp vụ:</text>
+      <text x="0" y="22">• Tiếp nhận sự cố kỹ thuật từ còi cảnh báo Andon.</text>
+      <text x="0" y="44">• Xem đồ thị sóng rung động, áp suất, nhiệt độ tại máy (Tier 3).</text>
+      <text x="0" y="66">• Khắc phục hỏng hóc &amp; Nghiệm thu đóng sự cố kèm biên bản (BR-05).</text>
+      <text x="0" y="88">• Cấu hình 4 ngưỡng cảnh báo cảm biến (Warning/Critical).</text>
+      <text x="0" y="110">• Bật/Tắt kết nối truyền thông trạm PLC công nghiệp.</text>
+    </g>
+  </g>
+
+  <!-- ENTITY 3: ADMIN (Bottom-Right) -->
+  <g transform="translate(1640, 1020)" class="shadow">
+    <rect width="460" height="230" rx="12" fill="#FFFFFF" stroke="#334155" stroke-width="2.5" />
+    <path d="M 0 12 Q 0 0 12 0 L 448 0 Q 460 0 460 12 L 460 45 L 0 45 Z" fill="#334155" />
+    <text x="20" y="30" fill="#FFFFFF" font-size="18" font-weight="700">TÁC NHÂN: QUẢN TRỊ VIÊN (ADMIN)</text>
+    
+    <g transform="translate(20, 75)" font-size="13" fill="#334155">
+      <text x="0" y="0" font-weight="600" fill="#334155">Vai trò nghiệp vụ:</text>
+      <text x="0" y="22">• Quản trị toàn quyền người dùng &amp; phân quyền vai trò RBAC.</text>
+      <text x="0" y="44">• Bảo vệ tài khoản quản trị tối cao không bị tự xóa (BR-11).</text>
+      <text x="0" y="66">• Truy vấn và xuất báo cáo lịch sử máy (.xlsx, .csv, .json).</text>
+      <text x="0" y="88">• Kiểm tra nhật ký kiểm toán hệ thống (Audit Logs).</text>
+      <text x="0" y="110">• Giám sát trạng thái hoạt động của cơ sở dữ liệu MySQL.</text>
+    </g>
+  </g>
+
+  <!-- ENTITY 4: DATA SOURCES (Top-Right) -->
+  <g transform="translate(1640, 240)" class="shadow">
+    <rect width="460" height="270" rx="12" fill="#FFFFFF" stroke="#EA580C" stroke-width="2.5" />
+    <path d="M 0 12 Q 0 0 12 0 L 448 0 Q 460 0 460 12 L 460 45 L 0 45 Z" fill="#EA580C" />
+    <text x="20" y="30" fill="#FFFFFF" font-size="18" font-weight="700">NGUỒN DỮ LIỆU TELEMETRY THIẾT BỊ</text>
+    
+    <!-- Split Sources Box -->
+    <g transform="translate(20, 60)">
+      <!-- Source A: Current Simulation -->
+      <rect x="0" y="0" width="420" height="85" rx="8" fill="#FFF7ED" stroke="#FDBA74" stroke-width="1.5" />
+      <text x="15" y="24" fill="#C2410C" font-size="14" font-weight="700">1. Nguồn Giả Lập Tập Trung (Hiện Tại - Stage 4A):</text>
+      <text x="15" y="46" fill="#431407" font-size="12">• Bộ sinh dữ liệu chuỗi thời gian Backend (server/db-mysql.js).</text>
+      <text x="15" y="66" fill="#431407" font-size="12">• Chu kỳ quét 1000ms, tự động sinh 4 ngưỡng đo kỹ thuật.</text>
+
+      <!-- Source B: Future Physical PLC -->
+      <rect x="0" y="95" width="420" height="95" rx="8" fill="#F8FAFC" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5,4" />
+      <text x="15" y="119" fill="#0F172A" font-size="14" font-weight="700">2. Trạm PLC Vật Lý Thực Tế (Đề Xuất Giai Đoạn 2):</text>
+      <text x="15" y="141" fill="#475569" font-size="12">• Siemens S7-1500 (Modbus/TCP:502) &amp; Omron NX1P2 (OPC-UA:4840).</text>
+      <text x="15" y="161" fill="#475569" font-size="12">• Đấu nối tủ điện công nghiệp qua cổng Edge Gateway Kepware.</text>
+    </g>
+  </g>
+
+  <!-- ==================== DATA FLOWS (ARROWS & LABELS) ==================== -->
+
+  <!-- Flow 1: Operator -> System -->
+  <g>
+    <!-- Inflow -->
+    <path d="M 560 340 L 820 620" fill="none" stroke="#0284C7" stroke-width="2.5" marker-end="url(#arrow-blue)" />
+    <rect x="580" y="450" width="220" height="42" rx="6" fill="#FFFFFF" stroke="#0284C7" stroke-width="1" class="shadow" />
+    <text x="590" y="468" fill="#0369A1" font-size="12" font-weight="700">1. Đăng nhập &amp; Chọn ca kíp</text>
+    <text x="590" y="484" fill="#475569" font-size="11">2. Xác nhận sự cố (Ack Alarm - BR-04)</text>
+
+    <!-- Outflow -->
+    <path d="M 820 660 L 560 380" fill="none" stroke="#16A34A" stroke-width="2.5" marker-end="url(#arrow-green)" />
+    <rect x="580" y="510" width="220" height="42" rx="6" fill="#FFFFFF" stroke="#16A34A" stroke-width="1" class="shadow" />
+    <text x="590" y="528" fill="#15803D" font-size="12" font-weight="700">1. Trạng thái máy Real-time (WebSocket)</text>
+    <text x="590" y="544" fill="#475569" font-size="11">2. Cảnh báo còi/đèn Digital Andon</text>
+  </g>
+
+  <!-- Flow 2: Maintenance <-> System -->
+  <g>
+    <!-- Inflow -->
+    <path d="M 560 1080 L 820 840" fill="none" stroke="#0284C7" stroke-width="2.5" marker-end="url(#arrow-blue)" />
+    <rect x="580" y="930" width="220" height="54" rx="6" fill="#FFFFFF" stroke="#0284C7" stroke-width="1" class="shadow" />
+    <text x="590" y="948" fill="#0369A1" font-size="12" font-weight="700">1. Biên bản đóng sự cố (Resolve)</text>
+    <text x="590" y="964" fill="#475569" font-size="11">2. Cấu hình ngưỡng cảnh báo</text>
+    <text x="590" y="978" fill="#475569" font-size="11">3. Lệnh kiểm tra truyền thông PLC</text>
+
+    <!-- Outflow -->
+    <path d="M 820 880 L 560 1120" fill="none" stroke="#16A34A" stroke-width="2.5" marker-end="url(#arrow-green)" />
+    <rect x="580" y="1005" width="220" height="42" rx="6" fill="#FFFFFF" stroke="#16A34A" stroke-width="1" class="shadow" />
+    <text x="590" y="1023" fill="#15803D" font-size="12" font-weight="700">1. Đồ thị sóng đo lường 60s (Tier 3)</text>
+    <text x="590" y="1039" fill="#475569" font-size="11">2. Danh sách cảnh báo chi tiết</text>
+  </g>
+
+  <!-- Flow 3: Telemetry Data Source -> System -->
+  <g>
+    <!-- Simulation Inflow (Solid line) -->
+    <path d="M 1640 370 L 1380 620" fill="none" stroke="#EA580C" stroke-width="2.5" marker-end="url(#arrow-orange)" />
+    <rect x="1400" y="450" width="220" height="42" rx="6" fill="#FFFFFF" stroke="#EA580C" stroke-width="1" class="shadow" />
+    <text x="1410" y="468" fill="#C2410C" font-size="12" font-weight="700">Gói tin Telemetry Giả Lập (1s)</text>
+    <text x="1410" y="484" fill="#475569" font-size="11">Áp suất, Nhiệt độ, Rung, Dòng điện</text>
+
+    <!-- Future Physical PLC Inflow (Dashed line) -->
+    <path d="M 1640 440 L 1380 660" fill="none" stroke="#64748B" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrow-blue)" />
+    <rect x="1400" y="515" width="220" height="42" rx="6" fill="#FFFFFF" stroke="#64748B" stroke-width="1" stroke-dasharray="4,3" class="shadow" />
+    <text x="1410" y="533" fill="#334155" font-size="12" font-weight="700">Gói Modbus/OPC-UA (Giai đoạn 2)</text>
+    <text x="1410" y="549" fill="#64748B" font-size="11">Tín hiệu thanh ghi cảm biến thật</text>
+
+    <!-- Polling Request to PLC -->
+    <path d="M 1380 600 L 1640 330" fill="none" stroke="#0284C7" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrow-blue)" />
+    <rect x="1400" y="390" width="220" height="26" rx="4" fill="#F0F9FF" stroke="#0284C7" stroke-width="1" />
+    <text x="1410" y="407" fill="#0369A1" font-size="11" font-weight="600">Lệnh Polling / Heartbeat định kỳ</text>
+  </g>
+
+  <!-- Flow 4: Admin <-> System -->
+  <g>
+    <!-- Inflow -->
+    <path d="M 1640 1080 L 1380 840" fill="none" stroke="#0284C7" stroke-width="2.5" marker-end="url(#arrow-blue)" />
+    <rect x="1400" y="930" width="220" height="54" rx="6" fill="#FFFFFF" stroke="#0284C7" stroke-width="1" class="shadow" />
+    <text x="1410" y="948" fill="#0369A1" font-size="12" font-weight="700">1. Quản lý tài khoản CRUD &amp; RBAC</text>
+    <text x="1410" y="964" fill="#475569" font-size="11">2. Yêu cầu xuất báo cáo (.xlsx/.csv)</text>
+    <text x="1410" y="978" fill="#475569" font-size="11">3. Tra cứu lịch sử &amp; kiểm toán</text>
+
+    <!-- Outflow -->
+    <path d="M 1380 880 L 1640 1120" fill="none" stroke="#16A34A" stroke-width="2.5" marker-end="url(#arrow-green)" />
+    <rect x="1400" y="1005" width="220" height="42" rx="6" fill="#FFFFFF" stroke="#16A34A" stroke-width="1" class="shadow" />
+    <text x="1410" y="1023" fill="#15803D" font-size="12" font-weight="700">1. Luồng file xuất an toàn (10k dòng)</text>
+    <text x="1410" y="1039" fill="#475569" font-size="11">2. Dữ liệu tài khoản &amp; Nhật ký Audit</text>
+  </g>
+
+  <!-- Flow Legend Footer -->
+  <g transform="translate(80, 1370)">
+    <rect width="2040" height="55" rx="8" fill="#F8FAFC" stroke="#CBD5E1" />
+    <text x="25" y="32" fill="#0F172A" font-size="13" font-weight="700">CHÚ GIẢI KÝ HIỆU DFD MỨC 0:</text>
+    
+    <line x1="260" y1="28" x2="300" y2="28" stroke="#0284C7" stroke-width="2.5" marker-end="url(#arrow-blue)" />
+    <text x="310" y="33" fill="#475569" font-size="13">Luồng dữ liệu vào (Inflow)</text>
+
+    <line x1="530" y1="28" x2="570" y2="28" stroke="#16A34A" stroke-width="2.5" marker-end="url(#arrow-green)" />
+    <text x="580" y="33" fill="#475569" font-size="13">Luồng dữ liệu ra (Outflow)</text>
+
+    <line x1="800" y1="28" x2="840" y2="28" stroke="#EA580C" stroke-width="2.5" marker-end="url(#arrow-orange)" />
+    <text x="850" y="33" fill="#475569" font-size="13">Luồng Telemetry giả lập hiện tại</text>
+
+    <line x1="1140" y1="28" x2="1180" y2="28" stroke="#64748B" stroke-width="2" stroke-dasharray="5,4" marker-end="url(#arrow-blue)" />
+    <text x="1190" y="33" fill="#475569" font-size="13">Luồng truyền thông PLC thực tế (Kế hoạch Giai đoạn 2)</text>
+  </g>
+
+</svg>

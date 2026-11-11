@@ -8,13 +8,16 @@
 import { create } from 'zustand';
 import { ProductionLine, MetricIndicator, SystemStatus, MachineComponent } from '../types/hierarchy';
 import { PLCMappingConfig } from '../types/plc';
+import { MetricMappingItem } from '../types/metric';
 import { initialProductionLines } from '../utils/mockData';
 import { evaluateMetricStatus, calculateLineSafetyMetrics, convertPLCRawToEngineering } from '../utils/plcConverter';
 import { useAlarmStore } from './useAlarmStore';
 import { apiClient } from '../services/api';
 import { useHistoryStore } from './useHistoryStore';
+import { resolveMetricNominalBaseline } from '../utils/demoBaselines';
 
 export type NavigationTab = 'dashboard' | 'lines' | 'devices' | 'thresholds' | 'alarms' | 'history' | 'users' | 'audit' | 'qr' | 'settings' | 'metrics' | 'ai';
+export type DashboardViewLevel = 'factory_layout' | 'line_overview' | 'machine_detail' | 'check_sheet';
 
 export interface PLCStation {
   id: string;
@@ -76,9 +79,18 @@ interface MonitoringState {
   selectedLineId: string | null;
   selectedMachineId: string | null;
   selectedMetricId: string | null;
+  activeEmergencyMetricId: string | null;
   activeTab: NavigationTab;
   activeNavGroup: 'config' | 'monitoring';
   isRealtimeActive: boolean;
+
+  // Điều hướng 4 màn hình giám sát chuyên sâu (Factory Layout -> Line -> Machine -> CheckSheet)
+  dashboardViewLevel: DashboardViewLevel;
+  setDashboardViewLevel: (level: DashboardViewLevel) => void;
+  navigateToLine: (lineId: string) => void;
+  navigateToMachine: (machineId: string, lineId?: string) => void;
+  navigateToCheckSheet: (machineId: string, lineId?: string) => void;
+  navigateBack: () => void;
 
   // Quản lý trạm PLC
   plcStations: PLCStation[];
@@ -95,6 +107,7 @@ interface MonitoringState {
   // Tải dữ liệu từ Backend REST API (Bước 2F-1 & Kiến trúc PLC theo Dây chuyền)
   fetchLines: () => Promise<void>;
   fetchMachines: (lineId?: string) => Promise<void>;
+  fetchMappings: () => Promise<void>;
   createMachine: (payload: {
     lineId: string;
     name: string;
@@ -104,6 +117,13 @@ interface MonitoringState {
     managementStatus?: 'active' | 'inactive';
     location?: string;
     description?: string;
+    imageUrl?: string;
+    manufacturer?: string;
+    model?: string;
+    serialNumber?: string;
+    installationDate?: string;
+    ratedPower?: string;
+    technicalNotes?: string;
   }) => Promise<any>;
   updateMachine: (
     id: string,
@@ -114,6 +134,13 @@ interface MonitoringState {
       description?: string;
       managementStatus?: 'active' | 'inactive';
       status?: string;
+      imageUrl?: string;
+      manufacturer?: string;
+      model?: string;
+      serialNumber?: string;
+      installationDate?: string;
+      ratedPower?: string;
+      technicalNotes?: string;
     }
   ) => Promise<any>;
   assignLinePLC: (
@@ -156,6 +183,9 @@ interface MonitoringState {
     unit: string;
   } | null;
 
+  // Khôi phục trạng thái chuẩn sau diễn tập giả lập sự cố
+  resetEmergencyDemo: () => void;
+
   // Dữ liệu đo lường thực tế từ Backend & WebSocket (Giai đoạn 2F-3)
   fetchLatestTelemetry: (params?: { machineId?: string; lineId?: string }) => Promise<void>;
   fetchIngestionOverview: () => Promise<void>;
@@ -178,6 +208,8 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
   selectedLineId: null,
   selectedMachineId: null,
   selectedMetricId: null,
+  activeEmergencyMetricId: null,
+  dashboardViewLevel: 'factory_layout',
   activeTab: 'dashboard',
   activeNavGroup: 'monitoring',
   isRealtimeActive: true,
@@ -212,9 +244,35 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
   fetchMachines: async (lineId?: string) => {
     set({ isLoadingMachines: true, machinesError: null });
     try {
-      const res = await apiClient.getMachines(lineId ? { lineId } : {});
+      const [res, mappingsRes] = await Promise.all([
+        apiClient.getMachines(lineId ? { lineId } : {}),
+        apiClient.getMappings({}).catch((err: any) => {
+          console.warn('[fetchMachines getMappings Warning]:', err.message);
+          return { mappings: [] };
+        }),
+      ]);
+
       if (res && Array.isArray(res.machines) && res.machines.length > 0) {
         set((state) => {
+          const allMappings = mappingsRes?.mappings || [];
+
+          // Nhóm các mapping ACTIVE và monitoring_enabled theo machine_id
+          const activeMappingsByMachine = new Map<string, MetricMappingItem[]>();
+          for (const mapItem of allMappings) {
+            const isMonitoringEnabled =
+              mapItem.monitoring_enabled === 1 ||
+              mapItem.monitoring_enabled === true ||
+              (mapItem as any).monitoring_enabled === '1';
+            const isActive = mapItem.status === 'ACTIVE' || !mapItem.status;
+
+            if (isActive && isMonitoringEnabled && mapItem.machine_id) {
+              if (!activeMappingsByMachine.has(mapItem.machine_id)) {
+                activeMappingsByMachine.set(mapItem.machine_id, []);
+              }
+              activeMappingsByMachine.get(mapItem.machine_id)!.push(mapItem);
+            }
+          }
+
           const updatedLines = state.lines.map((line) => {
             if (lineId && line.id !== lineId) return line;
 
@@ -241,6 +299,117 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
                 isDemo: plcIsDemo,
               } : null;
 
+              // 1. Lấy danh sách mapping hợp lệ từ CSDL cho máy này (đối chiếu bằng machine_id chuẩn)
+              const configuredMappings = activeMappingsByMachine.get(apiM.id) || [];
+              const existingMetrics = existing?.metrics || [];
+              const existingMetricsMap = new Map<string, MetricIndicator>();
+              for (const em of existingMetrics) {
+                if (em.id) existingMetricsMap.set(em.id, em);
+                if (em.mappingCode) existingMetricsMap.set(em.mappingCode, em);
+                if (em.mappingId) existingMetricsMap.set(em.mappingId, em);
+                if (em.metricId) existingMetricsMap.set(em.metricId, em);
+              }
+
+              // 2. Chuyển đổi mapping thành danh sách MetricIndicator chuẩn hóa
+              let resolvedMetrics: MetricIndicator[] = [];
+
+              if (configuredMappings.length > 0) {
+                resolvedMetrics = configuredMappings.map((mapItem) => {
+                  const metricIdentifier = mapItem.mapping_code || mapItem.id;
+                  const existingMetric =
+                    existingMetricsMap.get(metricIdentifier) ||
+                    existingMetricsMap.get(mapItem.id) ||
+                    existingMetricsMap.get(mapItem.metric_id) ||
+                    (mapItem.mapping_code ? existingMetricsMap.get(mapItem.mapping_code) : undefined);
+
+                  // Hỗ trợ ngưỡng một phía: warningMin hoặc criticalMin có thể là null, KHÔNG tự chuyển null thành 0
+                  const wMin = mapItem.warning_min != null ? Number(mapItem.warning_min) : (mapItem.thresholds?.warning_min != null ? Number(mapItem.thresholds.warning_min) : null);
+                  const wMax = mapItem.warning_max != null ? Number(mapItem.warning_max) : (mapItem.thresholds?.warning_max != null ? Number(mapItem.thresholds.warning_max) : null);
+                  const cMin = mapItem.critical_min != null ? Number(mapItem.critical_min) : (mapItem.thresholds?.critical_min != null ? Number(mapItem.thresholds.critical_min) : null);
+                  const cMax = mapItem.critical_max != null ? Number(mapItem.critical_max) : (mapItem.thresholds?.critical_max != null ? Number(mapItem.thresholds.critical_max) : null);
+
+                  const displayName = mapItem.channel_name || mapItem.metricName || mapItem.metricCode || metricIdentifier;
+                  const unit = mapItem.unit || '';
+
+                  // Baseline kỹ thuật chuẩn từ demoBaselines
+                  const { nominal } = resolveMetricNominalBaseline({
+                    id: metricIdentifier,
+                    mappingCode: mapItem.mapping_code,
+                    name: displayName,
+                    unit,
+                    warningMin: wMin ?? undefined,
+                    warningMax: wMax ?? undefined,
+                  });
+
+                  if (existingMetric) {
+                    // BẢO TOÀN DỮ LIỆU ĐANG HOẠT ĐỘNG:
+                    // Giữ nguyên currentValue, history, trạng thái Emergency Demo nếu đang diễn ra
+                    const curVal = existingMetric.currentValue != null && !isNaN(existingMetric.currentValue)
+                      ? existingMetric.currentValue
+                      : nominal;
+                    const evalStatus = existingMetric.isEmergencySpike
+                      ? ('critical' as SystemStatus)
+                      : evaluateMetricStatus(curVal, wMin, wMax, cMin, cMax);
+
+                    return {
+                      ...existingMetric,
+                      id: metricIdentifier,
+                      name: displayName,
+                      unit,
+                      currentValue: curVal,
+                      status: evalStatus,
+                      warningMin: wMin,
+                      warningMax: wMax,
+                      criticalMin: cMin,
+                      criticalMax: cMax,
+                      dataSourceType: existingMetric.dataSourceType || (mapItem.data_source_type as any) || 'SIMULATED',
+                      mappingCode: mapItem.mapping_code,
+                      metricId: mapItem.metric_id,
+                      mappingId: mapItem.id,
+                      metricCode: mapItem.metricCode || mapItem.mapping_code,
+                      machineId: apiM.id,
+                      nominalValue: nominal,
+                    };
+                  }
+
+                  // Tạo mới metric trong DEMO MODE với Baseline kỹ thuật an toàn
+                  const initialStatus = evaluateMetricStatus(nominal, wMin, wMax, cMin, cMax);
+                  const nowStr = new Date().toTimeString().slice(0, 8);
+
+                  return {
+                    id: metricIdentifier,
+                    name: displayName,
+                    unit,
+                    currentValue: nominal,
+                    status: initialStatus,
+                    warningMin: wMin,
+                    warningMax: wMax,
+                    criticalMin: cMin,
+                    criticalMax: cMax,
+                    history: [
+                      { timestamp: nowStr, value: nominal },
+                    ],
+                    lastUpdated: 'Vừa xong',
+                    dataSourceType: (mapItem.data_source_type as any) || 'SIMULATED',
+                    isLive: false,
+                    mappingCode: mapItem.mapping_code,
+                    metricId: mapItem.metric_id,
+                    mappingId: mapItem.id,
+                    metricCode: mapItem.metricCode || mapItem.mapping_code,
+                    machineId: apiM.id,
+                    nominalValue: nominal,
+                  };
+                });
+              } else if (existing?.metrics && existing.metrics.length > 0) {
+                // Bảo toàn metrics mock có sẵn nếu máy chưa cấu hình mapping trong DB
+                resolvedMetrics = existing.metrics;
+              } else {
+                // Không tự tạo mapping cho máy chưa được cấu hình
+                resolvedMetrics = [];
+              }
+
+              const actualMappingCount = configuredMappings.length > 0 ? configuredMappings.length : (apiM.mappingCount ?? 0);
+
               if (existing) {
                 return {
                   ...existing,
@@ -254,7 +423,8 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
                   healthScore: apiM.healthScore ?? existing.healthScore,
                   uptimeHours: apiM.uptimeHours ?? existing.uptimeHours,
                   qrCodeUrl: apiM.qrCodeUrl ?? existing.qrCodeUrl,
-                  mappingCount: apiM.mappingCount ?? existing.mappingCount,
+                  mappingCount: actualMappingCount,
+                  metrics: resolvedMetrics,
                   plcId: plcId || null,
                   plcName: plcName || null,
                   plcProtocol: plcProtocol || null,
@@ -277,8 +447,8 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
                 healthScore: apiM.healthScore ?? null,
                 uptimeHours: apiM.uptimeHours ?? 0,
                 qrCodeUrl: apiM.qrCodeUrl || '',
-                metrics: [],
-                mappingCount: apiM.mappingCount ?? 0,
+                metrics: resolvedMetrics,
+                mappingCount: actualMappingCount,
                 plcId: plcId || null,
                 plcName: plcName || null,
                 plcProtocol: plcProtocol || null,
@@ -306,6 +476,11 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
       console.warn('[fetchMachines Error]:', err.message);
       set({ isLoadingMachines: false, machinesError: err.message || 'Không thể nạp danh sách máy' });
     }
+  },
+
+  fetchMappings: async () => {
+    // Gọi fetchMachines để đồng bộ lại toàn bộ máy và mappings
+    await get().fetchMachines();
   },
 
   assignLinePLC: async (lineId, plcId, options = {}) => {
@@ -370,7 +545,46 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
   setActiveTab: (tab, group) => set((state) => ({
     activeTab: tab,
     activeNavGroup: group || (['dashboard', 'alarms', 'history', 'devices'].includes(tab) ? 'monitoring' : (tab === 'lines' ? state.activeNavGroup : 'config')),
+    dashboardViewLevel: tab === 'dashboard' ? 'factory_layout' : state.dashboardViewLevel,
   })),
+
+  setDashboardViewLevel: (level) => set({ dashboardViewLevel: level }),
+
+  navigateToLine: (lineId) => set({
+    selectedLineId: lineId,
+    dashboardViewLevel: 'line_overview',
+    activeTab: 'dashboard',
+    activeNavGroup: 'monitoring',
+  }),
+
+  navigateToMachine: (machineId, lineId) => set((state) => ({
+    selectedMachineId: machineId,
+    selectedLineId: lineId || state.selectedLineId,
+    dashboardViewLevel: 'machine_detail',
+    activeTab: 'dashboard',
+    activeNavGroup: 'monitoring',
+  })),
+
+  navigateToCheckSheet: (machineId, lineId) => set((state) => ({
+    selectedMachineId: machineId,
+    selectedLineId: lineId || state.selectedLineId,
+    dashboardViewLevel: 'check_sheet',
+    activeTab: 'dashboard',
+    activeNavGroup: 'monitoring',
+  })),
+
+  navigateBack: () => set((state) => {
+    if (state.dashboardViewLevel === 'check_sheet') {
+      return { dashboardViewLevel: 'machine_detail' };
+    }
+    if (state.dashboardViewLevel === 'machine_detail') {
+      return { dashboardViewLevel: state.selectedLineId ? 'line_overview' : 'factory_layout' };
+    }
+    if (state.dashboardViewLevel === 'line_overview') {
+      return { dashboardViewLevel: 'factory_layout', selectedLineId: null };
+    }
+    return { dashboardViewLevel: 'factory_layout' };
+  }),
   createMachine: async (payload) => {
     const res = await apiClient.createMachine(payload);
     await Promise.all([get().fetchLines(), get().fetchMachines()]);
@@ -534,7 +748,8 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
     }),
 
   /**
-   * Mô phỏng tín hiệu cảm biến thời gian thực
+   * Mô phỏng tín hiệu cảm biến thời gian thực sử dụng thuật toán hồi quy trung tâm (Mean Reversion)
+   * Giữ dữ liệu dao động ổn định quanh giá trị danh định chuẩn (Baseline) và tách biệt hoàn toàn vòng đời Emergency Demo
    */
   simulateTick: () =>
     set((state) => {
@@ -549,11 +764,65 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
           let machineHasWarning = false;
 
           const updatedMetrics = machine.metrics.map((metric) => {
-            const maxDelta = Math.max(0.2, (metric.warningMax - metric.warningMin) * 0.03);
-            const delta = (Math.random() - 0.5) * maxDelta;
-            let nextValue = Number((metric.currentValue + delta).toFixed(2));
+            const isEmergencyTarget =
+              metric.isEmergencySpike === true ||
+              metric.id === state.activeEmergencyMetricId;
 
-            if (metric.criticalMin >= 0 && nextValue < 0) nextValue = 0;
+            // 1. CHẾ ĐỘ EMERGENCY DEMO: Duy trì giá trị trong vùng nguy hiểm cho đến khi người dùng bấm "Khôi phục Sự cố"
+            if (isEmergencyTarget) {
+              const { nominal } = resolveMetricNominalBaseline(metric);
+              const emergencyJitter = (Math.random() - 0.5) * 0.4;
+              let nextValue = Number((metric.currentValue + emergencyJitter).toFixed(2));
+              const critMax = metric.criticalMax != null ? Number(metric.criticalMax) : (metric.warningMax != null ? Number(metric.warningMax) * 1.2 : nominal * 1.5);
+              const minCritical = critMax + 0.5;
+              if (nextValue < minCritical) nextValue = minCritical;
+
+              machineHasCritical = true;
+
+              const newHistory = [
+                ...metric.history.slice(-19),
+                { timestamp: timeStr, value: nextValue },
+              ];
+
+              return {
+                ...metric,
+                isEmergencySpike: true,
+                currentValue: nextValue,
+                status: 'critical' as SystemStatus,
+                history: newHistory,
+                lastUpdated: timeStr,
+              };
+            }
+
+            // 2. CHẾ ĐỘ NORMAL DEMO: Thuật toán Ornstein-Uhlenbeck Mean Reversion kéo về Baseline danh định kỹ thuật
+            const { nominal } = resolveMetricNominalBaseline(metric);
+            const wMin = metric.warningMin != null ? Number(metric.warningMin) : 0;
+            const wMax = metric.warningMax != null ? Number(metric.warningMax) : (nominal > 0 ? nominal * 2 : 100);
+            const span = Math.max(1, wMax - wMin);
+
+            // Lực đàn hồi kéo về tâm danh định an toàn (theta = 0.12)
+            const theta = 0.12;
+            const pull = (nominal - metric.currentValue) * theta;
+
+            // Dao động tự nhiên ngẫu nhiên nhẹ (1.5% biên độ an toàn)
+            const jitterRange = Math.max(0.08, span * 0.015);
+            const noise = (Math.random() - 0.5) * jitterRange;
+            let nextValue = Number((metric.currentValue + pull + noise).toFixed(2));
+
+            // RÀNG BUỘC BẢO VỆ AN TOÀN TUYỆT ĐỐI CHO NORMAL DEMO (Mục 4.2):
+            // Telemetry dao động nhẹ quanh nominal, có khoảng đệm an toàn 5% cách xa ngưỡng warning
+            // Đảm bảo không bao giờ tự phát sinh cảnh báo giả hoặc trôi dạt do random noise
+            const safeMargin = Math.max(0.05, span * 0.05);
+            if (metric.warningMin != null) {
+              const minSafe = Number(metric.warningMin) + safeMargin;
+              if (nextValue < minSafe) nextValue = minSafe;
+            }
+            if (metric.warningMax != null) {
+              const maxSafe = Number(metric.warningMax) - safeMargin;
+              if (nextValue > maxSafe) nextValue = maxSafe;
+            }
+
+            if (metric.criticalMin != null && Number(metric.criticalMin) >= 0 && nextValue < 0) nextValue = 0;
 
             const nextStatus = evaluateMetricStatus(
               nextValue,
@@ -573,6 +842,7 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
 
             return {
               ...metric,
+              isEmergencySpike: false,
               currentValue: nextValue,
               status: nextStatus,
               history: newHistory,
@@ -607,7 +877,58 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
     }),
 
   /**
+   * Khôi phục toàn bộ hệ thống về trạng thái chuẩn bình thường sau khi diễn tập sự cố
+   * CHỈ giải quyết các cảnh báo Demo (ALM-DEMO), tuyệt đối không xóa lịch sử hay cảnh báo thật
+   */
+  resetEmergencyDemo: () => {
+    useAlarmStore.getState().resolveDemoAlarms('Đã khôi phục trạng thái chuẩn sau diễn tập Demo.');
+    set((state) => {
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+      const updatedLines = state.lines.map((l) => {
+        const updatedMachines = l.machines.map((m) => {
+          const updatedMetrics = m.metrics.map((mtr) => {
+            const isTarget = mtr.isEmergencySpike || mtr.id === state.activeEmergencyMetricId || mtr.status !== 'normal';
+            if (!isTarget) return mtr;
+
+            const { nominal } = resolveMetricNominalBaseline(mtr);
+            return {
+              ...mtr,
+              isEmergencySpike: false,
+              currentValue: nominal,
+              status: 'normal' as SystemStatus,
+              history: [
+                ...mtr.history.slice(-19),
+                { timestamp: timeStr, value: nominal },
+              ],
+              lastUpdated: timeStr,
+            };
+          });
+
+          return {
+            ...m,
+            status: 'normal' as SystemStatus,
+            metrics: updatedMetrics,
+          };
+        });
+
+        const { safetyScore, overallStatus } = calculateLineSafetyMetrics(updatedMachines);
+        return {
+          ...l,
+          machines: updatedMachines,
+          safetyScore,
+          status: overallStatus,
+        };
+      });
+
+      return { lines: updatedLines, activeEmergencyMetricId: null };
+    });
+  },
+
+  /**
    * Giả lập sự cố khẩn cấp ngẫu nhiên (Demo Feature)
+   * Duy trì trạng thái nguy hiểm liên tục cho đến khi bấm Khôi phục Sự cố
    */
   triggerEmergencyDemo: () => {
     let triggeredInfo: {
@@ -621,21 +942,29 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
     set((state) => {
       if (state.lines.length === 0) return state;
 
-      // Chọn ngẫu nhiên 1 dây chuyền và 1 máy
-      const lineIdx = Math.floor(Math.random() * state.lines.length);
+      // Ưu tiên chọn dây chuyền và máy người dùng đang quan sát để quan sát trực quan tức thì
+      let lineIdx = state.lines.findIndex((l) => l.id === state.selectedLineId || l.code === state.selectedLineId);
+      if (lineIdx === -1) lineIdx = 0;
       const targetLine = state.lines[lineIdx];
       if (targetLine.machines.length === 0) return state;
 
-      const machineIdx = Math.floor(Math.random() * targetLine.machines.length);
+      let machineIdx = targetLine.machines.findIndex((m) => m.id === state.selectedMachineId || m.code === state.selectedMachineId);
+      if (machineIdx === -1) {
+        machineIdx = Math.floor(Math.random() * targetLine.machines.length);
+      }
       const targetMachine = targetLine.machines[machineIdx];
       if (targetMachine.metrics.length === 0) return state;
 
-      // Chọn 1 metric để đẩy vượt ngưỡng nguy hiểm
-      const metricIdx = Math.floor(Math.random() * targetMachine.metrics.length);
+      let metricIdx = targetMachine.metrics.findIndex((mtr) => mtr.id === state.selectedMetricId);
+      if (metricIdx === -1) {
+        metricIdx = Math.floor(Math.random() * targetMachine.metrics.length);
+      }
       const targetMetric = targetMachine.metrics[metricIdx];
 
       // Đẩy giá trị vượt 20% trên criticalMax
-      const spikeValue = Number((targetMetric.criticalMax + (targetMetric.criticalMax - targetMetric.warningMax) * 1.5 + 2).toFixed(1));
+      const crit = targetMetric.criticalMax != null ? Number(targetMetric.criticalMax) : (targetMetric.warningMax != null ? Number(targetMetric.warningMax) * 1.2 : 100);
+      const warn = targetMetric.warningMax != null ? Number(targetMetric.warningMax) : crit * 0.8;
+      const spikeValue = Number((crit + (crit - warn) * 1.5 + 2).toFixed(1));
       
       const now = new Date();
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
@@ -648,7 +977,7 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
         unit: targetMetric.unit,
       };
 
-      // Đẩy sự cố mới vào useAlarmStore
+      // Đẩy sự cố mới vào useAlarmStore với cờ isDemo = true và nguồn 'DEMO'
       useAlarmStore.getState().triggerNewAlarm({
         lineId: targetLine.id,
         lineName: targetLine.name,
@@ -658,9 +987,11 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
         metricName: targetMetric.name,
         severity: 'critical',
         triggeredValue: spikeValue,
-        thresholdValue: targetMetric.criticalMax,
+        thresholdValue: crit,
         unit: targetMetric.unit,
-        message: `Sự cố giả lập: ${targetMetric.name} tăng vọt lên ${spikeValue} ${targetMetric.unit}, vượt ngưỡng nguy hiểm (${targetMetric.criticalMax} ${targetMetric.unit})!`,
+        message: `Sự cố giả lập: ${targetMetric.name} tăng vọt lên ${spikeValue} ${targetMetric.unit}, vượt ngưỡng nguy hiểm (${crit} ${targetMetric.unit})!`,
+        isDemo: true,
+        source: 'DEMO',
       });
 
       apiClient.recordAudit(
@@ -680,6 +1011,7 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
 
             return {
               ...mtr,
+              isEmergencySpike: true,
               currentValue: spikeValue,
               status: 'critical' as SystemStatus,
               history: [
@@ -706,7 +1038,7 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
         };
       });
 
-      return { lines: updatedLines };
+      return { lines: updatedLines, activeEmergencyMetricId: targetMetric.id };
     });
 
     return triggeredInfo;
@@ -854,7 +1186,10 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
 
           let foundMetric = false;
           const updatedMetrics: MetricIndicator[] = machine.metrics.map((metric) => {
-            if (metric.id !== packet.metricId && metric.id !== packet.mappingCode) return metric;
+            const matchesId = metric.id === packet.metricId || metric.id === packet.mappingCode;
+            const matchesCode = metric.mappingCode && (metric.mappingCode === packet.metricId || metric.mappingCode === packet.mappingCode);
+            const matchesMappingId = metric.mappingId && (metric.mappingId === packet.mappingId || metric.mappingId === packet.metricId);
+            if (!matchesId && !matchesCode && !matchesMappingId) return metric;
             foundMetric = true;
 
             const newHistory = [

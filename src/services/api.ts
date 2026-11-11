@@ -328,6 +328,18 @@ export const apiClient = {
     return request<{ machine: MachineComponent }>(`/api/machines/${encodeURIComponent(id)}`);
   },
 
+  async uploadMachineImage(file: File, machineId?: string): Promise<{ imageUrl: string; filename: string; size: number; message: string }> {
+    const formData = new FormData();
+    formData.append('image', file);
+    if (machineId) {
+      formData.append('machineId', machineId);
+    }
+    return request('/api/machines/upload-image', {
+      method: 'POST',
+      body: formData,
+    });
+  },
+
   async createMachine(payload: {
     lineId: string;
     name: string;
@@ -337,6 +349,13 @@ export const apiClient = {
     managementStatus?: 'active' | 'inactive';
     location?: string;
     description?: string;
+    imageUrl?: string;
+    manufacturer?: string;
+    model?: string;
+    serialNumber?: string;
+    installationDate?: string;
+    ratedPower?: string;
+    technicalNotes?: string;
   }): Promise<{ message: string; machine: MachineComponent }> {
     return request<{ message: string; machine: MachineComponent }>('/api/machines', {
       method: 'POST',
@@ -353,6 +372,13 @@ export const apiClient = {
       description?: string;
       managementStatus?: 'active' | 'inactive';
       status?: string;
+      imageUrl?: string;
+      manufacturer?: string;
+      model?: string;
+      serialNumber?: string;
+      installationDate?: string;
+      ratedPower?: string;
+      technicalNotes?: string;
     }
   ): Promise<{ message: string; machine: MachineComponent }> {
     return request<{ message: string; machine: MachineComponent }>(`/api/machines/${encodeURIComponent(id)}`, {

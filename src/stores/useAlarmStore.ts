@@ -22,9 +22,20 @@ interface AlarmState {
   resolveAlarm: (alarmId: string, resolutionNotes: string) => void;
 
   /**
+   * Khôi phục tất cả các sự cố đang hoạt động về trạng thái đã giải quyết
+   */
+  resolveAllAlarms: (resolutionNotes?: string) => void;
+
+  /**
+   * Khôi phục CHỈ các cảnh báo phát sinh từ phiên Giả lập sự cố Demo (isDemo = true hoặc id bắt đầu bằng ALM-DEMO-)
+   * Tuyệt đối không xóa hay giải quyết các cảnh báo lịch sử hoặc cảnh báo vận hành thật
+   */
+  resolveDemoAlarms: (resolutionNotes?: string) => void;
+
+  /**
    * Thêm cảnh báo mới khi cảm biến vượt ngưỡng
    */
-  triggerNewAlarm: (newAlarm: Omit<AlarmEvent, 'id' | 'timestamp' | 'status'>) => void;
+  triggerNewAlarm: (newAlarm: Omit<AlarmEvent, 'id' | 'timestamp' | 'status'> & { isDemo?: boolean; source?: string }) => void;
 }
 
 export const useAlarmStore = create<AlarmState>((set) => ({
@@ -70,9 +81,47 @@ export const useAlarmStore = create<AlarmState>((set) => ({
     }));
   },
 
+  resolveAllAlarms: (resolutionNotes = 'Đã khôi phục trạng thái chuẩn sau diễn tập.') => {
+    set((state) => ({
+      alarms: state.alarms.map((alarm) =>
+        alarm.status !== 'resolved'
+          ? {
+              ...alarm,
+              status: 'resolved' as AlarmWorkflowStatus,
+              resolvedAt: new Date().toISOString(),
+              resolutionNotes,
+            }
+          : alarm
+      ),
+    }));
+  },
+
+  resolveDemoAlarms: (resolutionNotes = 'Đã khôi phục sự cố diễn tập Demo.') => {
+    set((state) => ({
+      alarms: state.alarms.map((alarm) => {
+        const isDemoAlarm =
+          alarm.isDemo === true ||
+          alarm.id.startsWith('ALM-DEMO') ||
+          alarm.source === 'DEMO' ||
+          alarm.message.includes('Sự cố giả lập');
+
+        if (isDemoAlarm && alarm.status !== 'resolved') {
+          return {
+            ...alarm,
+            status: 'resolved' as AlarmWorkflowStatus,
+            resolvedAt: new Date().toISOString(),
+            resolutionNotes,
+          };
+        }
+        return alarm;
+      }),
+    }));
+  },
+
   triggerNewAlarm: (newAlarmData) =>
     set((state) => {
-      const id = `ALM-${Date.now()}`;
+      const isDemo = newAlarmData.isDemo ?? false;
+      const id = isDemo ? `ALM-DEMO-${Date.now()}` : `ALM-${Date.now()}`;
       const timestamp = new Date().toISOString();
       const newAlarm: AlarmEvent = {
         ...newAlarmData,

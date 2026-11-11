@@ -36,8 +36,12 @@ app.use(express.json());
 // Phục vụ thư mục static tải lên ảnh đại diện / tài liệu
 const uploadsDir = path.join(__dirname, 'uploads');
 const avatarsDir = path.join(__dirname, 'uploads', 'avatars');
+const machinesDir = path.join(__dirname, 'uploads', 'machines');
 if (!fs.existsSync(avatarsDir)) {
   fs.mkdirSync(avatarsDir, { recursive: true });
+}
+if (!fs.existsSync(machinesDir)) {
+  fs.mkdirSync(machinesDir, { recursive: true });
 }
 app.use('/uploads', express.static(uploadsDir));
 
@@ -66,6 +70,34 @@ const upload = multer({
       return cb(null, true);
     }
     cb(new Error('Chỉ chấp nhận các tệp ảnh định dạng JPG, PNG, WEBP, SVG!'));
+  },
+});
+
+// =========================================================================
+// CẤU HÌNH MULTER UPLOAD ẢNH THIẾT BỊ MÁY MÓC CÔNG NGHIỆP
+// =========================================================================
+const machineStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, machinesDir);
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname).toLowerCase() || '.png';
+    const cleanName = `machine-${Date.now()}-${Math.round(Math.random() * 1e6)}${ext}`;
+    cb(null, cleanName);
+  },
+});
+
+const uploadMachine = multer({
+  storage: machineStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // Giới hạn 5MB/ảnh
+  fileFilter: (req, file, cb) => {
+    const allowed = /jpeg|jpg|png|webp/;
+    const ext = path.extname(file.originalname).toLowerCase();
+    const mime = file.mimetype;
+    if (allowed.test(ext) || mime.startsWith('image/')) {
+      return cb(null, true);
+    }
+    cb(new Error('Chỉ chấp nhận các tệp ảnh định dạng JPG, JPEG, PNG, WEBP (tối đa 5MB)!'));
   },
 });
 
@@ -724,6 +756,49 @@ app.patch(
 // =========================================================================
 // MACHINES APIS (MÁY MÓC / THIẾT BỊ - BƯỚC 2B)
 // =========================================================================
+
+// Tải ảnh thiết bị máy móc lên máy chủ (Admin & Maintenance)
+app.post(
+  '/api/machines/upload-image',
+  authenticateToken,
+  requireRole(['ADMIN', 'MAINTENANCE']),
+  uploadMachine.single('image'),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: 'Vui lòng chọn một tệp ảnh hợp lệ để tải lên.' });
+      }
+
+      const imageUrl = `/uploads/machines/${req.file.filename}`;
+      const machineId = req.body.machineId;
+
+      // Ghi audit log nếu người dùng đăng nhập
+      const ipAddress = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+      await mysqlDb.addAuditLog({
+        userId: req.user?.id,
+        userEmail: req.user?.email,
+        userName: req.user?.fullName || req.user?.name,
+        employeeId: req.user?.employeeId,
+        action: 'UPLOAD_MACHINE_IMAGE',
+        target: machineId || req.file.filename,
+        details: `Tải ảnh thiết bị: ${req.file.originalname} -> ${imageUrl} (${Math.round(req.file.size / 1024)} KB)`,
+        ipAddress,
+      });
+
+      res.status(200).json({
+        message: 'Tải ảnh thiết bị lên thành công.',
+        imageUrl,
+        filename: req.file.filename,
+        size: req.file.size,
+      });
+    } catch (err) {
+      console.error('[Upload Machine Image Error]:', err);
+      res.status(500).json({
+        message: err.message || 'Lỗi khi tải ảnh thiết bị lên.',
+      });
+    }
+  }
+);
 
 // Lấy danh sách máy kèm bộ lọc (lineId, status, type, search)
 app.get(

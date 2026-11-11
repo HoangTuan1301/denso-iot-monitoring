@@ -23,6 +23,7 @@ import { useThemeStore, applyThemeClass } from './stores/useThemeStore';
 import { socketClient } from './services/socket';
 import { Card, CardBody, Button } from '@heroui/react';
 import { QrCode, ShieldAlert } from 'lucide-react';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 export default function App() {
   const {
@@ -87,9 +88,18 @@ export default function App() {
       fetchIngestionOverview();
     });
 
+    // Lắng nghe sự kiện cấu hình Mapping & Ngưỡng để tự động đồng bộ tức thì vào Store
+    const unsubMappingCreated = socketClient.on('mapping_created', () => fetchMachines());
+    const unsubMappingUpdated = socketClient.on('mapping_updated', () => fetchMachines());
+    const unsubMappingDeleted = socketClient.on('mapping_deleted', () => fetchMachines());
+    const unsubMappingDeactivated = socketClient.on('mapping_deactivated', () => fetchMachines());
+    const unsubThresholdsUpdated = socketClient.on('thresholds_updated', () => fetchMachines());
+
     // Đồng bộ lại khi WebSocket phục hồi kết nối (Reconnect Synchronization)
     const unsubStatus = socketClient.onStatusChange((connected) => {
       if (connected) {
+        fetchLines();
+        fetchMachines();
         fetchLatestTelemetry();
         fetchIngestionOverview();
       }
@@ -100,6 +110,11 @@ export default function App() {
       unsubTelemetry();
       unsubHistorical();
       unsubIngestionStatus();
+      unsubMappingCreated();
+      unsubMappingUpdated();
+      unsubMappingDeleted();
+      unsubMappingDeactivated();
+      unsubThresholdsUpdated();
       unsubStatus();
       socketClient.disconnect();
     };
@@ -108,6 +123,8 @@ export default function App() {
     simulateTick,
     handleLiveTelemetryPacket,
     handleHistoricalBatchIngested,
+    fetchLines,
+    fetchMachines,
     fetchLatestTelemetry,
     fetchIngestionOverview,
   ]);
@@ -132,6 +149,26 @@ export default function App() {
       case 'lines':
         if (activeNavGroup === 'monitoring') {
           return <DeviceMonitoringView />;
+        }
+        if (!isAdmin && userRole !== 'MAINTENANCE') {
+          return (
+            <Card className="bg-factory-card border border-rose-500/20 p-8 text-center shadow-sm">
+              <CardBody className="flex flex-col items-center gap-4">
+                <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400">
+                  <ShieldAlert className="w-10 h-10" />
+                </div>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                  Không Đủ Quyền Truy Cập (403 Forbidden)
+                </h2>
+                <p className="text-sm text-slate-600 dark:text-slate-400 max-w-lg">
+                  Tài khoản nhân viên vận hành (Operator) không có quyền cấu hình Dây chuyền & Thiết bị. Vui lòng liên hệ Quản trị viên để được hỗ trợ.
+                </p>
+                <Button color="primary" variant="solid" className="bg-emerald-600 text-white" onPress={() => setActiveTab('dashboard')}>
+                  Quay Về Dashboard Tổng Quan
+                </Button>
+              </CardBody>
+            </Card>
+          );
         }
         return <MachineListView />;
 
@@ -233,6 +270,26 @@ export default function App() {
 
       case 'metrics':
       case 'settings':
+        if (!isAdmin && userRole !== 'MAINTENANCE') {
+          return (
+            <Card className="bg-factory-card border border-rose-500/20 p-8 text-center shadow-sm">
+              <CardBody className="flex flex-col items-center gap-4">
+                <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400">
+                  <ShieldAlert className="w-10 h-10" />
+                </div>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                  Không Đủ Quyền Truy Cập (403 Forbidden)
+                </h2>
+                <p className="text-sm text-slate-600 dark:text-slate-400 max-w-lg">
+                  Tài khoản nhân viên vận hành (Operator) không có quyền truy cập hoặc cấu hình Danh mục Thông số. Vui lòng liên hệ Quản trị viên để được hỗ trợ.
+                </p>
+                <Button color="primary" variant="solid" className="bg-emerald-600 text-white" onPress={() => setActiveTab('dashboard')}>
+                  Quay Về Dashboard Tổng Quan
+                </Button>
+              </CardBody>
+            </Card>
+          );
+        }
         return <MetricCatalogView />;
 
       default:
@@ -240,5 +297,17 @@ export default function App() {
     }
   };
 
-  return <MainLayout>{renderTabContent()}</MainLayout>;
+  return (
+    <MainLayout>
+      <ErrorBoundary
+        fallbackTitle="Sự cố hiển thị phân hệ giám sát"
+        onReset={() => {
+          setActiveTab('dashboard');
+          useMonitoringStore.getState().setDashboardViewLevel('factory_layout');
+        }}
+      >
+        {renderTabContent()}
+      </ErrorBoundary>
+    </MainLayout>
+  );
 }

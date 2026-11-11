@@ -47,12 +47,11 @@ export function Sidebar() {
   const isMaintenance= userRole === "MAINTENANCE";
 
   /* -------- Danh sách menu theo phân quyền RBAC -------- */
-  const configItems: NavItem[] = [
-    { id: "lines", group: "config", label: "Dây chuyền & Thiết bị", icon: GitBranch },
-    { id: "metrics", group: "config", label: "Danh mục Thông số", icon: Gauge },
-  ];
+  const configItems: NavItem[] = [];
 
   if (isAdmin || isMaintenance) {
+    configItems.push({ id: "lines", group: "config", label: "Dây chuyền & Thiết bị", icon: GitBranch });
+    configItems.push({ id: "metrics", group: "config", label: "Danh mục Thông số", icon: Gauge });
     configItems.push({ id: "thresholds", group: "config", label: "Mapping & Ngưỡng cảnh báo", icon: ArrowLeftRight });
   }
 
@@ -215,7 +214,9 @@ export function Sidebar() {
 
         {/* -------- MENU NHÓM -------- */}
         <nav className="px-3 py-5 space-y-6">
-          <NavGroup title="NHÓM CẤU HÌNH" items={configItems} />
+          {configItems.length > 0 && (
+            <NavGroup title="NHÓM CẤU HÌNH" items={configItems} />
+          )}
           <NavGroup title="NHÓM GIÁM SÁT" items={monitoringItems} />
         </nav>
       </div>

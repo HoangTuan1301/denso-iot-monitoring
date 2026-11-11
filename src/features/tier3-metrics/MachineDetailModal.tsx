@@ -21,6 +21,7 @@ import {
   Calendar,
   FileSpreadsheet,
   Cpu,
+  ClipboardList,
 } from 'lucide-react';
 import { MachineComponent } from '../../types/hierarchy';
 import { MetricHistoryChart } from '../../components/charts/MetricHistoryChart';
@@ -44,7 +45,7 @@ export function MachineDetailModal({
   onClose,
   onOpenQR,
 }: MachineDetailModalProps) {
-  const { lines, setActiveTab, simulateTick } = useMonitoringStore();
+  const { lines, setActiveTab, simulateTick, navigateToCheckSheet } = useMonitoringStore();
   const [selectedMetricId, setSelectedMetricId] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<TimeRangeMode>('1h');
   const [customDate, setCustomDate] = useState<string>('2026-05-22');
@@ -454,6 +455,19 @@ export function MachineDetailModal({
                     Mã QR
                   </Button>
                 )}
+
+                <Button
+                  size="sm"
+                  variant="solid"
+                  className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-xs"
+                  startContent={<ClipboardList className="w-3.5 h-3.5" />}
+                  onPress={() => {
+                    onClose();
+                    navigateToCheckSheet(machine.id, machine.lineId);
+                  }}
+                >
+                  Mở CHECK SHEET
+                </Button>
 
                 <Button
                   size="sm"

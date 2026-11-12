@@ -9,7 +9,7 @@
  * - Không gây lỗi mạng hoặc loop console khi chưa có file ảnh
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Cpu, Box } from 'lucide-react';
 
 export interface MachineImageConfig {
@@ -90,8 +90,8 @@ export const MACHINE_IMAGE_REGISTRY: Record<string, MachineImageConfig> = {
     machineCode: 'DRY-01',
     machineName: 'Lò sấy nhiệt hồng ngoại Kawasumi',
     lineId: 'LN-PNT-02',
-    imageFileName: 'DRY-01.webp',
-    primaryPath: '/images/machines/DRY-01.webp',
+    imageFileName: 'DRY-01-new.png',
+    primaryPath: '/images/machines/DRY-01-new.png',
     description: 'Buồng lò sấy nhiệt hồng ngoại điều nhiệt tự động Kawasumi',
   },
   'MC-DRY-01': {
@@ -99,8 +99,8 @@ export const MACHINE_IMAGE_REGISTRY: Record<string, MachineImageConfig> = {
     machineCode: 'MC-DRY-01',
     machineName: 'Trạm sấy hồng ngoại',
     lineId: 'LN-PNT-02',
-    imageFileName: 'MC-DRY-01.webp',
-    primaryPath: '/images/machines/MC-DRY-01.webp',
+    imageFileName: 'MC-DRY-01-new.png',
+    primaryPath: '/images/machines/MC-DRY-01-new.png',
     description: 'Trạm tiền sấy hồng ngoại công đoạn sơn',
   },
   'MC-PNT-01': {
@@ -108,8 +108,8 @@ export const MACHINE_IMAGE_REGISTRY: Record<string, MachineImageConfig> = {
     machineCode: 'MC-PNT-01',
     machineName: 'Trạm phun sơn tự động',
     lineId: 'LN-PNT-02',
-    imageFileName: 'MC-PNT-01.webp',
-    primaryPath: '/images/machines/MC-PNT-01.webp',
+    imageFileName: 'MC-PNT-01-new.png',
+    primaryPath: '/images/machines/MC-PNT-01-new.png',
     description: 'Trạm phun phủ bề mặt sơn tĩnh điện tự động',
   },
   'MCH-PNT-01': {
@@ -117,8 +117,8 @@ export const MACHINE_IMAGE_REGISTRY: Record<string, MachineImageConfig> = {
     machineCode: 'PNT-01',
     machineName: 'Buồng phun sơn robot Yaskawa EPX',
     lineId: 'LN-PNT-02',
-    imageFileName: 'PNT-01.webp',
-    primaryPath: '/images/machines/PNT-01.webp',
+    imageFileName: 'PNT-01-new.png',
+    primaryPath: '/images/machines/PNT-01-new.png',
     description: 'Buồng robot sơn cánh tay chuyển động linh hoạt Yaskawa EPX',
   },
 
@@ -128,8 +128,8 @@ export const MACHINE_IMAGE_REGISTRY: Record<string, MachineImageConfig> = {
     machineCode: 'ASM-01',
     machineName: 'Robot siết bulong tự động Atlas Copco',
     lineId: 'LN-ASM-03',
-    imageFileName: 'ASM-01.webp',
-    primaryPath: '/images/machines/ASM-01.webp',
+    imageFileName: 'ASM-01-new.png',
+    primaryPath: '/images/machines/ASM-01-new.png',
     description: 'Hệ thống siết lực chính xác cao Atlas Copco Tensor',
   },
   'MC-TST-01': {
@@ -137,8 +137,8 @@ export const MACHINE_IMAGE_REGISTRY: Record<string, MachineImageConfig> = {
     machineCode: 'MC-TST-01',
     machineName: 'Trạm kiểm tra chức năng',
     lineId: 'LN-ASM-03',
-    imageFileName: 'MC-TST-01.webp',
-    primaryPath: '/images/machines/MC-TST-01.webp',
+    imageFileName: 'MC-TST-01-new.png',
+    primaryPath: '/images/machines/MC-TST-01-new.png',
     description: 'Trạm kiểm tra chức năng rò rỉ khí và kín khít',
   },
   'MCH-MS10': {
@@ -146,8 +146,8 @@ export const MACHINE_IMAGE_REGISTRY: Record<string, MachineImageConfig> = {
     machineCode: 'MS-10',
     machineName: 'Messi',
     lineId: 'LN-ASM-03',
-    imageFileName: 'MS-10.webp',
-    primaryPath: '/images/machines/MS-10.webp',
+    imageFileName: 'MS-10-new.png',
+    primaryPath: '/images/machines/MS-10-new.png',
     description: 'Trạm gia công chuyên dụng MS-10 (gán 2 metric TORQUE_TIGHTENING & CURRENT_PHASE)',
   },
   'MCH-TST-01': {
@@ -155,8 +155,8 @@ export const MACHINE_IMAGE_REGISTRY: Record<string, MachineImageConfig> = {
     machineCode: 'TST-01',
     machineName: 'Băng chuyền kiểm tra cuối dòng TestBench',
     lineId: 'LN-ASM-03',
-    imageFileName: 'TST-01.webp',
-    primaryPath: '/images/machines/TST-01.webp',
+    imageFileName: 'TST-01-new.png',
+    primaryPath: '/images/machines/TST-01-new.png',
     description: 'Băng chuyền kiểm tra tổng thể cuối chuyền TestBench',
   },
 };
@@ -247,10 +247,30 @@ export function MachineImage({
   const cfg = getMachineImageConfig(machineId) || getMachineImageConfig(machineCode);
   const identifier = machineCode || machineId || 'MCH';
 
-  // Thử các đuôi mở rộng: .webp -> .png -> .jpg nếu dùng ảnh tĩnh
+  // Thử các nguồn ảnh ứng viên: ưu tiên primaryPath / imageFileName, sau đó fallback .webp -> .png -> .jpg
   const baseCode = cfg?.machineCode || identifier;
-  const extensionCandidates = ['webp', 'png', 'jpg'];
-  const [extIndex, setExtIndex] = useState(0);
+  const primaryFile = cfg?.primaryPath || (cfg?.imageFileName ? `/images/machines/${cfg.imageFileName}` : null);
+  const baseFile = cfg?.imageFileName
+    ? cfg.imageFileName.replace(/\.[^/.]+$/, '')
+    : baseCode;
+
+  const candidateSources = useMemo(() => {
+    const list: string[] = [];
+    if (primaryFile) list.push(primaryFile);
+    ['webp', 'png', 'jpg'].forEach((ext) => {
+      const p = `/images/machines/${baseFile}.${ext}`;
+      if (!list.includes(p)) list.push(p);
+    });
+    if (cfg?.machineCode && cfg.machineCode !== baseFile) {
+      ['webp', 'png', 'jpg'].forEach((ext) => {
+        const p = `/images/machines/${cfg.machineCode}.${ext}`;
+        if (!list.includes(p)) list.push(p);
+      });
+    }
+    return list;
+  }, [primaryFile, baseFile, cfg?.machineCode]);
+
+  const [srcIndex, setSrcIndex] = useState(0);
   const [hasError, setHasError] = useState(false);
   const [userImgError, setUserImgError] = useState(false);
 
@@ -258,7 +278,7 @@ export function MachineImage({
   const hasUserImage = Boolean(imageUrl && !userImgError);
   const currentSrc = hasUserImage
     ? (imageUrl as string)
-    : `/images/machines/${baseCode}.${extensionCandidates[extIndex]}`;
+    : candidateSources[srcIndex] || `/images/machines/${baseCode}.png`;
 
   const handleError = () => {
     if (hasUserImage) {
@@ -266,8 +286,8 @@ export function MachineImage({
       setUserImgError(true);
       return;
     }
-    if (extIndex < extensionCandidates.length - 1) {
-      setExtIndex((prev) => prev + 1);
+    if (srcIndex < candidateSources.length - 1) {
+      setSrcIndex((prev) => prev + 1);
     } else {
       setHasError(true);
     }

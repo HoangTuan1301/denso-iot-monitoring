@@ -71,19 +71,30 @@ export function LineGenericPhotorealisticView({
   // Ánh xạ dữ liệu 4 trạm kết hợp cấu hình hiển thị chuẩn
   const stations = useMemo(() => {
     return stationConfigs.map((cfg, index) => {
+      // 1. Ưu tiên khớp chính xác theo Database ID hoặc Machine Code chuẩn
       const live =
         flowStations.find(
           (st) =>
-            st.code === cfg.op ||
-            st.code === cfg.code ||
-            st.actualCode === cfg.code ||
             st.id === cfg.defaultId ||
-            st.machine?.id === cfg.defaultId
+            st.machine?.id === cfg.defaultId ||
+            st.actualCode === cfg.code ||
+            st.code === cfg.code
         ) ||
+        flowStations.find((st) => st.code === cfg.op) ||
         flowStations[index] ||
         null;
 
-      const machineId = live?.machine?.id || live?.id || cfg.defaultId;
+      // 2. Bảo đảm machineId và tên máy luôn tuân theo cấu hình chuẩn của trạm nếu live không khớp định danh chính xác
+      const isExactMatch = Boolean(
+        live &&
+          (live.id === cfg.defaultId ||
+            live.machine?.id === cfg.defaultId ||
+            live.actualCode === cfg.code ||
+            live.code === cfg.code)
+      );
+
+      const machineId = isExactMatch ? (live?.machine?.id || live?.id || cfg.defaultId) : cfg.defaultId;
+      const name = isExactMatch ? (live?.name || cfg.name) : cfg.name;
       const status = live?.status || 'OK';
       const statusLabel =
         status === 'CRITICAL'
@@ -97,7 +108,7 @@ export function LineGenericPhotorealisticView({
       return {
         op: cfg.op,
         code: cfg.code,
-        name: live?.name || cfg.name,
+        name,
         machineId,
         status,
         statusLabel,

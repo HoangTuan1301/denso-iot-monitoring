@@ -40,7 +40,7 @@ import {
 } from 'recharts';
 import { useMonitoringStore } from '../../stores/useMonitoringStore';
 import { resolveMachineMonitoringState } from '../../utils/machineStatusResolver';
-import { MachineImage } from '../../config/machineImages';
+import { MachineImageViewer } from '../../components/common/MachineImageViewer';
 
 interface MachineDetailViewProps {
   machineId: string;
@@ -316,11 +316,13 @@ export function MachineDetailView({
 
           {/* Minh họa mô hình máy với ảnh CAD công nghiệp */}
           <div className="p-4 rounded-xl bg-slate-50/70 dark:bg-factory-surface border border-slate-200/80 dark:border-factory-border flex flex-col items-center justify-center min-h-[190px]">
-            <MachineImage
+            <MachineImageViewer
               machineId={machine.id}
               machineCode={machine.code}
               imageUrl={machine.imageUrl}
               alt={machine.name}
+              name={machine.name}
+              code={machine.code || machine.id}
               className="max-h-36 w-auto object-contain mx-auto transition-transform hover:scale-105"
               containerClassName="w-full h-36 mb-2"
               showFallbackLabel={true}

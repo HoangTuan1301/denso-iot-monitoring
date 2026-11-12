@@ -192,9 +192,13 @@ export async function initDatabase() {
         VALUES 
           ('MCH-PRS-01', 'LINE-01', 'Máy Dập Thủy Lực 500T Komatsu', 'STP-01', 'hydraulic_press', 'normal', 96, 340, '/qr/mch-prs-01'),
           ('MCH-WLD-01', 'LINE-01', 'Robot Hàn Điểm Fanuc R-2000iC', 'ROB-01', 'welding_robot', 'normal', 99, 410, '/qr/mch-wld-01'),
-          ('MCH-PNT-01', 'LINE-02', 'Buồng Phun Sơn Robot Yaskawa EPX', 'PNT-01', 'paint_booth', 'normal', 92, 280, '/qr/mch-pnt-01'),
           ('MCH-DRY-01', 'LINE-02', 'Lò Sấy Nhiệt Hồng Ngoại Kawasumi', 'DRY-01', 'drying_oven', 'normal', 95, 390, '/qr/mch-dry-01'),
+          ('MC-DRY-01', 'LINE-02', 'Trạm Sấy Hồng Ngoại', 'MC-DRY-01', 'drying_station', 'normal', 94, 310, '/qr/mc-dry-01'),
+          ('MC-PNT-01', 'LINE-02', 'Trạm Phun Sơn Tự Động', 'MC-PNT-01', 'paint_station', 'normal', 93, 290, '/qr/mc-pnt-01'),
+          ('MCH-PNT-01', 'LINE-02', 'Buồng Phun Sơn Robot Yaskawa EPX', 'PNT-01', 'paint_booth', 'normal', 92, 280, '/qr/mch-pnt-01'),
           ('MCH-ASM-01', 'LINE-03', 'Robot Siết Bulong Tự Động Atlas Copco', 'ASM-01', 'tightening_robot', 'normal', 99, 480, '/qr/mch-asm-01'),
+          ('MC-TST-01', 'LINE-03', 'Trạm Kiểm Tra Chức Năng', 'MC-TST-01', 'testing_station', 'normal', 98, 420, '/qr/mc-tst-01'),
+          ('MCH-MS10', 'LINE-03', 'Messi', 'MS-10', 'assembly_special', 'normal', 99, 450, '/qr/mch-ms10'),
           ('MCH-TST-01', 'LINE-03', 'Băng Chuyền Kiểm Tra Cuối Dòng TestBench', 'TST-01', 'testing_station', 'normal', 97, 360, '/qr/mch-tst-01')
       `);
     }

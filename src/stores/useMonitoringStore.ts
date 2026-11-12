@@ -80,6 +80,7 @@ interface MonitoringState {
   selectedMachineId: string | null;
   selectedMetricId: string | null;
   activeEmergencyMetricId: string | null;
+  activeEmergencyMachineId: string | null;
   activeTab: NavigationTab;
   activeNavGroup: 'config' | 'monitoring';
   isRealtimeActive: boolean;
@@ -209,6 +210,7 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
   selectedMachineId: null,
   selectedMetricId: null,
   activeEmergencyMetricId: null,
+  activeEmergencyMachineId: null,
   dashboardViewLevel: 'factory_layout',
   activeTab: 'dashboard',
   activeNavGroup: 'monitoring',
@@ -400,11 +402,11 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
                     nominalValue: nominal,
                   };
                 });
-              } else if (existing?.metrics && existing.metrics.length > 0) {
-                // Bảo toàn metrics mock có sẵn nếu máy chưa cấu hình mapping trong DB
+              } else if (existing?.metrics && existing.metrics.length > 0 && apiM.status !== 'no_data') {
+                // Chỉ bảo toàn metrics mock có sẵn nếu máy KHÔNG phải là no_data từ API
                 resolvedMetrics = existing.metrics;
               } else {
-                // Không tự tạo mapping cho máy chưa được cấu hình
+                // Không tự tạo mapping cho máy chưa được cấu hình hoặc máy no_data
                 resolvedMetrics = [];
               }
 
@@ -416,12 +418,12 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
                   name: apiM.name,
                   code: apiM.code || apiM.id,
                   type: apiM.type,
-                  status: ((apiM.status ? apiM.status.toLowerCase() : existing.status) || 'no_data') as SystemStatus,
+                  status: (apiM.status ? (apiM.status.toLowerCase() as SystemStatus) : (existing.status || 'no_data')),
                   managementStatus: (apiM as any).managementStatus || existing.managementStatus || 'active',
                   location: apiM.location || existing.location || `Xưởng ${line.name}`,
                   description: apiM.description !== undefined ? apiM.description : existing.description,
-                  healthScore: apiM.healthScore ?? existing.healthScore,
-                  uptimeHours: apiM.uptimeHours ?? existing.uptimeHours,
+                  healthScore: apiM.healthScore !== undefined ? apiM.healthScore : null,
+                  uptimeHours: apiM.uptimeHours !== undefined ? apiM.uptimeHours : (existing.uptimeHours ?? 0),
                   qrCodeUrl: apiM.qrCodeUrl ?? existing.qrCodeUrl,
                   mappingCount: actualMappingCount,
                   metrics: resolvedMetrics,
@@ -854,6 +856,8 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
             ? 'critical'
             : machineHasWarning
             ? 'warning'
+            : (machine.status === 'no_data' || machine.status === 'offline' || machine.status === 'unknown')
+            ? machine.status
             : 'normal';
 
           return {
@@ -908,7 +912,7 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
 
           return {
             ...m,
-            status: 'normal' as SystemStatus,
+            status: (m.status === 'no_data' || m.status === 'offline' || m.status === 'unknown') ? m.status : ('normal' as SystemStatus),
             metrics: updatedMetrics,
           };
         });
@@ -922,13 +926,14 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
         };
       });
 
-      return { lines: updatedLines, activeEmergencyMetricId: null };
+      return { lines: updatedLines, activeEmergencyMetricId: null, activeEmergencyMachineId: null };
     });
   },
 
   /**
    * Giả lập sự cố khẩn cấp ngẫu nhiên (Demo Feature)
    * Duy trì trạng thái nguy hiểm liên tục cho đến khi bấm Khôi phục Sự cố
+   * Đảm bảo tính nhất quán: Mỗi lần kích hoạt chỉ tác động đúng DUY NHẤT 1 máy mục tiêu (Single target)
    */
   triggerEmergencyDemo: () => {
     let triggeredInfo: {
@@ -939,25 +944,62 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
       unit: string;
     } | null = null;
 
+    // Dọn dẹp cảnh báo demo cũ trước khi tạo mới để không bị cộng dồn
+    useAlarmStore.getState().resolveDemoAlarms('Tự động hoàn tất kịch bản cũ trước khi bắt đầu kịch bản mới.');
+
     set((state) => {
       if (state.lines.length === 0) return state;
 
-      // Ưu tiên chọn dây chuyền và máy người dùng đang quan sát để quan sát trực quan tức thì
-      let lineIdx = state.lines.findIndex((l) => l.id === state.selectedLineId || l.code === state.selectedLineId);
-      if (lineIdx === -1) lineIdx = 0;
-      const targetLine = state.lines[lineIdx];
-      if (targetLine.machines.length === 0) return state;
+      // 1. Sanitize: Đưa toàn bộ các máy đang bị spike trước đó về bình thường trước khi áp dụng sự cố mới
+      const baseLines = state.lines.map((l) => ({
+        ...l,
+        machines: l.machines.map((m) => {
+          let hadSpike = false;
+          const cleanedMetrics = m.metrics.map((mtr) => {
+            if (mtr.isEmergencySpike) {
+              hadSpike = true;
+              const { nominal } = resolveMetricNominalBaseline(mtr);
+              return {
+                ...mtr,
+                isEmergencySpike: false,
+                currentValue: nominal,
+                status: 'normal' as SystemStatus,
+              };
+            }
+            return mtr;
+          });
+          return {
+            ...m,
+            status: hadSpike ? ((m.status === 'no_data' || m.status === 'offline') ? m.status : ('normal' as SystemStatus)) : m.status,
+            metrics: cleanedMetrics,
+          };
+        }),
+      }));
 
-      let machineIdx = targetLine.machines.findIndex((m) => m.id === state.selectedMachineId || m.code === state.selectedMachineId);
-      if (machineIdx === -1) {
-        machineIdx = Math.floor(Math.random() * targetLine.machines.length);
+      // 2. Tìm dây chuyền và máy mục tiêu
+      let lineIdx = baseLines.findIndex((l) => l.id === state.selectedLineId || l.code === state.selectedLineId);
+      if (lineIdx === -1) lineIdx = 0;
+      const targetLine = baseLines[lineIdx];
+      if (targetLine.machines.length === 0) return { lines: baseLines };
+
+      // Tìm máy có metrics hợp lệ để giả lập sự cố
+      const validMachines = targetLine.machines.filter((m) => m.metrics && m.metrics.length > 0 && m.status !== 'no_data');
+      if (validMachines.length === 0) return { lines: baseLines };
+
+      let targetMachine: MachineComponent;
+      if (state.selectedMachineId) {
+        const found = targetLine.machines.find((m) => m.id === state.selectedMachineId || m.code === state.selectedMachineId);
+        targetMachine = found && found.metrics.length > 0 ? found : validMachines[0];
+      } else {
+        targetMachine = validMachines[0];
       }
-      const targetMachine = targetLine.machines[machineIdx];
-      if (targetMachine.metrics.length === 0) return state;
+
+      const machineIdx = targetLine.machines.findIndex((m) => m.id === targetMachine.id);
+      if (machineIdx === -1) return { lines: baseLines };
 
       let metricIdx = targetMachine.metrics.findIndex((mtr) => mtr.id === state.selectedMetricId);
       if (metricIdx === -1) {
-        metricIdx = Math.floor(Math.random() * targetMachine.metrics.length);
+        metricIdx = 0;
       }
       const targetMetric = targetMachine.metrics[metricIdx];
 
@@ -1000,7 +1042,7 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
         `Giả lập sự cố khẩn cấp: ${targetMetric.name} tăng vọt ${spikeValue} ${targetMetric.unit} tại ${targetLine.name}`
       );
 
-      const updatedLines = state.lines.map((l, lIdx) => {
+      const updatedLines = baseLines.map((l, lIdx) => {
         if (lIdx !== lineIdx) return l;
 
         const updatedMachines = l.machines.map((m, mIdx) => {
@@ -1038,7 +1080,11 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
         };
       });
 
-      return { lines: updatedLines, activeEmergencyMetricId: targetMetric.id };
+      return {
+        lines: updatedLines,
+        activeEmergencyMetricId: targetMetric.id,
+        activeEmergencyMachineId: targetMachine.id,
+      };
     });
 
     return triggeredInfo;

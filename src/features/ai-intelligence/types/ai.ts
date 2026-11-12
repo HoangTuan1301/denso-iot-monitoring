@@ -96,14 +96,18 @@ export interface AIPredictiveOrder {
   lineName: string;
   priority: MaintenancePriority;
   healthScore: number;
+  confidence?: number;
   component: string;
   symptom: string;
   rootCause: string;
   recommendedAction: string;
+  assignee?: string;
+  dueDate?: string;
+  imageUrl?: string;
   estimatedTimeToDegrade: string; // Có gắn nhãn Demo / Giả lập
   estimatedWorkHours: number;
   suggestedTools: string[];
-  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'PLANNED';
 }
 
 export interface AITrendPoint {

@@ -12,9 +12,6 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import {
-  ShieldCheck,
-  Monitor,
-  AlertTriangle,
   Factory,
   Map,
   BarChart3,
@@ -23,8 +20,6 @@ import {
 } from 'lucide-react';
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
   AreaChart,
   Area,
   BarChart,
@@ -44,7 +39,11 @@ import { ErrorBoundary } from '../../components/common/ErrorBoundary';
 
 // Import bản đồ mặt bằng & panel tìm kiếm
 import { FactoryLayoutMap } from '../dashboard/FactoryLayoutMap';
-import { FactoryLineSearchPanel } from '../dashboard/FactoryLineSearchPanel';
+import { ProductionKpiRow } from '../dashboard/production/ProductionKpiRow';
+import { ProductionDecisionPanel } from '../dashboard/production/ProductionDecisionPanel';
+import { useProductionOverview, useCauseText } from '../dashboard/production/useProduction';
+import type { ZoneProductionState } from '../dashboard/FactoryLayoutMap';
+import { useTranslation } from 'react-i18next';
 import { FACTORY_ZONES, FactoryZone } from '../dashboard/factoryMapConfig';
 
 // Import các màn hình con phân tầng
@@ -59,7 +58,6 @@ import { CheckSheetView } from '../checksheet/CheckSheetView';
 function FactoryLayoutMainView() {
   const {
     lines,
-    setActiveTab,
     navigateToLine,
     fetchLines,
     fetchMachines,
@@ -74,6 +72,41 @@ function FactoryLayoutMainView() {
   const [selectedZone, setSelectedZone] = useState<FactoryZone | null>(() => {
     return FACTORY_ZONES.find((z) => z.id === 'CVT') || FACTORY_ZONES[0] || null;
   });
+
+  // Dữ liệu sản xuất (mô phỏng): KPI, trạng thái line trên sơ đồ, Top 5, What-If
+  const { t } = useTranslation();
+  const causeText = useCauseText();
+  const production = useProductionOverview();
+  const [selectedLineCode, setSelectedLineCode] = useState<string | null>(null);
+
+  // Mặc định chọn line dừng lâu nhất khi có dữ liệu
+  useEffect(() => {
+    const top = production.data?.topDowntime;
+    if (!selectedLineCode && top && top.length > 0) setSelectedLineCode(top[0].lineCode);
+  }, [production.data, selectedLineCode]);
+
+  const productionZones = useMemo(() => {
+    const map: Record<string, ZoneProductionState> = {};
+    for (const l of production.data?.lineStates ?? []) {
+      if (!l.zoneId) continue;
+      map[l.zoneId] = {
+        status: l.productionStatus,
+        oee: l.oee,
+        note: l.statusCode ? causeText(l.statusCode, l.statusOp, l.statusNote) : null,
+        lineId: l.lineId,
+        lineCode: l.lineCode,
+        virtual: l.virtual,
+      };
+    }
+    return map;
+  }, [production.data, causeText]);
+
+  const handleSelectProductionLine = (lineCode: string) => {
+    setSelectedLineCode(lineCode);
+    const zoneId = production.data?.lineStates.find((l) => l.lineCode === lineCode)?.zoneId;
+    const z = zoneId ? FACTORY_ZONES.find((item) => item.id === zoneId) : null;
+    if (z) setSelectedZone(z);
+  };
 
   // Nạp dữ liệu đồng bộ khi mount
   useEffect(() => {
@@ -98,28 +131,6 @@ function FactoryLayoutMainView() {
     }
     return list;
   }, [lines]);
-
-  const avgSafetyScore = useMemo(() => {
-    if (!lines || lines.length === 0) return 96.8;
-    const sum = lines.reduce((acc, curr) => acc + (curr.safetyScore ?? 96.8), 0);
-    const score = Number((sum / lines.length).toFixed(1));
-    return isNaN(score) ? 96.8 : score;
-  }, [lines]);
-
-  const safetySparklineData = useMemo(() => {
-    const base = avgSafetyScore;
-    return [
-      { v: Math.max(30, base - 3) },
-      { v: Math.max(30, base - 1) },
-      { v: Math.max(30, base + 2) },
-      { v: Math.max(30, base - 2) },
-      { v: Math.max(30, base + 1) },
-      { v: base },
-    ];
-  }, [avgSafetyScore]);
-
-  const totalLines = lines.length || 3;
-  const runningLinesCount = lines.filter((l) => (l.status || 'running').toLowerCase() === 'running').length || 3;
 
   const deviceClassification = useMemo(() => {
     let operating = 0;
@@ -156,25 +167,6 @@ function FactoryLayoutMainView() {
     return alarms.filter((a) => a.status !== 'resolved').length || 2;
   }, [alarms]);
 
-  const criticalAlarmsCount = useMemo(() => {
-    return alarms.filter((a) => a.status !== 'resolved' && a.severity === 'critical').length;
-  }, [alarms]);
-
-  const warningAlarmsCount = useMemo(() => {
-    return alarms.filter((a) => a.status !== 'resolved' && a.severity === 'warning').length;
-  }, [alarms]);
-
-  const alarmsSparklineData = useMemo(() => {
-    return [
-      { v: 1 },
-      { v: 3 },
-      { v: 2 },
-      { v: 4 },
-      { v: 3 },
-      { v: activeAlarmsCount },
-    ];
-  }, [activeAlarmsCount]);
-
   const safetyTrendData = useMemo(() => {
     return [
       { time: '08:00', score: 94.2 },
@@ -202,140 +194,11 @@ function FactoryLayoutMainView() {
 
   return (
     <div className="space-y-4 animate-in fade-in duration-200">
-      {/* ========================================================================= */}
-      {/* KHU VỰC 1: 4 THẺ KPI NẰM NGANG TRÊN DESKTOP                               */}
-      {/* ========================================================================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        {/* KPI 1: Chỉ số an toàn xưởng */}
-        <div
-          className="bg-white dark:bg-factory-card p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between h-[115px] relative overflow-hidden transition-all hover:border-slate-300 dark:hover:border-slate-700"
-          title="Chỉ số an toàn vận hành trung bình tính toán từ các dây chuyền sản xuất"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
-              Chỉ số an toàn xưởng
-            </span>
-            <div className="w-6 h-6 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-200/60 dark:border-emerald-800/40">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
-          </div>
-
-          <div className="my-0.5">
-            <div className="text-3xl font-extrabold text-slate-900 dark:text-white font-mono leading-none tracking-tight">
-              {avgSafetyScore}%
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between text-[11px] font-medium">
-            <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-semibold">
-              <span>▲</span>
-              <span>+1.2% so với hôm qua</span>
-            </span>
-
-            <div className="w-[60px] h-[20px] shrink-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={safetySparklineData}>
-                  <Line type="monotone" dataKey="v" stroke="#10b981" strokeWidth={2} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-
-        {/* KPI 2: Dây chuyền sản xuất */}
-        <div
-          className="bg-white dark:bg-factory-card p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between h-[115px] relative overflow-hidden transition-all hover:border-slate-300 dark:hover:border-slate-700"
-          title="Số dây chuyền sản xuất công nghiệp được giám sát trong hệ thống"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
-              Dây chuyền sản xuất
-            </span>
-            <div className="w-6 h-6 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-200/60 dark:border-emerald-800/40">
-              <Factory className="w-4 h-4" />
-            </div>
-          </div>
-
-          <div className="my-0.5">
-            <div className="text-3xl font-extrabold text-slate-900 dark:text-white font-mono leading-none tracking-tight">
-              {totalLines}
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-            <span>Đang hoạt động: <strong className="text-slate-800 dark:text-slate-200 font-mono">{runningLinesCount}/{totalLines}</strong></span>
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          </div>
-        </div>
-
-        {/* KPI 3: Thiết bị giám sát */}
-        <div
-          className="bg-white dark:bg-factory-card p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between h-[115px] relative overflow-hidden transition-all hover:border-slate-300 dark:hover:border-slate-700"
-          title="Tổng số thiết bị trong hệ thống và trạng thái kết nối"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
-              Thiết bị giám sát
-            </span>
-            <div className="w-6 h-6 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-200/60 dark:border-emerald-800/40">
-              <Monitor className="w-4 h-4" />
-            </div>
-          </div>
-
-          <div className="my-0.5">
-            <div className="text-3xl font-extrabold text-slate-900 dark:text-white font-mono leading-none tracking-tight">
-              {deviceClassification.total}
-            </div>
-          </div>
-
-          <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center justify-between">
-            <span className="flex items-center gap-1">
-              <span>Kết nối: <strong className="text-slate-800 dark:text-slate-200 font-mono">{deviceClassification.online}/{deviceClassification.total}</strong></span>
-            </span>
-            <span className="text-emerald-600 font-bold font-mono">100% OK</span>
-          </div>
-        </div>
-
-        {/* KPI 4: Cảnh báo đang hoạt động */}
-        <div
-          onClick={() => setActiveTab('alarms')}
-          className="bg-white dark:bg-factory-card p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between h-[115px] relative overflow-hidden transition-all hover:border-rose-300 dark:hover:border-rose-800 cursor-pointer group"
-          title="Nhấn để chuyển sang trang Cảnh báo & Sự cố"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 group-hover:text-rose-600 transition-colors">
-              Cảnh báo hoạt động
-            </span>
-            <div className="w-6 h-6 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center border border-rose-200/60 dark:border-rose-800/40">
-              <AlertTriangle className="w-4 h-4" />
-            </div>
-          </div>
-
-          <div className="my-0.5">
-            <div
-              className={`text-3xl font-extrabold font-mono leading-none tracking-tight ${
-                activeAlarmsCount > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'
-              }`}
-            >
-              {activeAlarmsCount}
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between text-[11px] font-medium">
-            <span className="text-slate-600 dark:text-slate-300 flex items-center gap-1">
-              <span>Đang xử lý: <strong className="text-rose-600 font-mono">{activeAlarmsCount}</strong></span>
-              <span className="text-slate-400 text-[10px]">({criticalAlarmsCount} nguy cấp, {warningAlarmsCount} cảnh báo)</span>
-            </span>
-            <div className="w-[60px] h-[20px] shrink-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={alarmsSparklineData}>
-                  <Line type="monotone" dataKey="v" stroke="#ef4444" strokeWidth={2} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* KHU VỰC 1: THẺ KPI SẢN XUẤT (OEE nhà máy · line · máy · trạng thái máy · offline) */}
+      <ProductionKpiRow data={production.data} loading={production.loading} />
+      {production.data?.simulated && (
+        <p className="-mt-2 text-[10px] text-slate-500 dark:text-slate-400 text-right">* {t('common.simulatedData')}</p>
+      )}
 
       {/* ========================================================================= */}
       {/* THANH CHUYỂN ĐỔI CHẾ ĐỘ XEM: SƠ ĐỒ MẶT BẰNG (MẶC ĐỊNH) vs PHÂN TÍCH       */}
@@ -384,6 +247,8 @@ function FactoryLayoutMainView() {
             {/* Cột trái / Trung tâm: Bản đồ SVG 87 khu vực */}
             <div className="flex-1 min-w-0 w-full">
               <FactoryLayoutMap
+                productionZones={productionZones}
+                onSelectProductionLine={handleSelectProductionLine}
                 viewMode={mapViewMode}
                 onChangeViewMode={setMapViewMode}
                 selectedZoneId={selectedZone?.id || null}
@@ -392,15 +257,15 @@ function FactoryLayoutMainView() {
               />
             </div>
 
-            {/* Cột phải: Panel Tìm kiếm và Danh sách Dây chuyền nhỏ gọn (220px) */}
-            <FactoryLineSearchPanel
-              lines={lines}
-              selectedZone={selectedZone}
-              onSelectZone={(zoneId) => {
-                const z = FACTORY_ZONES.find((item) => item.id === zoneId);
-                if (z) setSelectedZone(z);
-              }}
-              onOpenLineOverview={(lineId) => navigateToLine(lineId)}
+            {/* Cột phải: Top 5 line dừng lâu → What-If → Thác tổn thất → Khuyến nghị */}
+            <ProductionDecisionPanel
+              overview={production.data}
+              loading={production.loading}
+              error={production.error}
+              onRetry={production.reload}
+              selectedLineCode={selectedLineCode}
+              onSelectLine={handleSelectProductionLine}
+              onOpenLine={(lineId) => navigateToLine(lineId)}
             />
           </div>
 

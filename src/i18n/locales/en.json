@@ -53,5 +53,87 @@
     "toDark": "Switch to dark theme",
     "logout": "Sign out",
     "restoreIncident": "Restore incident"
+  },
+  "dashboard": {
+    "kpi": {
+      "factoryOee": "FACTORY OEE (MACHINE)",
+      "oeeTarget": "Target {{target}}%",
+      "totalLines": "Production lines",
+      "linesProducing": "{{count}} running normally",
+      "totalMachines": "Machines",
+      "machinesConnected": "Connected {{online}}/{{total}}",
+      "machineStatus": "Machine status",
+      "running": "Running",
+      "alarmStop": "Alarm / Stop",
+      "offline": "Offline / No data",
+      "offlineHint": "Check PLC connection",
+      "shift": "Shift {{shift}} · {{label}}"
+    },
+    "mapLegend": {
+      "running": "Running",
+      "warning": "Watch",
+      "alarm": "Alarm / Stopped"
+    }
+  },
+  "decision": {
+    "top5Title": "Top 5 lines by long downtime",
+    "minutes": "{{count}} min",
+    "virtualTag": "simulated",
+    "whatIfTitle": "What‑If simulation · {{line}}",
+    "order": "Order {{code}} · {{qty}} pcs due {{due}}",
+    "oee": "OEE",
+    "qty": "Qty",
+    "cost": "Cost",
+    "recovery": "Recovery",
+    "best": "BEST",
+    "meets": "On time",
+    "short": "Short {{count}} pcs",
+    "surplus": "+{{count}} pcs",
+    "waterfallTitle": "Loss waterfall (pcs)",
+    "scenarioLabel": "Scenario: {{name}}",
+    "plan": "Shift plan",
+    "final": "Expected end of shift",
+    "recover": "Recovery",
+    "orderLine": "Order {{qty}}",
+    "recommendTitle": "Recommendation",
+    "recNoAction": "No action needed: {{qty}}/{{req}} pcs expected, on time.",
+    "recBest": "{{name}}: reaches {{qty}}/{{req}} pcs at the lowest cost (${{cost}}), on time.",
+    "recNone": "No scenario reaches {{req}} pcs. Best: {{name}} ({{qty}} pcs, short {{short}}).",
+    "export": "Export report",
+    "loading": "Loading production data…",
+    "error": "Could not load production data.",
+    "retry": "Retry",
+    "openLine": "Open line details",
+    "scenario": {
+      "BASELINE": "Wait for repair (baseline)",
+      "REROUTE": "Reroute to {{line}}",
+      "REROUTE_NONE": "Reroute to another line",
+      "OVERTIME": "Overtime {{hours}}h",
+      "SHIFT_CHANGE_FIX": "Replace parts at shift change"
+    },
+    "status": {
+      "RUNNING": "Running",
+      "WARNING": "Watch",
+      "ALARM": "Alarm / Stopped",
+      "IDLE": "Not started"
+    },
+    "axisFrom": "Axis starts at {{value}} pcs",
+    "due": "{{time}} · shift {{shift}}"
+  },
+  "cause": {
+    "JAM": "Workpiece jam",
+    "DIE_CHANGE": "Unplanned die change",
+    "ROBOT_ERR": "Robot error",
+    "MAINT": "Maintenance repair",
+    "MATERIAL": "Waiting for material",
+    "POWER": "Power failure",
+    "SENSOR": "Sensor error",
+    "MISFEED": "Misfeed",
+    "TOOL_WEAR": "Tool/die wear",
+    "OPERATOR": "Waiting for operator",
+    "SHORT_STOP": "Minor stops (チョコ停)",
+    "SPEED_QUALITY": "Speed & quality loss",
+    "LOW_OEE": "Low OEE",
+    "SHORT_STOP_COUNT": "Minor stops × {{count}}"
   }
 }

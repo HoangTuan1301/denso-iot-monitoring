@@ -29,7 +29,21 @@ import {
 import { useMonitoringStore } from '../../stores/useMonitoringStore';
 import { resolveLineMonitoringState } from '../../utils/machineStatusResolver';
 
+/** Trạng thái sản xuất (mô phỏng) gắn lên một khu vực của sơ đồ */
+export interface ZoneProductionState {
+  status: 'RUNNING' | 'WARNING' | 'ALARM' | 'IDLE';
+  oee: number;
+  note: string | null;
+  lineId: string;
+  lineCode: string;
+  virtual: boolean;
+}
+
 interface FactoryLayoutMapProps {
+  /** Lớp trạng thái sản xuất theo id khu vực (tô màu line bất thường) */
+  productionZones?: Record<string, ZoneProductionState>;
+  /** Gọi khi bấm vào khu vực có line sản xuất (kể cả line mô phỏng) */
+  onSelectProductionLine?: (lineCode: string) => void;
   viewMode: 'safety' | 'status';
   onChangeViewMode: (mode: 'safety' | 'status') => void;
   selectedZoneId: string | null;
@@ -37,7 +51,16 @@ interface FactoryLayoutMapProps {
   onOpenLineOverview: (lineId: string) => void;
 }
 
+const PROD_STYLE = {
+  ALARM: { fill: '#FEE2E2', stroke: '#DC2626', dot: '#DC2626', text: '#B91C1C' },
+  WARNING: { fill: '#FEF9C3', stroke: '#CA8A04', dot: '#EAB308', text: '#92400E' },
+  RUNNING: { fill: null, stroke: null, dot: '#16A34A', text: '#047857' },
+  IDLE: { fill: null, stroke: null, dot: '#94A3B8', text: '#64748B' },
+} as const;
+
 export function FactoryLayoutMap({
+  productionZones,
+  onSelectProductionLine,
   viewMode,
   onChangeViewMode,
   selectedZoneId,
@@ -253,8 +276,11 @@ export function FactoryLayoutMap({
           {FACTORY_ZONES.map((zone) => {
             const isSelected = zone.id === selectedZoneId;
             const isConfigured = zone.isConfiguredLine;
-            const fillColor = getZoneFillColor(zone);
-            const strokeColor = getZoneStrokeColor(zone);
+            const prod = productionZones?.[zone.id];
+            const prodStyle = prod ? PROD_STYLE[prod.status] : null;
+            const fillColor = prodStyle?.fill || getZoneFillColor(zone);
+            const strokeColor = isSelected ? getZoneStrokeColor(zone) : prodStyle?.stroke || getZoneStrokeColor(zone);
+            const strokeW = isSelected ? '2.5' : prodStyle?.stroke ? '2' : '1';
 
             // Dữ liệu dây chuyền thật nếu là line được cấu hình
             const liveLine = isConfigured && zone.mappedLineId ? lineDataMap.get(zone.mappedLineId) : null;
@@ -262,7 +288,9 @@ export function FactoryLayoutMap({
             const liveStatus = liveLine ? liveLine.status : 'UNMONITORED';
 
             // Màu chấm tròn trạng thái phân loại tập trung
-            const dotColor = viewMode === 'safety'
+            const dotColor = prodStyle && prod?.status !== 'RUNNING'
+              ? prodStyle.dot
+              : viewMode === 'safety'
               ? getHealthScoreColor(liveScore)
               : getStatusDotColor(liveStatus);
 
@@ -315,6 +343,7 @@ export function FactoryLayoutMap({
                 onClick={(e) => {
                   e.stopPropagation();
                   onSelectZone(zone);
+                  if (prod) onSelectProductionLine?.(prod.lineCode);
                   if (zone.mappedLineId) {
                     onOpenLineOverview(zone.mappedLineId);
                   }
@@ -329,7 +358,7 @@ export function FactoryLayoutMap({
                     d={zone.svgPath}
                     fill={fillColor}
                     stroke={strokeColor}
-                    strokeWidth={isSelected ? '2.5' : '1'}
+                    strokeWidth={strokeW}
                     strokeDasharray={zone.category === 'future' ? '4 3' : 'none'}
                     className="transition-all duration-150 hover:brightness-95"
                   />
@@ -343,9 +372,25 @@ export function FactoryLayoutMap({
                     ry="2"
                     fill={fillColor}
                     stroke={strokeColor}
-                    strokeWidth={isSelected ? '2.5' : '1'}
+                    strokeWidth={strokeW}
                     strokeDasharray={zone.category === 'future' ? '4 3' : 'none'}
                     className="transition-all duration-150 hover:brightness-95"
+                  />
+                )}
+
+                {/* Viền nhấp nháy đỏ cho line đang Alarm / dừng (mô phỏng) */}
+                {prod?.status === 'ALARM' && (
+                  <rect
+                    x={zone.x - 3}
+                    y={zone.y - 3}
+                    width={zone.w + 6}
+                    height={zone.h + 6}
+                    rx="4"
+                    ry="4"
+                    fill="none"
+                    stroke="#DC2626"
+                    strokeWidth="2"
+                    className="animate-pulse pointer-events-none"
                   />
                 )}
 
@@ -483,6 +528,21 @@ export function FactoryLayoutMap({
                         {zone.id === 'OFFICE' ? '89.8%' : 'N/A'}
                       </text>
                     )}
+
+                    {/* Ghi chú nguyên nhân cho line bất thường (mô phỏng) */}
+                    {prod && prod.status !== 'RUNNING' && prod.note && (
+                      <text
+                        x={zone.x + zone.w / 2}
+                        y={zone.y + zone.h - 9}
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                        fontSize={8}
+                        fontWeight="700"
+                        fill={PROD_STYLE[prod.status].text}
+                      >
+                        {prod.note.length > 34 ? prod.note.slice(0, 33) + '…' : prod.note}
+                      </text>
+                    )}
                   </g>
                 ) : isMediumCell ? (
                   /* ======================================================== */
@@ -515,11 +575,25 @@ export function FactoryLayoutMap({
                         y={zone.y + zone.h / 2 + 8}
                         textAnchor="middle"
                         dominantBaseline="central"
-                        fontSize={7.5}
-                        fontWeight="500"
-                        fill="#64748B"
+                        fontSize={prod ? 8.5 : 7.5}
+                        fontWeight={prod ? '700' : '500'}
+                        fontFamily={prod ? 'monospace' : undefined}
+                        fill={prod ? PROD_STYLE[prod.status].text : '#64748B'}
                       >
-                        N/A
+                        {prod ? `OEE ${prod.oee.toFixed(1)}%` : 'N/A'}
+                      </text>
+                    )}
+                    {prod && prod.status !== 'RUNNING' && prod.note && zone.h >= 55 && (
+                      <text
+                        x={zone.x + zone.w / 2}
+                        y={zone.y + zone.h - 9}
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                        fontSize={6.5}
+                        fontWeight="700"
+                        fill={PROD_STYLE[prod.status].text}
+                      >
+                        {prod.note.length > 18 ? prod.note.slice(0, 17) + '…' : prod.note}
                       </text>
                     )}
                   </g>

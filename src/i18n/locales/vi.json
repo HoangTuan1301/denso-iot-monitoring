@@ -53,5 +53,87 @@
     "toDark": "Chuyển sang giao diện Tối",
     "logout": "Đăng xuất khỏi phiên làm việc",
     "restoreIncident": "Khôi phục Sự cố"
+  },
+  "dashboard": {
+    "kpi": {
+      "factoryOee": "OEE NHÀ MÁY (MACHINE)",
+      "oeeTarget": "Mục tiêu {{target}}%",
+      "totalLines": "Tổng số dây chuyền",
+      "linesProducing": "{{count}} đang sản xuất ổn định",
+      "totalMachines": "Tổng số máy",
+      "machinesConnected": "Đang kết nối {{online}}/{{total}}",
+      "machineStatus": "Trạng thái máy",
+      "running": "Running",
+      "alarmStop": "Alarm / Stop",
+      "offline": "Offline / No data",
+      "offlineHint": "Kiểm tra kết nối PLC",
+      "shift": "Ca {{shift}} · {{label}}"
+    },
+    "mapLegend": {
+      "running": "Đang chạy",
+      "warning": "Cần theo dõi",
+      "alarm": "Alarm / Dừng"
+    }
+  },
+  "decision": {
+    "top5Title": "Top 5 line có thời gian dừng dài",
+    "minutes": "{{count}} phút",
+    "virtualTag": "mô phỏng",
+    "whatIfTitle": "Mô phỏng What‑If · {{line}}",
+    "order": "Đơn hàng {{code}} · cần {{qty}} pcs trước {{due}}",
+    "oee": "OEE",
+    "qty": "SL",
+    "cost": "Chi phí",
+    "recovery": "Phục hồi",
+    "best": "TỐI ƯU",
+    "meets": "Kịp hạn",
+    "short": "Thiếu {{count}} pcs",
+    "surplus": "dư {{count}} pcs",
+    "waterfallTitle": "Thác tổn thất (pcs)",
+    "scenarioLabel": "Phương án: {{name}}",
+    "plan": "Kế hoạch ca",
+    "final": "Dự kiến cuối ca",
+    "recover": "Phục hồi",
+    "orderLine": "Đơn hàng {{qty}}",
+    "recommendTitle": "Khuyến nghị",
+    "recNoAction": "Không cần can thiệp: dự kiến {{qty}}/{{req}} pcs, kịp hạn giao.",
+    "recBest": "{{name}}: đạt {{qty}}/{{req}} pcs với chi phí thấp nhất (${{cost}}), kịp hạn giao.",
+    "recNone": "Chưa phương án nào đủ {{req}} pcs. Tốt nhất: {{name}} ({{qty}} pcs, thiếu {{short}}).",
+    "export": "Xuất báo cáo",
+    "loading": "Đang tải dữ liệu sản xuất…",
+    "error": "Không tải được dữ liệu sản xuất.",
+    "retry": "Thử lại",
+    "openLine": "Mở chi tiết dây chuyền",
+    "scenario": {
+      "BASELINE": "Chờ sửa (Baseline)",
+      "REROUTE": "San tải sang {{line}}",
+      "REROUTE_NONE": "San tải sang line khác",
+      "OVERTIME": "Tăng ca OT {{hours}}h",
+      "SHIFT_CHANGE_FIX": "Thay linh kiện giao ca"
+    },
+    "status": {
+      "RUNNING": "Đang chạy",
+      "WARNING": "Cần theo dõi",
+      "ALARM": "Alarm / Dừng",
+      "IDLE": "Chưa bắt đầu"
+    },
+    "axisFrom": "Trục bắt đầu từ {{value}} pcs",
+    "due": "{{time}} · ca {{shift}}"
+  },
+  "cause": {
+    "JAM": "Kẹt phôi",
+    "DIE_CHANGE": "Thay khuôn đột xuất",
+    "ROBOT_ERR": "Lỗi robot",
+    "MAINT": "Sửa chữa bảo trì",
+    "MATERIAL": "Chờ vật tư",
+    "POWER": "Sự cố điện",
+    "SENSOR": "Lỗi cảm biến",
+    "MISFEED": "Cấp phôi lệch",
+    "TOOL_WEAR": "Mòn dao/khuôn",
+    "OPERATOR": "Chờ thao tác",
+    "SHORT_STOP": "Dừng ngắn (チョコ停)",
+    "SPEED_QUALITY": "Giảm tốc & hàng lỗi",
+    "LOW_OEE": "OEE thấp",
+    "SHORT_STOP_COUNT": "Dừng ngắn × {{count}}"
   }
 }

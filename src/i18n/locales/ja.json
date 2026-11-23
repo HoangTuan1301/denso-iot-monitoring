@@ -53,5 +53,87 @@
     "toDark": "ダークテーマに切替",
     "logout": "ログアウト",
     "restoreIncident": "異常を復旧"
+  },
+  "dashboard": {
+    "kpi": {
+      "factoryOee": "工場OEE（設備総合効率）",
+      "oeeTarget": "目標 {{target}}%",
+      "totalLines": "生産ライン数",
+      "linesProducing": "{{count}} ライン正常稼働",
+      "totalMachines": "設備台数",
+      "machinesConnected": "接続中 {{online}}/{{total}}",
+      "machineStatus": "設備状態",
+      "running": "稼働",
+      "alarmStop": "アラーム／停止",
+      "offline": "オフライン／データなし",
+      "offlineHint": "PLC接続を確認",
+      "shift": "{{shift}}直 · {{label}}"
+    },
+    "mapLegend": {
+      "running": "稼働中",
+      "warning": "要注意",
+      "alarm": "アラーム／停止"
+    }
+  },
+  "decision": {
+    "top5Title": "ドカ停時間 上位5ライン",
+    "minutes": "{{count}} 分",
+    "virtualTag": "シミュレーション",
+    "whatIfTitle": "What‑If シミュレーション · {{line}}",
+    "order": "受注 {{code}} · {{qty}} 個（納期 {{due}}）",
+    "oee": "OEE",
+    "qty": "数量",
+    "cost": "費用",
+    "recovery": "復旧",
+    "best": "最適",
+    "meets": "納期内",
+    "short": "{{count}} 個不足",
+    "surplus": "{{count}} 個余裕",
+    "waterfallTitle": "ロスウォーターフォール（個）",
+    "scenarioLabel": "対策案：{{name}}",
+    "plan": "直の計画",
+    "final": "直終了時の見込み",
+    "recover": "挽回",
+    "orderLine": "受注 {{qty}}",
+    "recommendTitle": "推奨",
+    "recNoAction": "対策不要：見込み {{qty}}/{{req}} 個、納期内。",
+    "recBest": "{{name}}：{{qty}}/{{req}} 個を最小費用（${{cost}}）で達成、納期内。",
+    "recNone": "{{req}} 個に届く対策案なし。最善：{{name}}（{{qty}} 個、{{short}} 個不足）。",
+    "export": "レポート出力",
+    "loading": "生産データを読み込み中…",
+    "error": "生産データを読み込めません。",
+    "retry": "再試行",
+    "openLine": "ライン詳細を開く",
+    "scenario": {
+      "BASELINE": "修理待ち（ベースライン）",
+      "REROUTE": "{{line}} へ負荷移管",
+      "REROUTE_NONE": "他ラインへ負荷移管",
+      "OVERTIME": "残業 {{hours}}時間",
+      "SHIFT_CHANGE_FIX": "直交代時に部品交換"
+    },
+    "status": {
+      "RUNNING": "稼働中",
+      "WARNING": "要注意",
+      "ALARM": "アラーム／停止",
+      "IDLE": "開始前"
+    },
+    "axisFrom": "縦軸は {{value}} 個から",
+    "due": "{{time}}・{{shift}}直"
+  },
+  "cause": {
+    "JAM": "ワーク詰まり",
+    "DIE_CHANGE": "突発金型交換",
+    "ROBOT_ERR": "ロボット異常",
+    "MAINT": "保全修理",
+    "MATERIAL": "材料待ち",
+    "POWER": "電源トラブル",
+    "SENSOR": "センサー異常",
+    "MISFEED": "供給ずれ",
+    "TOOL_WEAR": "刃具・金型摩耗",
+    "OPERATOR": "作業者待ち",
+    "SHORT_STOP": "チョコ停",
+    "SPEED_QUALITY": "速度・品質ロス",
+    "LOW_OEE": "OEE低下",
+    "SHORT_STOP_COUNT": "チョコ停 × {{count}}"
   }
 }

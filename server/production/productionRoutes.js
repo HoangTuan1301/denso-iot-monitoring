@@ -15,6 +15,8 @@ import {
   simulateProcessConditions,
   simulateWhatIf,
   buildFactoryOverview,
+  VIRTUAL_LINES,
+  virtualMachines,
 } from './ProductionSimulator.js';
 
 const SETTINGS_KEY = 'production';
@@ -34,10 +36,12 @@ export function registerProductionRoutes(app, { authenticateToken, requireRole, 
     return memorySettings;
   }
 
+  // Line thật từ CSDL + 2 line mô phỏng (đánh dấu virtual: true) để đủ Top 5 khi demo
   async function loadLinesAndMachines() {
-    if (!dbReady()) return { lines: [], machines: [] };
+    const vLines = VIRTUAL_LINES.map(({ machines: _m, ...l }) => l);
+    if (!dbReady()) return { lines: vLines, machines: virtualMachines() };
     const [lines, machines] = await Promise.all([mysqlDb.getProductionLines({}), mysqlDb.getMachines({})]);
-    return { lines, machines };
+    return { lines: [...lines, ...vLines], machines: [...machines, ...virtualMachines()] };
   }
 
   // Giữ nguyên thứ tự máy như API /api/machines trả về (trùng với cách giao diện đánh số OP10, OP20, ...)

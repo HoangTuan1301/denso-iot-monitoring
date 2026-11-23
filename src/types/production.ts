@@ -16,6 +16,7 @@ export interface OeeBreakdown {
 }
 
 export type StopType = 'SHORT' | 'LONG';
+export type LineProductionStatus = 'RUNNING' | 'WARNING' | 'ALARM' | 'IDLE';
 
 export interface StopEvent {
   id: string;
@@ -44,6 +45,15 @@ export interface LineShiftProduction {
   lineId: string;
   lineCode: string;
   lineName: string;
+  /** Line chỉ có trong mô phỏng (không có trong CSDL) */
+  virtual: boolean;
+  /** Id khu vực trên sơ đồ nhà máy */
+  zoneId: string | null;
+  productionStatus: LineProductionStatus;
+  statusNote: string | null;
+  /** Mã nguyên nhân (JAM, POWER, ...) hoặc LOW_OEE — dùng để dịch */
+  statusCode: string | null;
+  statusOp: string | null;
   date: string;
   shift: 1 | 2 | 3;
   shiftLabel: string;
@@ -76,12 +86,32 @@ export interface FactoryProductionOverview {
   oee: OeeBreakdown;
   lines: { total: number; producing: number };
   machines: { total: number; running: number; alarmStop: number; offline: number };
+  lineStates: Array<{
+    lineId: string;
+    lineCode: string;
+    lineName: string;
+    virtual: boolean;
+    zoneId: string | null;
+    productionStatus: LineProductionStatus;
+    statusNote: string | null;
+    statusCode: string | null;
+    statusOp: string | null;
+    oee: number;
+    output: number;
+    forecastPct: number;
+  }>;
   topDowntime: Array<{
     lineId: string;
     lineCode: string;
     lineName: string;
+    virtual: boolean;
+    zoneId: string | null;
+    productionStatus: LineProductionStatus;
     longStopMinutes: number;
     totalStopMinutes: number;
+    mainCauseCode: string | null;
+    mainCauseOp: string | null;
+    shortStopCount: number;
     mainCause: string | null;
   }>;
 }
@@ -120,6 +150,7 @@ export interface WhatIfScenario {
   recoveryHours: number;
   oee: number;
   targetLineId?: string | null;
+  targetLineCode?: string | null;
   reroutePct?: number;
   otHours?: number;
 }
@@ -128,10 +159,11 @@ export interface WhatIfResponse {
   simulated: boolean;
   lineId: string;
   lineCode: string;
-  order: { code: string; product: string; requiredQty: number; dueAt: string };
+  order: { code: string; product: string; requiredQty: number; dueAt: string; dueTime: string; shift: number };
   planQty: number;
   baselineQty: number;
   params: { otHours: number; reroutePct: number };
+  losses: Array<{ code: string; label: string; kind: 'LONG_STOP' | 'SHORT_STOP' | 'SPEED_QUALITY'; pcs: number }>;
   scenarios: WhatIfScenario[];
   recommendedId: WhatIfScenarioId;
   recommendation: string;

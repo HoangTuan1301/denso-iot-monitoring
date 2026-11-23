@@ -1,0 +1,82 @@
+/**
+ * @file useProduction.ts
+ * @description Hook lấy dữ liệu sản xuất (mô phỏng) cho Dashboard: tổng quan nhà máy và What-If của 1 line.
+ */
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { apiClient } from '../../../services/api';
+import type { FactoryProductionOverview, WhatIfResponse } from '../../../types/production';
+
+const OVERVIEW_REFRESH_MS = 60_000;
+
+export function useProductionOverview() {
+  const [data, setData] = useState<FactoryProductionOverview | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const alive = useRef(true);
+
+  const load = useCallback(async () => {
+    try {
+      const res = await apiClient.getProductionOverview();
+      if (!alive.current) return;
+      setData(res);
+      setError(null);
+    } catch (err: any) {
+      if (alive.current) setError(err?.message || 'error');
+    } finally {
+      if (alive.current) setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    alive.current = true;
+    load();
+    const id = window.setInterval(load, OVERVIEW_REFRESH_MS);
+    return () => {
+      alive.current = false;
+      window.clearInterval(id);
+    };
+  }, [load]);
+
+  return { data, loading, error, reload: load };
+}
+
+export function useLineWhatIf(lineCode: string | null) {
+  const [data, setData] = useState<WhatIfResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    if (!lineCode) return;
+    setLoading(true);
+    try {
+      const res = await apiClient.getLineWhatIf(lineCode);
+      setData(res);
+      setError(null);
+    } catch (err: any) {
+      setError(err?.message || 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, [lineCode]);
+
+  useEffect(() => {
+    setData(null);
+    load();
+  }, [load]);
+
+  return { data, loading, error, reload: load };
+}
+
+/** Dịch nguyên nhân dừng theo mã (JAM, POWER, ...) kèm số OP nếu có. */
+export function useCauseText() {
+  const { t } = useTranslation();
+  return useCallback(
+    (code: string | null | undefined, op?: string | null, fallback?: string | null) => {
+      if (!code) return fallback || '';
+      const label = t(`cause.${code}`, { defaultValue: fallback || code });
+      return op ? `${label} ${op}` : label;
+    },
+    [t]
+  );
+}

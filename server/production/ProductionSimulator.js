@@ -31,7 +31,51 @@ const LINE_PROFILES = {
   'LN-PRS-01': { planPerHour: 400, idealCycleSec: 8.6, orderCode: 'VN229700-6240', product: 'Khung gầm dập hàn' },
   'LN-PNT-02': { planPerHour: 320, idealCycleSec: 10.8, orderCode: 'VN229700-7311', product: 'Vỏ sơn tĩnh điện' },
   'LN-ASM-03': { planPerHour: 360, idealCycleSec: 9.6, orderCode: 'VN229700-8102', product: 'Cụm lắp ráp hoàn thiện' },
+  // 2 line mô phỏng (không có trong CSDL) – tỉ lệ sự cố cao hơn để demo line bất thường
+  'LN-AT-04': { planPerHour: 300, idealCycleSec: 11.4, orderCode: 'VN229700-9025', product: 'Cụm hộp số AT', trouble: 1.8 },
+  'LN-AFM-05': { planPerHour: 280, idealCycleSec: 12.3, orderCode: 'VN229700-9310', product: 'Cảm biến lưu lượng khí AFM', trouble: 1.4 },
 };
+
+/** Vị trí từng line trên sơ đồ nhà máy (id khu vực trong factoryMapConfig.ts). */
+export const LINE_ZONES = {
+  'LN-PRS-01': 'CVT',
+  'LN-PNT-02': 'APM',
+  'LN-ASM-03': 'CVT_MID',
+  'LN-AT-04': 'AT',
+  'LN-AFM-05': 'AFM',
+};
+
+/** Các line chỉ tồn tại trong mô phỏng (bổ sung để đủ Top 5 khi demo). */
+export const VIRTUAL_LINES = [
+  {
+    id: 'SIM-LN-AT-04',
+    code: 'LN-AT-04',
+    name: 'Dây chuyền hộp số AT',
+    virtual: true,
+    machines: ['Máy tiện CNC trục', 'Máy phay bánh răng', 'Máy rửa chi tiết', 'Trạm lắp cụm AT', 'Máy kiểm tra rò rỉ'],
+  },
+  {
+    id: 'SIM-LN-AFM-05',
+    code: 'LN-AFM-05',
+    name: 'Dây chuyền cảm biến AFM',
+    virtual: true,
+    machines: ['Máy hàn AFM 溶接', 'Trạm dán chip cảm biến', 'Lò sấy keo', 'Máy hiệu chuẩn AFM SENSOR'],
+  },
+];
+
+/** Danh sách máy ảo cho line mô phỏng, cùng cấu trúc với bản ghi máy trong CSDL. */
+export function virtualMachines() {
+  return VIRTUAL_LINES.flatMap((l) =>
+    l.machines.map((name, i) => ({
+      id: `${l.id}-M${i + 1}`,
+      code: `${l.code}-OP${(i + 1) * 10}`,
+      name,
+      lineId: l.id,
+      status: 'normal',
+      virtual: true,
+    }))
+  );
+}
 // Tra hồ sơ theo mã line (VD: LN-PRS-01) trước, rồi tới id (VD: LINE-01)
 const profileOf = (lineLike) =>
   LINE_PROFILES[lineLike.code] || LINE_PROFILES[lineLike.lineCode] || LINE_PROFILES[lineLike.id] || LINE_PROFILES[lineLike.lineId] || DEFAULT_PROFILE;
@@ -160,11 +204,12 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
 
   // --- Sinh sự kiện dừng máy trên toàn ca (tất định), sau đó chỉ lấy phần đã xảy ra ---
   const events = [];
-  // Dừng dài: 0–2 lần/ca, (ngưỡng + 5) – 40 phút
-  const longCount = rng() < 0.3 ? 0 : rng() < 0.8 ? 1 : 2;
+  // Dừng dài: 0–2 lần/ca (line "trouble" nhiều hơn), (ngưỡng + 5) – 40 phút
+  const trouble = profile.trouble || 1;
+  const longCount = rng() < 0.3 / trouble ? 0 : rng() < 0.8 / trouble ? 1 : trouble > 1.5 ? 3 : 2;
   for (let i = 0; i < longCount; i++) {
     const at = Math.floor(range(rng, 40, SHIFT_MINUTES - 60));
-    const dur = Math.round(range(rng, cfg.shortStopThresholdMin + 5, 40));
+    const dur = Math.round(range(rng, cfg.shortStopThresholdMin + 5, 40 * Math.min(trouble, 1.5)));
     const st = pick(rng, stations);
     events.push({ at, dur, station: st, cause: pick(rng, LONG_STOP_CAUSES) });
   }
@@ -174,7 +219,7 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
     const maxShort = Math.max(1, Math.min(5, cfg.shortStopThresholdMin - 1));
     const dur = Math.max(1, Math.round(range(rng, 1, maxShort)));
     events.push({ at: t, dur, station: pick(rng, stations), cause: pick(rng, SHORT_STOP_CAUSES) });
-    t += Math.floor(range(rng, 25, 60));
+    t += Math.floor(range(rng, 25, 60) / trouble);
   }
   events.sort((a, b) => a.at - b.at);
 
@@ -265,11 +310,44 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
   const cycleSec = produced > 0 ? (runMin * 60) / produced : profile.idealCycleSec;
   const longest = longStops.slice().sort((a, b) => b.durationMin - a.durationMin)[0] || null;
 
+  // Trạng thái sản xuất hiện tại của line (dùng tô màu sơ đồ nhà máy)
+  const ongoing = happened.find((e) => e.dur >= cfg.shortStopThresholdMin && e.at + e.dur >= elapsedMin && !isFinished);
+  const recentLong = longStops.length > 0 && happened.some(
+    (e) => e.dur >= cfg.shortStopThresholdMin && elapsedMin - (e.at + e.dur) <= 90
+  );
+  const oeePct = oee * 100;
+  let productionStatus = 'RUNNING';
+  let statusNote = null;
+  let statusCode = null; // mã để giao diện dịch: mã nguyên nhân dừng, hoặc LOW_OEE
+  let statusOp = null;
+  if (isFuture) productionStatus = 'IDLE';
+  else if (ongoing) {
+    productionStatus = 'ALARM';
+    statusNote = `${ongoing.cause.label} · ${ongoing.station.op}`;
+    statusCode = ongoing.cause.code;
+    statusOp = ongoing.station.op;
+  } else if (oeePct < 72) {
+    productionStatus = 'ALARM';
+    statusNote = `OEE thấp ${round(oeePct, 1)}%`;
+    statusCode = 'LOW_OEE';
+  } else if (recentLong || oeePct < 82) {
+    productionStatus = 'WARNING';
+    statusNote = longest ? `${longest.cause} ${longest.op} (${longest.durationMin}')` : `OEE ${round(oeePct, 1)}%`;
+    statusCode = longest ? longest.causeCode : 'LOW_OEE';
+    statusOp = longest ? longest.op : null;
+  }
+
   return {
     simulated: true,
     lineId: line.id,
     lineCode: line.code || line.id,
     lineName: line.name || line.id,
+    virtual: !!line.virtual,
+    zoneId: LINE_ZONES[line.code] || LINE_ZONES[line.id] || null,
+    productionStatus,
+    statusNote,
+    statusCode,
+    statusOp,
     date: day,
     shift: sh,
     shiftLabel: SHIFTS[sh].label,
@@ -380,18 +458,20 @@ export function simulateWhatIf({ shiftData, otherLines = [], params = {} }) {
   // --- Thác tổn thất: Kế hoạch ca → (trừ các tổn thất) → Dự kiến hiện tại → (+ phục hồi) → Kết quả ---
   const byCause = {};
   for (const s of shiftData.stops.filter((x) => x.type === 'LONG')) {
-    byCause[s.cause] = (byCause[s.cause] || 0) + s.durationMin;
+    byCause[s.causeCode] = byCause[s.causeCode] || { label: s.cause, min: 0 };
+    byCause[s.causeCode].min += s.durationMin;
   }
-  let losses = Object.entries(byCause).map(([cause, min]) => ({
-    key: `long:${cause}`,
-    label: cause,
+  let losses = Object.entries(byCause).map(([code, c]) => ({
+    key: `long:${code}`,
+    code,
+    label: c.label,
     kind: 'LONG_STOP',
-    pcs: Math.round(min * perMin),
+    pcs: Math.round(c.min * perMin),
   }));
   // dừng ngắn: phần đã xảy ra + phần dự kiến cho thời gian còn lại của ca
   const shortRate = shiftData.shortStops.minutes / elapsed;
   const shortPcs = Math.round((shiftData.shortStops.minutes + shortRate * remainingMin) * perMin);
-  if (shortPcs > 0) losses.push({ key: 'short', label: 'Dừng ngắn (チョコ停)', kind: 'SHORT_STOP', pcs: shortPcs });
+  if (shortPcs > 0) losses.push({ key: 'short', code: 'SHORT_STOP', label: 'Dừng ngắn (チョコ停)', kind: 'SHORT_STOP', pcs: shortPcs });
 
   const totalLoss = Math.max(0, planTotal - baseline);
   const known = losses.reduce((a, l) => a + l.pcs, 0);
@@ -401,7 +481,7 @@ export function simulateWhatIf({ shiftData, otherLines = [], params = {} }) {
     losses = losses.map((l) => ({ ...l, pcs: Math.round(l.pcs * k) }));
   }
   const residual = totalLoss - losses.reduce((a, l) => a + l.pcs, 0);
-  if (residual > 0) losses.push({ key: 'speed_quality', label: 'Giảm tốc & hàng lỗi', kind: 'SPEED_QUALITY', pcs: residual });
+  if (residual > 0) losses.push({ key: 'speed_quality', code: 'SPEED_QUALITY', label: 'Giảm tốc & hàng lỗi', kind: 'SPEED_QUALITY', pcs: residual });
 
   // --- Các phương án ---
   const gap = Math.max(0, required - baseline);
@@ -435,6 +515,7 @@ export function simulateWhatIf({ shiftData, otherLines = [], params = {} }) {
     mk('BASELINE', 'Chờ sửa (Baseline)', 0, 0, round(shiftData.longStops.minutes / 60 + 1, 1)),
     mk('REROUTE', `San tải sang ${bestOther ? bestOther.lineCode : 'line khác'}`, rerouteGain, rerouteGain ? 300 + rerouteGain * 2 : 0, 1, {
       targetLineId: bestOther ? bestOther.lineId : null,
+      targetLineCode: bestOther ? bestOther.lineCode : null,
       reroutePct,
     }),
     mk('OVERTIME', `Tăng ca OT ${otHours}h`, otGain, Math.round(otHours * 275), otHours, { otHours }),
@@ -473,10 +554,13 @@ export function simulateWhatIf({ shiftData, otherLines = [], params = {} }) {
       product: profile.product,
       requiredQty: required,
       dueAt: `${SHIFTS[shiftData.shift].label.split('–')[1]} · ca ${shiftData.shift}`,
+      dueTime: SHIFTS[shiftData.shift].label.split('–')[1],
+      shift: shiftData.shift,
     },
     planQty: planTotal,
     baselineQty: baseline,
     params: { otHours, reroutePct },
+    losses: losses.map((l) => ({ code: l.code, label: l.label, kind: l.kind, pcs: l.pcs })),
     scenarios,
     recommendedId: recommended.id,
     recommendation,
@@ -495,21 +579,48 @@ export function buildFactoryOverview({ lineShifts, machines = [], lines = [] }) 
   const avg = (k) =>
     lineShifts.length ? round(lineShifts.reduce((a, l) => a + l.oee[k], 0) / lineShifts.length, 1) : null;
 
+  // Máy ảo của line mô phỏng: trạm có dừng dài đang diễn ra => Alarm/Stop
+  const alarmLines = new Set(lineShifts.filter((l) => l.productionStatus === 'ALARM').map((l) => l.lineId));
   const status = { running: 0, alarmStop: 0, offline: 0 };
   for (const m of machines) {
     const s = String(m.status || '').toUpperCase();
-    if (['RUNNING', 'ACTIVE', 'NORMAL', 'IDLE', 'WARNING'].includes(s)) status.running++;
+    if (m.virtual) {
+      const stoppedHere = lineShifts.find((l) => l.lineId === m.lineId)?.statusNote?.includes(m.code?.split('-').pop());
+      if (alarmLines.has(m.lineId) && stoppedHere) status.alarmStop++;
+      else status.running++;
+    } else if (['RUNNING', 'ACTIVE', 'NORMAL', 'IDLE', 'WARNING'].includes(s)) status.running++;
     else if (['ALARM', 'STOPPED', 'STOP', 'ERROR', 'CRITICAL', 'FAULT'].includes(s)) status.alarmStop++;
     else status.offline++;
   }
+
+  const lineStates = lineShifts.map((l) => ({
+    lineId: l.lineId,
+    lineCode: l.lineCode,
+    lineName: l.lineName,
+    virtual: l.virtual,
+    zoneId: l.zoneId,
+    productionStatus: l.productionStatus,
+    statusNote: l.statusNote,
+    statusCode: l.statusCode,
+    statusOp: l.statusOp,
+    oee: l.oee.oee,
+    output: l.output.actual,
+    forecastPct: l.output.forecastPct,
+  }));
 
   const topDowntime = lineShifts
     .map((l) => ({
       lineId: l.lineId,
       lineCode: l.lineCode,
       lineName: l.lineName,
+      virtual: l.virtual,
+      zoneId: l.zoneId,
+      productionStatus: l.productionStatus,
       longStopMinutes: l.longStops.minutes,
       totalStopMinutes: l.longStops.minutes + l.shortStops.minutes,
+      mainCauseCode: l.longStops.longest ? l.longStops.longest.causeCode : l.shortStops.count ? 'SHORT_STOP' : null,
+      mainCauseOp: l.longStops.longest ? l.longStops.longest.op : null,
+      shortStopCount: l.shortStops.count,
       mainCause: l.longStops.longest
         ? `${l.longStops.longest.cause} ${l.longStops.longest.op}`
         : l.shortStops.count
@@ -528,8 +639,12 @@ export function buildFactoryOverview({ lineShifts, machines = [], lines = [] }) 
       performance: avg('performance'),
       quality: avg('quality'),
     },
-    lines: { total: lines.length || lineShifts.length, producing: lineShifts.filter((l) => l.state === 'RUNNING').length },
+    lines: {
+      total: lines.length || lineShifts.length,
+      producing: lineShifts.filter((l) => l.state === 'RUNNING' && l.productionStatus !== 'ALARM').length,
+    },
     machines: { total: machines.length, ...status },
+    lineStates,
     topDowntime,
   };
 }

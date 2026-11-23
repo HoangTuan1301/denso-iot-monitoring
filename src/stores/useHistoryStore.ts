@@ -11,6 +11,7 @@ import {
   TelemetryLogsMetadata,
 } from '../types/hierarchy';
 import { historyService } from '../services/historyService';
+import { tr } from '../i18n/tr';
 
 // Lấy ngày hiện tại theo múi giờ Việt Nam (Asia/Ho_Chi_Minh) định dạng YYYY-MM-DD
 export const getTodayVNDate = (): string => {
@@ -131,6 +132,10 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
    * Truy vấn lịch sử từ API backend kèm cơ chế hủy request cũ (AbortController)
    * Tuyệt đối không tạo dữ liệu giả khi API trả về rỗng.
    */
+  /**
+   * Truy vấn lịch sử từ API backend kèm cơ chế hủy request cũ (AbortController)
+   * Tuyệt đối không tạo dữ liệu giả khi API trả về rỗng.
+   */
   fetchLogs: async () => {
     // 1. Hủy bỏ request trước đó nếu chưa phản hồi
     if (activeAbortController) {
@@ -174,7 +179,7 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
       if (thisRequestId === currentRequestId) {
         set({
           isLoading: false,
-          error: err.message || 'Không thể tải lịch sử hoạt động máy. Vui lòng thử lại sau.',
+          error: err.message || tr("Không thể tải lịch sử hoạt động máy. Vui lòng thử lại sau."),
           // Giữ logs rỗng, không tự tạo mock data
           logs: [],
         });

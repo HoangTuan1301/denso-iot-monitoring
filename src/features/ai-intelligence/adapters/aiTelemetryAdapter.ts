@@ -20,6 +20,7 @@ import {
   AIPredictiveOrder,
   AITrendPoint,
 } from '../types/ai';
+import { tr } from '../../../i18n/tr';
 
 export interface AIProcessedMachine extends EquipmentHealthItem {
   dataSource: 'PRODUCTION' | 'SIMULATION' | 'NO_DATA';
@@ -44,6 +45,9 @@ export interface AIOverallKPIs {
 /**
  * Xử lý và tính toán điểm sức khỏe động trung thực cho từng thiết bị từ useMonitoringStore
  */
+/**
+ * Xử lý và tính toán điểm sức khỏe động trung thực cho từng thiết bị từ useMonitoringStore
+ */
 export function processMachineHealth(
   machine: MachineComponent,
   line: ProductionLine,
@@ -60,7 +64,7 @@ export function processMachineHealth(
       machineName: machine.name,
       lineId: line.id,
       lineName: line.name,
-      type: machine.type || 'Thiết bị công nghiệp',
+      type: machine.type || tr("Thiết bị công nghiệp"),
       healthScore: null as unknown as number, // Không gán điểm số ảo
       riskLevel: 'LOW' as AIRiskLevel,
       status: 'NORMAL' as AIEquipmentStatus,
@@ -71,13 +75,13 @@ export function processMachineHealth(
         pressurePenalty: 0,
         currentPenalty: 0,
         agePenalty: 0,
-        explanation: 'Thiết bị chưa được cấu hình trạm PLC hoặc chưa có bản ghi đo lường (Chưa đánh giá).',
+        explanation: tr("Thiết bị chưa được cấu hình trạm PLC hoặc chưa có bản ghi đo lường (Chưa đánh giá)."),
       },
       activeAnomaliesCount: 0,
       trendDirection: 'stable',
-      lastEvaluated: 'Chưa có dữ liệu',
+      lastEvaluated: tr("Chưa có dữ liệu"),
       keyMetricCode: 'N/A',
-      keyMetricName: 'Chưa có thông số',
+      keyMetricName: tr("Chưa có thông số"),
       keyMetricValue: 0,
       keyMetricUnit: '',
       dataSource: 'NO_DATA',
@@ -152,25 +156,25 @@ export function processMachineHealth(
   let riskLevel: AIRiskLevel = 'LOW';
   let aiStatus: AIEquipmentStatus = 'NORMAL';
   let trendDirection: 'up' | 'down' | 'stable' = 'stable';
-  let explanation = 'Thiết bị hoạt động ổn định trong dải định mức an toàn, độ lệch chuẩn thấp.';
+  let explanation: string = tr("Thiết bị hoạt động ổn định trong dải định mức an toàn, độ lệch chuẩn thấp.");
 
   if (calculatedHealth < 60 || worstMetricStatus === 'critical') {
     riskLevel = 'CRITICAL';
     aiStatus = 'ANOMALOUS';
     trendDirection = 'down';
     explanation = hasActiveSpike
-      ? `Đang diễn tập sự cố giả lập: ${primaryMetric.name} tăng vọt lên ${primaryMetric.currentValue} ${primaryMetric.unit}, vượt ngưỡng tới hạn!`
-      : `Phát hiện dị biệt nghiêm trọng: ${primaryMetric.name} chạm ngưỡng tới hạn ${primaryMetric.criticalMax} ${primaryMetric.unit}. Nguy cơ dừng dây chuyền!`;
+      ? tr("Đang diễn tập sự cố giả lập: {0} tăng vọt lên {1} {2}, vượt ngưỡng tới hạn!", primaryMetric.name, primaryMetric.currentValue, primaryMetric.unit)
+      : tr("Phát hiện dị biệt nghiêm trọng: {0} chạm ngưỡng tới hạn {1} {2}. Nguy cơ dừng dây chuyền!", primaryMetric.name, primaryMetric.criticalMax, primaryMetric.unit);
   } else if (calculatedHealth < 80 || worstMetricStatus === 'warning') {
     riskLevel = 'HIGH';
     aiStatus = 'WARNING';
     trendDirection = 'down';
-    explanation = `Thông số ${primaryMetric.name} vượt mức cảnh báo (${primaryMetric.warningMax} ${primaryMetric.unit}). Cần theo dõi chặt chẽ.`;
+    explanation = tr("Thông số {0} vượt mức cảnh báo ({1} {2}). Cần theo dõi chặt chẽ.", primaryMetric.name, primaryMetric.warningMax, primaryMetric.unit);
   } else if (calculatedHealth < 90) {
     riskLevel = 'MEDIUM';
     aiStatus = 'NORMAL';
     trendDirection = 'stable';
-    explanation = 'Thiết bị vận hành bình thường, tải cơ khí và nhiệt độ ở mức tối ưu.';
+    explanation = tr("Thiết bị vận hành bình thường, tải cơ khí và nhiệt độ ở mức tối ưu.");
   }
 
   return {
@@ -179,7 +183,7 @@ export function processMachineHealth(
     machineName: machine.name,
     lineId: line.id,
     lineName: line.name,
-    type: machine.type || 'Thiết bị công nghiệp',
+    type: machine.type || tr("Thiết bị công nghiệp"),
     healthScore: calculatedHealth,
     riskLevel,
     status: aiStatus,
@@ -194,7 +198,7 @@ export function processMachineHealth(
     },
     activeAnomaliesCount,
     trendDirection,
-    lastEvaluated: 'Thời gian thực',
+    lastEvaluated: tr("Thời gian thực"),
     keyMetricCode: primaryMetric.id,
     keyMetricName: primaryMetric.name,
     keyMetricValue: primaryMetric.currentValue,
@@ -266,6 +270,9 @@ export function processAllEquipment(
 /**
  * Sinh danh sách sự kiện bất thường động từ dữ liệu telemetry và sự cố Header
  */
+/**
+ * Sinh danh sách sự kiện bất thường động từ dữ liệu telemetry và sự cố Header
+ */
 export function extractDynamicAnomalies(
   allMachines: AIProcessedMachine[],
   activeAlarms: AlarmEvent[] = []
@@ -287,14 +294,14 @@ export function extractDynamicAnomalies(
         const devPct = crit > 0 ? Math.max(1, Number((((val - crit) / crit) * 100).toFixed(1))) : 10.0;
         events.push({
           id: `ANM-${m.machineCode}-${mtr.id}`,
-          timestamp: mtr.lastUpdated && mtr.lastUpdated !== 'Vừa xong' ? mtr.lastUpdated : timeStr,
+          timestamp: mtr.lastUpdated && mtr.lastUpdated !== 'Vừa xong' && mtr.lastUpdated !== tr('Vừa xong') ? mtr.lastUpdated : timeStr,
           machineId: m.machineId,
           machineCode: m.machineCode,
           machineName: m.machineName,
           lineName: m.lineName,
           metricCode: mtr.id,
           metricName: mtr.name,
-          category: mtr.id.includes('TEMP') ? 'Nhiệt độ' : mtr.id.includes('VIB') ? 'Rung động' : 'Áp suất',
+          category: mtr.id.includes('TEMP') ? tr("Nhiệt độ") : mtr.id.includes('VIB') ? tr("Rung động") : tr("Áp suất"),
           value: val,
           unit: mtr.unit,
           warningThreshold: warn,
@@ -302,29 +309,29 @@ export function extractDynamicAnomalies(
           severity: 'CRITICAL',
           detectionRule: isSpike ? 'SUDDEN_SPIKE' : 'THRESHOLD_BREACH',
           ruleExplanation: isSpike
-            ? `Sự cố giả lập diễn tập: ${mtr.name} vọt lên ${val} ${mtr.unit} (vượt ngưỡng nguy hiểm ${crit} ${mtr.unit}). Z-score: +4.2σ.`
-            : `Giá trị đo lường thực tế ${val} ${mtr.unit} vượt ngưỡng nguy hiểm (${crit} ${mtr.unit}). Z-score: +3.6σ.`,
+            ? tr("Sự cố giả lập diễn tập: {0} vọt lên {1} {2} (vượt ngưỡng nguy hiểm {3} {4}). Z-score: +4.2σ.", mtr.name, val, mtr.unit, crit, mtr.unit)
+            : tr("Giá trị đo lường thực tế {0} {1} vượt ngưỡng nguy hiểm ({2} {3}). Z-score: +3.6σ.", val, mtr.unit, crit, mtr.unit),
           deviationPercent: devPct,
         });
       } else if (val >= warn || mtr.status === 'warning') {
         const devPct = warn > 0 ? Math.max(1, Number((((val - warn) / warn) * 100).toFixed(1))) : 5.0;
         events.push({
           id: `ANM-${m.machineCode}-${mtr.id}`,
-          timestamp: mtr.lastUpdated && mtr.lastUpdated !== 'Vừa xong' ? mtr.lastUpdated : timeStr,
+          timestamp: mtr.lastUpdated && mtr.lastUpdated !== 'Vừa xong' && mtr.lastUpdated !== tr('Vừa xong') ? mtr.lastUpdated : timeStr,
           machineId: m.machineId,
           machineCode: m.machineCode,
           machineName: m.machineName,
           lineName: m.lineName,
           metricCode: mtr.id,
           metricName: mtr.name,
-          category: mtr.id.includes('TEMP') ? 'Nhiệt độ' : mtr.id.includes('VIB') ? 'Rung động' : 'Áp suất',
+          category: mtr.id.includes('TEMP') ? tr("Nhiệt độ") : mtr.id.includes('VIB') ? tr("Rung động") : tr("Áp suất"),
           value: val,
           unit: mtr.unit,
           warningThreshold: warn,
           criticalThreshold: crit,
           severity: 'WARNING',
           detectionRule: 'THRESHOLD_BREACH',
-          ruleExplanation: `Thông số ${mtr.name} tăng lên ${val} ${mtr.unit}, vượt ngưỡng cảnh báo (${warn} ${mtr.unit}). Z-score: +2.4σ.`,
+          ruleExplanation: tr("Thông số {0} tăng lên {1} {2}, vượt ngưỡng cảnh báo ({3} {4}). Z-score: +2.4σ.", mtr.name, val, mtr.unit, warn, mtr.unit),
           deviationPercent: devPct,
         });
       }
@@ -343,7 +350,7 @@ export function extractDynamicAnomalies(
         lineName: alarm.lineName,
         metricCode: alarm.metricId,
         metricName: alarm.metricName,
-        category: 'Cảnh báo hệ thống',
+        category: tr("Cảnh báo hệ thống"),
         value: alarm.triggeredValue,
         unit: alarm.unit,
         warningThreshold: alarm.thresholdValue * 0.8,
@@ -362,6 +369,9 @@ export function extractDynamicAnomalies(
 /**
  * Sinh danh sách phiếu bảo trì dự đoán động từ tình trạng thiết bị (Chuẩn tham chiếu Image 3)
  */
+/**
+ * Sinh danh sách phiếu bảo trì dự đoán động từ tình trạng thiết bị (Chuẩn tham chiếu Image 3)
+ */
 export function extractDynamicPredictiveOrders(
   allMachines: AIProcessedMachine[],
   anomalies: AIAnomalyEvent[] = []
@@ -372,105 +382,105 @@ export function extractDynamicPredictiveOrders(
       id: 'WO-ROB-01',
       machineId: 'ROB-01',
       machineCode: 'ROB-01',
-      machineName: 'Robot Hàn Điểm Fanuc R-2000iC',
-      lineName: 'Dập & Hàn Khung Gầm',
+      machineName: tr("Robot Hàn Điểm Fanuc R-2000iC"),
+      lineName: tr("Dập & Hàn Khung Gầm"),
       priority: 'P1_CRITICAL',
       healthScore: 68,
       confidence: 96,
-      component: 'Khớp xoay & Ổ bi trục J6',
-      symptom: 'Độ rung RMS tăng bất thường (7.6 mm/s, vượt ngưỡng 7.0 mm/s)',
-      rootCause: 'Mòn ổ bi trục J6, có nguy cơ hỏng trong thời gian ngắn.',
-      recommendedAction: 'Kiểm tra và thay thế ổ bi trục J6. Dừng máy kiểm tra an toàn.',
-      assignee: 'Trần Văn Minh',
-      dueDate: 'Hôm nay, 17:00',
+      component: tr("Khớp xoay & Ổ bi trục J6"),
+      symptom: tr("Độ rung RMS tăng bất thường (7.6 mm/s, vượt ngưỡng 7.0 mm/s)"),
+      rootCause: tr("Mòn ổ bi trục J6, có nguy cơ hỏng trong thời gian ngắn."),
+      recommendedAction: tr("Kiểm tra và thay thế ổ bi trục J6. Dừng máy kiểm tra an toàn."),
+      assignee: tr("Trần Văn Minh"),
+      dueDate: tr("Hôm nay, 17:00"),
       imageUrl: '/images/machines/ROB-01.png',
-      estimatedTimeToDegrade: '4 - 8 giờ máy',
+      estimatedTimeToDegrade: tr("4 - 8 giờ máy"),
       estimatedWorkHours: 2.5,
-      suggestedTools: ['Đồng hồ vạn năng Fluke', 'Súng đo nhiệt hồng ngoại', 'Cờ lê lực công nghiệp'],
+      suggestedTools: [tr("Đồng hồ vạn năng Fluke"), tr("Súng đo nhiệt hồng ngoại"), tr("Cờ lê lực công nghiệp")],
       status: 'PENDING',
     },
     {
       id: 'WO-PRS-01',
       machineId: 'MCH-PRS-01',
       machineCode: 'MCH-PRS-01',
-      machineName: 'Máy Dập Thủy Lực 500T Komatsu',
-      lineName: 'Dập & Hàn',
+      machineName: tr("Máy Dập Thủy Lực 500T Komatsu"),
+      lineName: tr("Dập & Hàn"),
       priority: 'P2_HIGH',
       healthScore: 78,
       confidence: 91,
-      component: 'Cụm van tản nhiệt & Lọc dầu thủy lực',
-      symptom: 'Nhiệt độ dầu thủy lực tăng (54.2 °C, cao hơn bình thường 6-8 °C).',
-      rootCause: 'Hiệu suất làm mát giảm, lọc dầu có dấu hiệu tắc.',
-      recommendedAction: 'Vệ sinh/thay lọc dầu, kiểm tra hệ thống làm mát.',
-      assignee: 'Lê Đức Huy',
-      dueDate: 'Ngày mai, 10:00',
+      component: tr("Cụm van tản nhiệt & Lọc dầu thủy lực"),
+      symptom: tr("Nhiệt độ dầu thủy lực tăng (54.2 °C, cao hơn bình thường 6-8 °C)."),
+      rootCause: tr("Hiệu suất làm mát giảm, lọc dầu có dấu hiệu tắc."),
+      recommendedAction: tr("Vệ sinh/thay lọc dầu, kiểm tra hệ thống làm mát."),
+      assignee: tr("Lê Đức Huy"),
+      dueDate: tr("Ngày mai, 10:00"),
       imageUrl: '/images/machines/ASM-01.png',
-      estimatedTimeToDegrade: '24 - 48 giờ máy',
+      estimatedTimeToDegrade: tr("24 - 48 giờ máy"),
       estimatedWorkHours: 1.5,
-      suggestedTools: ['Bộ cờ lê tròng', 'Thiết bị đo nhiệt hồng ngoại'],
+      suggestedTools: [tr("Bộ cờ lê tròng"), tr("Thiết bị đo nhiệt hồng ngoại")],
       status: 'IN_PROGRESS',
     },
     {
       id: 'WO-CNC-02',
       machineId: 'MCH-CNC-02',
       machineCode: 'MCH-CNC-02',
-      machineName: 'Máy Gia Công CNC DMG MORI',
-      lineName: 'Gia công cơ khí',
+      machineName: tr("Máy Gia Công CNC DMG MORI"),
+      lineName: tr("Gia công cơ khí"),
       priority: 'P3_MEDIUM',
       healthScore: 84,
       confidence: 86,
-      component: 'Đầu gá dao & Trục chính Spindle',
-      symptom: 'Dòng điện trục chính dao động (+12% so với trung bình).',
-      rootCause: 'Dao cắt bắt đầu mòn, làm tăng tải trục chính.',
-      recommendedAction: 'Kiểm tra tình trạng dao, lập kế hoạch thay dao trong 2-3 ngày tới.',
-      assignee: 'Phạm Quang Anh',
+      component: tr("Đầu gá dao & Trục chính Spindle"),
+      symptom: tr("Dòng điện trục chính dao động (+12% so với trung bình)."),
+      rootCause: tr("Dao cắt bắt đầu mòn, làm tăng tải trục chính."),
+      recommendedAction: tr("Kiểm tra tình trạng dao, lập kế hoạch thay dao trong 2-3 ngày tới."),
+      assignee: tr("Phạm Quang Anh"),
       dueDate: '20/01/2025',
       imageUrl: '/images/machines/MS-10.png',
-      estimatedTimeToDegrade: '72 - 120 giờ máy',
+      estimatedTimeToDegrade: tr("72 - 120 giờ máy"),
       estimatedWorkHours: 2.0,
-      suggestedTools: ['Đồng hồ so cơ khí', 'Kính lúp kiểm tra dao'],
+      suggestedTools: [tr("Đồng hồ so cơ khí"), tr("Kính lúp kiểm tra dao")],
       status: 'PENDING',
     },
     {
       id: 'WO-HYD-01',
       machineId: 'HYD-PUMP-01',
       machineCode: 'HYD-PUMP-01',
-      machineName: 'Bơm Thủy Lực Trạm Nguồn',
-      lineName: 'Dập & Hàn',
+      machineName: tr("Bơm Thủy Lực Trạm Nguồn"),
+      lineName: tr("Dập & Hàn"),
       priority: 'P3_MEDIUM',
       healthScore: 85,
       confidence: 84,
-      component: 'Bơm cánh gạt & Van an toàn áp suất',
-      symptom: 'Áp suất đầu ra giảm nhẹ (18.5 bar, thấp hơn 10% so với chuẩn).',
-      rootCause: 'Lọc dầu bẩn hoặc rò rỉ nhỏ ở đường ống.',
-      recommendedAction: 'Kiểm tra và vệ sinh lọc dầu, kiểm tra rò rỉ hệ thống.',
-      assignee: 'Nguyễn Văn Nam',
+      component: tr("Bơm cánh gạt & Van an toàn áp suất"),
+      symptom: tr("Áp suất đầu ra giảm nhẹ (18.5 bar, thấp hơn 10% so với chuẩn)."),
+      rootCause: tr("Lọc dầu bẩn hoặc rò rỉ nhỏ ở đường ống."),
+      recommendedAction: tr("Kiểm tra và vệ sinh lọc dầu, kiểm tra rò rỉ hệ thống."),
+      assignee: tr("Nguyễn Văn Nam"),
       dueDate: '21/01/2025',
       imageUrl: '/images/machines/MC-CYL-01.png',
-      estimatedTimeToDegrade: '96 - 150 giờ máy',
+      estimatedTimeToDegrade: tr("96 - 150 giờ máy"),
       estimatedWorkHours: 1.0,
-      suggestedTools: ['Đồng hồ đo áp suất thủy lực', 'Bộ cờ lê'],
+      suggestedTools: [tr("Đồng hồ đo áp suất thủy lực"), tr("Bộ cờ lê")],
       status: 'PENDING',
     },
     {
       id: 'WO-CMP-01',
       machineId: 'HYD-CMP-01',
       machineCode: 'HYD-CMP-01',
-      machineName: 'Máy Nén Khí Sullair 75kW',
-      lineName: 'Tiện ích (Utility)',
+      machineName: tr("Máy Nén Khí Sullair 75kW"),
+      lineName: tr("Tiện ích (Utility)"),
       priority: 'P4_ROUTINE',
       healthScore: 95,
       confidence: 100,
-      component: 'Bộ lọc tách dầu & Cụm nén trục vít',
-      symptom: 'Đến kỳ bảo trì định kỳ (4.000 giờ vận hành).',
-      rootCause: 'Bảo trì theo lịch khuyến nghị của nhà sản xuất.',
-      recommendedAction: 'Thực hiện bảo trì định kỳ: thay lọc, kiểm tra dầu và vệ sinh tổng thể.',
-      assignee: 'Đỗ Minh Tâm',
+      component: tr("Bộ lọc tách dầu & Cụm nén trục vít"),
+      symptom: tr("Đến kỳ bảo trì định kỳ (4.000 giờ vận hành)."),
+      rootCause: tr("Bảo trì theo lịch khuyến nghị của nhà sản xuất."),
+      recommendedAction: tr("Thực hiện bảo trì định kỳ: thay lọc, kiểm tra dầu và vệ sinh tổng thể."),
+      assignee: tr("Đỗ Minh Tâm"),
       dueDate: '25/01/2025',
       imageUrl: '/images/machines/DRY-01.png',
-      estimatedTimeToDegrade: '> 720 giờ máy (Bình thường)',
+      estimatedTimeToDegrade: tr("> 720 giờ máy (Bình thường)"),
       estimatedWorkHours: 3.0,
-      suggestedTools: ['Bộ cờ lê lực', 'Phễu châm dầu chuyên dụng'],
+      suggestedTools: [tr("Bộ cờ lê lực"), tr("Phễu châm dầu chuyên dụng")],
       status: 'PLANNED',
     },
   ];
@@ -490,16 +500,16 @@ export function extractDynamicPredictiveOrders(
       priority: 'P1_CRITICAL',
       healthScore: spikedMachine.healthScore || 52,
       confidence: 99,
-      component: spikedMachine.rawMetrics[0]?.name || 'Bộ truyền động & Van thủy lực',
-      symptom: relatedAnomaly ? relatedAnomaly.ruleExplanation : `Cảnh báo khẩn cấp diễn tập: Thông số vọt đỉnh vượt ngưỡng nguy hiểm.`,
-      rootCause: 'Giả lập sự cố khẩn cấp từ Header điều hành (Diễn tập ứng phó).',
-      recommendedAction: 'Dừng máy khẩn cấp! Kích hoạt quy trình an toàn E-Stop và kiểm tra áp suất/nhiệt độ.',
-      assignee: 'Trực ca Trưởng (Khẩn cấp)',
-      dueDate: 'Ngay lập tức',
+      component: spikedMachine.rawMetrics[0]?.name || tr("Bộ truyền động & Van thủy lực"),
+      symptom: relatedAnomaly ? relatedAnomaly.ruleExplanation : tr("Cảnh báo khẩn cấp diễn tập: Thông số vọt đỉnh vượt ngưỡng nguy hiểm."),
+      rootCause: tr("Giả lập sự cố khẩn cấp từ Header điều hành (Diễn tập ứng phó)."),
+      recommendedAction: tr("Dừng máy khẩn cấp! Kích hoạt quy trình an toàn E-Stop và kiểm tra áp suất/nhiệt độ."),
+      assignee: tr("Trực ca Trưởng (Khẩn cấp)"),
+      dueDate: tr("Ngay lập tức"),
       imageUrl: baselineOrders.find((b) => b.machineCode === spikedMachine.machineCode)?.imageUrl || '/images/machines/ROB-01.png',
-      estimatedTimeToDegrade: 'Mô phỏng tức thời',
+      estimatedTimeToDegrade: tr("Mô phỏng tức thời"),
       estimatedWorkHours: 1.0,
-      suggestedTools: ['Đồng hồ vạn năng Fluke', 'Quy trình ngắt khẩn cấp E-Stop'],
+      suggestedTools: [tr("Đồng hồ vạn năng Fluke"), tr("Quy trình ngắt khẩn cấp E-Stop")],
       status: 'PENDING',
     };
 
@@ -517,6 +527,9 @@ export function extractDynamicPredictiveOrders(
   return baselineOrders;
 }
 
+/**
+ * Trích xuất chuỗi thời gian thực tế từ metric.history để vẽ biểu đồ Anomaly Trend Chart
+ */
 /**
  * Trích xuất chuỗi thời gian thực tế từ metric.history để vẽ biểu đồ Anomaly Trend Chart
  */
@@ -551,7 +564,7 @@ export function extractMetricTrendPoints(
         criticalMax: crit,
         isAnomaly,
         anomalyType,
-        note: isAnomaly ? (v >= crit ? 'Vượt ngưỡng nguy hiểm' : 'Vượt ngưỡng cảnh báo') : undefined,
+        note: isAnomaly ? (v >= crit ? tr("Vượt ngưỡng nguy hiểm") : tr("Vượt ngưỡng cảnh báo")) : undefined,
       };
     });
   }
@@ -559,7 +572,7 @@ export function extractMetricTrendPoints(
   // Nếu chưa có mảng history, tạo 1 điểm hiện tại
   return [
     {
-      timestamp: targetMetric.lastUpdated || 'Vừa xong',
+      timestamp: targetMetric.lastUpdated || tr("Vừa xong"),
       value: Number(targetMetric.currentValue),
       unit: targetMetric.unit,
       warningMax: warn,

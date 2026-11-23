@@ -28,6 +28,7 @@ import {
 import { MachineComponent } from '../../types/hierarchy';
 import { MetricCatalogItem, MetricMappingItem } from '../../types/metric';
 import { apiClient } from '../../services/api';
+import { tr } from '../../i18n/tr';
 
 interface MappingFormModalProps {
   isOpen: boolean;
@@ -144,15 +145,15 @@ export function MappingFormModal({
 
   const handleSubmit = async () => {
     if (mode === 'create' && !selectedMetricId) {
-      setError('Vui lòng chọn một thông số từ Danh mục chuẩn.');
+      setError(tr("Vui lòng chọn một thông số từ Danh mục chuẩn."));
       return;
     }
     if (!channelName.trim()) {
-      setError('Vui lòng nhập tên kênh đo.');
+      setError(tr("Vui lòng nhập tên kênh đo."));
       return;
     }
     if (!mappingCode.trim()) {
-      setError('Vui lòng nhập mã mapping.');
+      setError(tr("Vui lòng nhập mã mapping."));
       return;
     }
 
@@ -173,7 +174,7 @@ export function MappingFormModal({
         };
 
         const res = await apiClient.createMapping(payload);
-        setSuccessMessage(res.message || 'Gán thông số vào thiết bị thành công!');
+        setSuccessMessage(res.message || tr("Gán thông số vào thiết bị thành công!"));
       } else if (mode === 'edit' && initialMapping) {
         const payload = {
           mapping_code: mappingCode.trim(),
@@ -185,7 +186,7 @@ export function MappingFormModal({
         };
 
         const res = await apiClient.updateMapping(initialMapping.id, payload);
-        setSuccessMessage(res.message || 'Cập nhật cấu hình kênh đo thành công!');
+        setSuccessMessage(res.message || tr("Cập nhật cấu hình kênh đo thành công!"));
       }
 
       setTimeout(() => {
@@ -194,7 +195,7 @@ export function MappingFormModal({
       }, 500);
     } catch (err: any) {
       console.warn('[Submit Mapping Error]:', err);
-      setError(err.message || 'Lỗi khi lưu cấu hình thông số.');
+      setError(err.message || tr("Lỗi khi lưu cấu hình thông số."));
     } finally {
       setIsSubmitting(false);
     }
@@ -222,12 +223,12 @@ export function MappingFormModal({
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  {mode === 'create' ? 'Gán Thông Số Vào Thiết Bị' : 'Chỉnh Sửa Kênh Đo Thiết Bị'}
+                  {mode === 'create' ? tr("Gán Thông Số Vào Thiết Bị") : tr("Chỉnh Sửa Kênh Đo Thiết Bị")}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">
                   {mode === 'create'
-                    ? 'Chọn thông số từ Danh mục chuẩn để thu thập dữ liệu cho thiết bị'
-                    : 'Cập nhật thông tin kênh đo và thanh ghi PLC'}
+                    ? tr("Chọn thông số từ Danh mục chuẩn để thu thập dữ liệu cho thiết bị")
+                    : tr("Cập nhật thông tin kênh đo và thanh ghi PLC")}
                 </p>
               </div>
             </ModalHeader>
@@ -236,17 +237,17 @@ export function MappingFormModal({
               {/* Thẻ tóm tắt Thiết bị & Trạm PLC mục tiêu */}
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 grid grid-cols-2 gap-3 text-xs">
                 <div>
-                  <span className="text-slate-500 font-medium">Thiết bị:</span>
+                  <span className="text-slate-500 font-medium">{tr("Thiết bị:")}</span>
                   <div className="font-bold text-slate-800 dark:text-slate-200 truncate">
                     {machine.name} ({machine.code || machine.id})
                   </div>
                 </div>
 
                 <div>
-                  <span className="text-slate-500 font-medium">Trạm PLC dây chuyền:</span>
+                  <span className="text-slate-500 font-medium">{tr("Trạm PLC dây chuyền:")}</span>
                   <div className="font-bold flex items-center gap-1 text-slate-800 dark:text-slate-200 truncate">
                     <Cpu className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>{machine.plc?.name || machine.plcName || machine.plcId || 'Kế thừa từ Line'}</span>
+                    <span>{machine.plc?.name || machine.plcName || machine.plcId || tr("Kế thừa từ Line")}</span>
                   </div>
                 </div>
               </div>
@@ -254,10 +255,10 @@ export function MappingFormModal({
               {/* Lựa chọn Thông số từ Danh mục chuẩn */}
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
-                  <span>Thông số từ Danh mục chuẩn <span className="text-rose-500">*</span></span>
+                  <span>{tr("Thông số từ Danh mục chuẩn")} <span className="text-rose-500">*</span></span>
                   {isLoadingMetrics && (
                     <span className="flex items-center gap-1 text-[11px] text-slate-400">
-                      <Loader2 className="w-3 h-3 animate-spin" /> Đang tải...
+                      <Loader2 className="w-3 h-3 animate-spin" /> {tr("Đang tải...")}
                     </span>
                   )}
                 </label>
@@ -275,7 +276,7 @@ export function MappingFormModal({
                         <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input
                           type="text"
-                          placeholder="Lọc thông số theo mã, tên hoặc nhóm..."
+                          placeholder={tr("Lọc thông số theo mã, tên hoặc nhóm...")}
                           value={metricSearch}
                           onChange={(e) => setMetricSearch(e.target.value)}
                           className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
@@ -287,7 +288,7 @@ export function MappingFormModal({
                       <div className="p-3.5 rounded-xl border border-amber-200 dark:border-amber-900/40 bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 text-xs flex items-start gap-2">
                         <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
                         <div>
-                          <strong>Đã gán toàn bộ thông số:</strong> Tất cả thông số hoạt động trong Danh mục đã được gán cho thiết bị <strong>{machine.name}</strong>. Để thêm thông số mới cho toàn nhà máy, vui lòng truy cập trang <em>"Danh mục Thông số"</em>.
+                          <strong>{tr("Đã gán toàn bộ thông số:")}</strong> {tr("Tất cả thông số hoạt động trong Danh mục đã được gán cho thiết bị")} <strong>{machine.name}</strong>{tr(". Để thêm thông số mới cho toàn nhà máy, vui lòng truy cập trang")} <em>{tr("\"Danh mục Thông số\"")}</em>.
                         </div>
                       </div>
                     ) : (
@@ -297,7 +298,7 @@ export function MappingFormModal({
                         disabled={isSubmitting || isLoadingMetrics}
                         className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
                       >
-                        <option value="" disabled>-- Chọn Thông số từ Danh mục ({availableMetrics.length} khả dụng) --</option>
+                        <option value="" disabled>{tr("-- Chọn Thông số từ Danh mục (")}{availableMetrics.length} {tr("khả dụng) --")}</option>
                         {filteredAvailableMetrics.map((m) => (
                           <option key={m.id} value={m.id}>
                             {m.code} — {m.name} [{m.unit}] ({m.category})
@@ -310,11 +311,11 @@ export function MappingFormModal({
 
                 {selectedMetric && (
                   <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono flex items-center gap-2 pt-0.5">
-                    <span>Đơn vị: <strong className="text-emerald-600">{selectedMetric.unit}</strong></span>
+                    <span>{tr("Đơn vị:")} <strong className="text-emerald-600">{selectedMetric.unit}</strong></span>
                     <span>&bull;</span>
-                    <span>Kiểu: {selectedMetric.dataType}</span>
+                    <span>{tr("Kiểu:")} {selectedMetric.dataType}</span>
                     <span>&bull;</span>
-                    <span>Nhóm: {selectedMetric.category}</span>
+                    <span>{tr("Nhóm:")} {selectedMetric.category}</span>
                   </div>
                 )}
               </div>
@@ -323,7 +324,7 @@ export function MappingFormModal({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Mã Kênh đo (mapping_code) <span className="text-rose-500">*</span>
+                    {tr("Mã Kênh đo (mapping_code)")} <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -337,13 +338,13 @@ export function MappingFormModal({
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Tên Kênh đo (channel_name) <span className="text-rose-500">*</span>
+                    {tr("Tên Kênh đo (channel_name)")} <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={channelName}
                     onChange={(e) => setChannelName(e.target.value)}
-                    placeholder="VD: Áp suất dầu nén chính"
+                    placeholder={tr("VD: Áp suất dầu nén chính")}
                     disabled={isSubmitting}
                     className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
@@ -353,7 +354,7 @@ export function MappingFormModal({
               {/* Thông số Thanh ghi PLC & Lấy mẫu */}
               <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 space-y-3">
                 <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-                  Thông số Kỹ thuật & Tần suất thu thập
+                  {tr("Thông số Kỹ thuật & Tần suất thu thập")}
                 </span>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -373,7 +374,7 @@ export function MappingFormModal({
 
                   <div className="space-y-1">
                     <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400">
-                      Hệ số nhân (Scale)
+                      {tr("Hệ số nhân (Scale)")}
                     </label>
                     <input
                       type="number"
@@ -387,7 +388,7 @@ export function MappingFormModal({
 
                   <div className="space-y-1">
                     <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400">
-                      Chu kỳ lấy mẫu (ms)
+                      {tr("Chu kỳ lấy mẫu (ms)")}
                     </label>
                     <input
                       type="number"
@@ -428,7 +429,7 @@ export function MappingFormModal({
                 isDisabled={isSubmitting}
                 className="text-xs"
               >
-                Hủy bỏ
+                {tr("Hủy bỏ")}
               </Button>
 
               <Button
@@ -440,7 +441,7 @@ export function MappingFormModal({
                 isLoading={isSubmitting}
                 isDisabled={mode === 'create' && (!selectedMetricId || availableMetrics.length === 0)}
               >
-                {mode === 'create' ? 'Gán thông số' : 'Lưu thay đổi'}
+                {mode === 'create' ? tr("Gán thông số") : tr("Lưu thay đổi")}
               </Button>
             </ModalFooter>
           </>

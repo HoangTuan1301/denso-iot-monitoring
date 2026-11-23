@@ -15,6 +15,7 @@ import { useAlarmStore } from './useAlarmStore';
 import { apiClient } from '../services/api';
 import { useHistoryStore } from './useHistoryStore';
 import { resolveMetricNominalBaseline } from '../utils/demoBaselines';
+import { tr } from '../i18n/tr';
 
 export type NavigationTab = 'dashboard' | 'lines' | 'devices' | 'thresholds' | 'alarms' | 'history' | 'users' | 'audit' | 'qr' | 'settings' | 'metrics' | 'ai';
 export type DashboardViewLevel = 'factory_layout' | 'line_overview' | 'machine_detail' | 'check_sheet';
@@ -35,26 +36,26 @@ export interface PLCStation {
 const initialPLCStations: PLCStation[] = [
   {
     id: 'PLC-STATION-01',
-    name: 'Trạm PLC Chính - Dây chuyền Dập & Hàn (Siemens S7-1500)',
+    name: tr("Trạm PLC Chính - Dây chuyền Dập & Hàn (Siemens S7-1500)"),
     protocol: 'Modbus/TCP',
     ipAddress: '192.168.1.100',
     port: 502,
     isConnected: true,
     latencyMs: 12,
     tagsCount: 24,
-    lastSync: 'Vừa xong',
+    lastSync: tr("Vừa xong"),
     pollingRateMs: 1000,
   },
   {
     id: 'PLC-STATION-02',
-    name: 'Trạm PLC Phụ - Dây chuyền Sơn & Lắp ráp (Omron NX1P2)',
+    name: tr("Trạm PLC Phụ - Dây chuyền Sơn & Lắp ráp (Omron NX1P2)"),
     protocol: 'OPC-UA',
     ipAddress: '192.168.1.101',
     port: 4840,
     isConnected: true,
     latencyMs: 18,
     tagsCount: 16,
-    lastSync: 'Vừa xong',
+    lastSync: tr("Vừa xong"),
     pollingRateMs: 2500,
   },
 ];
@@ -197,6 +198,19 @@ interface MonitoringState {
 // Bộ đệm LRU chống nhận trùng eventId khi WebSocket reconnect (Vấn đề 2)
 const processedPacketIds = new Set<string>();
 
+/** Vị trí màn hình được lưu tạm khi đổi ngôn ngữ (trang tải lại) để mở lại đúng chỗ. */
+export const NAV_RESTORE_KEY = 'denso_iot_nav_restore';
+const restoredNav: Partial<Pick<MonitoringState, 'selectedLineId' | 'selectedMachineId' | 'dashboardViewLevel' | 'activeTab' | 'activeNavGroup'>> = (() => {
+  try {
+    const raw = sessionStorage.getItem(NAV_RESTORE_KEY);
+    if (!raw) return {};
+    sessionStorage.removeItem(NAV_RESTORE_KEY);
+    return JSON.parse(raw) || {};
+  } catch {
+    return {};
+  }
+})();
+
 export const useMonitoringStore = create<MonitoringState>((set, get) => ({
   lines: initialProductionLines,
   isLoadingLines: false,
@@ -216,6 +230,7 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
   activeNavGroup: 'monitoring',
   isRealtimeActive: true,
   plcStations: initialPLCStations,
+  ...restoredNav,
 
   fetchLines: async () => {
     set({ isLoadingLines: true, linesError: null });
@@ -239,7 +254,7 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
       }
     } catch (err: any) {
       console.warn('[fetchLines Error]:', err.message);
-      set({ isLoadingLines: false, linesError: err.message || 'Không thể nạp danh sách dây chuyền' });
+      set({ isLoadingLines: false, linesError: err.message || tr("Không thể nạp danh sách dây chuyền") });
     }
   },
 
@@ -391,7 +406,7 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
                     history: [
                       { timestamp: nowStr, value: nominal },
                     ],
-                    lastUpdated: 'Vừa xong',
+                    lastUpdated: tr("Vừa xong"),
                     dataSourceType: (mapItem.data_source_type as any) || 'SIMULATED',
                     isLive: false,
                     mappingCode: mapItem.mapping_code,
@@ -420,7 +435,7 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
                   type: apiM.type,
                   status: (apiM.status ? (apiM.status.toLowerCase() as SystemStatus) : (existing.status || 'no_data')),
                   managementStatus: (apiM as any).managementStatus || existing.managementStatus || 'active',
-                  location: apiM.location || existing.location || `Xưởng ${line.name}`,
+                  location: apiM.location || existing.location || tr("Xưởng {0}", line.name),
                   description: apiM.description !== undefined ? apiM.description : existing.description,
                   healthScore: apiM.healthScore !== undefined ? apiM.healthScore : null,
                   uptimeHours: apiM.uptimeHours !== undefined ? apiM.uptimeHours : (existing.uptimeHours ?? 0),
@@ -444,7 +459,7 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
                 type: apiM.type,
                 status: (apiM.status ? apiM.status.toLowerCase() : 'no_data') as SystemStatus,
                 managementStatus: (apiM as any).managementStatus || 'active',
-                location: apiM.location || `Xưởng ${line.name}`,
+                location: apiM.location || tr("Xưởng {0}", line.name),
                 description: apiM.description || null,
                 healthScore: apiM.healthScore ?? null,
                 uptimeHours: apiM.uptimeHours ?? 0,
@@ -476,7 +491,7 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
       }
     } catch (err: any) {
       console.warn('[fetchMachines Error]:', err.message);
-      set({ isLoadingMachines: false, machinesError: err.message || 'Không thể nạp danh sách máy' });
+      set({ isLoadingMachines: false, machinesError: err.message || tr("Không thể nạp danh sách máy") });
     }
   },
 
@@ -521,7 +536,7 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
     apiClient.recordAudit(
       'TOGGLE_PLC',
       stationId,
-      `Chuyển đổi trạng thái kết nối trạm PLC ${stationId}`
+      tr("Chuyển đổi trạng thái kết nối trạm PLC {0}", stationId)
     );
     set((state) => ({
       plcStations: state.plcStations.map((station) =>
@@ -530,7 +545,7 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
               ...station,
               isConnected: !station.isConnected,
               latencyMs: !station.isConnected ? Math.floor(Math.random() * 15 + 8) : 0,
-              lastSync: !station.isConnected ? 'Vừa kết nối lại' : 'Mất tín hiệu',
+              lastSync: !station.isConnected ? tr("Vừa kết nối lại") : tr("Mất tín hiệu"),
             }
           : station
       ),
@@ -611,11 +626,14 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
   /**
    * Cập nhật 4 ngưỡng kỹ thuật của một chỉ số
    */
+  /**
+   * Cập nhật 4 ngưỡng kỹ thuật của một chỉ số
+   */
   updateMetricThresholds: (metricId, thresholds) => {
     apiClient.recordAudit(
       'UPDATE_THRESHOLD',
       metricId,
-      `Thiết lập 4 ngưỡng: W-Min:${thresholds.warningMin}, W-Max:${thresholds.warningMax}, C-Min:${thresholds.criticalMin}, C-Max:${thresholds.criticalMax}`
+      tr("Thiết lập 4 ngưỡng: W-Min:{0}, W-Max:{1}, C-Min:{2}, C-Max:{3}", thresholds.warningMin, thresholds.warningMax, thresholds.criticalMin, thresholds.criticalMax)
     );
     set((state) => {
       const updatedLines = state.lines.map((line) => {
@@ -884,8 +902,12 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
    * Khôi phục toàn bộ hệ thống về trạng thái chuẩn bình thường sau khi diễn tập sự cố
    * CHỈ giải quyết các cảnh báo Demo (ALM-DEMO), tuyệt đối không xóa lịch sử hay cảnh báo thật
    */
+  /**
+   * Khôi phục toàn bộ hệ thống về trạng thái chuẩn bình thường sau khi diễn tập sự cố
+   * CHỈ giải quyết các cảnh báo Demo (ALM-DEMO), tuyệt đối không xóa lịch sử hay cảnh báo thật
+   */
   resetEmergencyDemo: () => {
-    useAlarmStore.getState().resolveDemoAlarms('Đã khôi phục trạng thái chuẩn sau diễn tập Demo.');
+    useAlarmStore.getState().resolveDemoAlarms(tr("Đã khôi phục trạng thái chuẩn sau diễn tập Demo."));
     set((state) => {
       const now = new Date();
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
@@ -935,6 +957,11 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
    * Duy trì trạng thái nguy hiểm liên tục cho đến khi bấm Khôi phục Sự cố
    * Đảm bảo tính nhất quán: Mỗi lần kích hoạt chỉ tác động đúng DUY NHẤT 1 máy mục tiêu (Single target)
    */
+  /**
+   * Giả lập sự cố khẩn cấp ngẫu nhiên (Demo Feature)
+   * Duy trì trạng thái nguy hiểm liên tục cho đến khi bấm Khôi phục Sự cố
+   * Đảm bảo tính nhất quán: Mỗi lần kích hoạt chỉ tác động đúng DUY NHẤT 1 máy mục tiêu (Single target)
+   */
   triggerEmergencyDemo: () => {
     let triggeredInfo: {
       lineName: string;
@@ -945,7 +972,7 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
     } | null = null;
 
     // Dọn dẹp cảnh báo demo cũ trước khi tạo mới để không bị cộng dồn
-    useAlarmStore.getState().resolveDemoAlarms('Tự động hoàn tất kịch bản cũ trước khi bắt đầu kịch bản mới.');
+    useAlarmStore.getState().resolveDemoAlarms(tr("Tự động hoàn tất kịch bản cũ trước khi bắt đầu kịch bản mới."));
 
     set((state) => {
       if (state.lines.length === 0) return state;
@@ -1031,7 +1058,7 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
         triggeredValue: spikeValue,
         thresholdValue: crit,
         unit: targetMetric.unit,
-        message: `Sự cố giả lập: ${targetMetric.name} tăng vọt lên ${spikeValue} ${targetMetric.unit}, vượt ngưỡng nguy hiểm (${crit} ${targetMetric.unit})!`,
+        message: tr("Sự cố giả lập: {0} tăng vọt lên {1} {2}, vượt ngưỡng nguy hiểm ({3} {4})!", targetMetric.name, spikeValue, targetMetric.unit, crit, targetMetric.unit),
         isDemo: true,
         source: 'DEMO',
       });
@@ -1039,7 +1066,7 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
       apiClient.recordAudit(
         'TRIGGER_EMERGENCY',
         targetMachine.name,
-        `Giả lập sự cố khẩn cấp: ${targetMetric.name} tăng vọt ${spikeValue} ${targetMetric.unit} tại ${targetLine.name}`
+        tr("Giả lập sự cố khẩn cấp: {0} tăng vọt {1} {2} tại {3}", targetMetric.name, spikeValue, targetMetric.unit, targetLine.name)
       );
 
       const updatedLines = baseLines.map((l, lIdx) => {

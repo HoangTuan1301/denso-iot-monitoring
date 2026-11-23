@@ -12,6 +12,7 @@ import { Search, ChevronRight, ArrowRight } from 'lucide-react';
 import { ProductionLine } from '../../types/hierarchy';
 import { FactoryZone } from './factoryMapConfig';
 import { resolveLineMonitoringState } from '../../utils/machineStatusResolver';
+import { tr } from '../../i18n/tr';
 
 interface FactoryLineSearchPanelProps {
   lines: ProductionLine[];
@@ -58,7 +59,7 @@ export function FactoryLineSearchPanel({
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Tìm dây chuyền..."
+          placeholder={tr("Tìm dây chuyền...")}
           className="w-full pl-8 pr-2.5 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-factory-border bg-white dark:bg-factory-card text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all shadow-2xs"
         />
       </div>
@@ -74,7 +75,7 @@ export function FactoryLineSearchPanel({
               : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          Tất cả
+          {tr("Tất cả")}
         </button>
         <button
           type="button"
@@ -85,14 +86,14 @@ export function FactoryLineSearchPanel({
               : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          Dây chuyền ({lines.length})
+          {tr("Dây chuyền (")}{lines.length})
         </button>
       </div>
 
       {/* 3. Danh sách dây chuyền giám sát */}
       <div className="flex flex-col gap-1.5">
         <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 px-1">
-          Dây chuyền giám sát
+          {tr("Dây chuyền giám sát")}
         </p>
 
         {filteredLines.map((line) => {
@@ -145,7 +146,7 @@ export function FactoryLineSearchPanel({
       <div className="mt-auto p-3 rounded-xl border border-slate-200 dark:border-factory-border bg-white dark:bg-factory-card shadow-xs flex flex-col gap-2.5">
         <div>
           <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-            Thông tin khu vực đang chọn
+            {tr("Thông tin khu vực đang chọn")}
           </span>
           <div className="flex items-center justify-between gap-1.5 mt-0.5">
             <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">
@@ -153,7 +154,7 @@ export function FactoryLineSearchPanel({
                 ? `${activeLine.code} – ${activeLine.name.replace(/^Dây chuyền\s*/i, '')}`
                 : selectedZone
                 ? selectedZone.name
-                : 'Chưa chọn khu vực'}
+                : tr("Chưa chọn khu vực")}
             </h4>
             {resLine ? (
               <span
@@ -168,16 +169,16 @@ export function FactoryLineSearchPanel({
                 }`}
               >
                 {resLine.operatingStatus === 'STOPPED'
-                  ? 'Tạm dừng'
+                  ? tr("Tạm dừng")
                   : resLine.alarmSeverity === 'CRITICAL'
-                  ? '⚠️ Nguy hiểm'
+                  ? tr("⚠️ Nguy hiểm")
                   : resLine.alarmSeverity === 'WARNING'
-                  ? 'Cần theo dõi'
-                  : 'Đang hoạt động'}
+                  ? tr("Cần theo dõi")
+                  : tr("Đang hoạt động")}
               </span>
             ) : selectedZone && (
               <span className="text-[9px] px-1.5 py-0.2 rounded font-bold shrink-0 bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
-                {selectedZone.defaultSafetyScore != null ? 'Chờ giám sát' : 'N/A'}
+                {selectedZone.defaultSafetyScore != null ? tr("Chờ giám sát") : 'N/A'}
               </span>
             )}
           </div>
@@ -186,7 +187,7 @@ export function FactoryLineSearchPanel({
         {/* 3 chỉ số tóm tắt */}
         <div className="grid grid-cols-3 gap-1 pt-1 border-t border-slate-100 dark:border-factory-border text-center">
           <div>
-            <p className="text-[9px] text-slate-400">Mức an toàn</p>
+            <p className="text-[9px] text-slate-400">{tr("Mức an toàn")}</p>
             <p
               className="text-xs font-mono font-bold mt-0.5"
               style={{ color: resLine ? resLine.healthColor : '#94A3B8' }}
@@ -199,13 +200,13 @@ export function FactoryLineSearchPanel({
             </p>
           </div>
           <div>
-            <p className="text-[9px] text-slate-400">Thiết bị</p>
+            <p className="text-[9px] text-slate-400">{tr("Thiết bị")}</p>
             <p className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200 mt-0.5">
               {resLine ? (resLine.totalMachines || activeLine?.machines?.length || 6) : selectedZone?.isConfiguredLine ? 2 : '--'}
             </p>
           </div>
           <div>
-            <p className="text-[9px] text-slate-400">Cảnh báo</p>
+            <p className="text-[9px] text-slate-400">{tr("Cảnh báo")}</p>
             <p className={`text-xs font-mono font-bold mt-0.5 ${resLine && (resLine.criticalCount + resLine.warningCount > 0) ? 'text-rose-600' : 'text-slate-800 dark:text-slate-200'}`}>
               {resLine ? (resLine.criticalCount + resLine.warningCount) : 0}
             </p>
@@ -219,12 +220,12 @@ export function FactoryLineSearchPanel({
             onClick={() => onOpenLineOverview(activeLine.id)}
             className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition-all cursor-pointer active:scale-98 mt-1"
           >
-            <span>Xem chi tiết dây chuyền</span>
+            <span>{tr("Xem chi tiết dây chuyền")}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         ) : (
           <div className="text-[10px] text-slate-400 text-center py-1">
-            {selectedZone ? 'Khu vực chưa cấu hình giám sát chi tiết' : 'Nhấp vào dây chuyền trên bản đồ để xem'}
+            {selectedZone ? tr("Khu vực chưa cấu hình giám sát chi tiết") : tr("Nhấp vào dây chuyền trên bản đồ để xem")}
           </div>
         )}
       </div>

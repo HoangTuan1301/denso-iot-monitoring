@@ -7,6 +7,7 @@ import { Button } from '@heroui/react';
 import { Tooltip } from './Tooltip';
 import { Sun, Moon } from 'lucide-react';
 import { useThemeStore } from '../../stores/useThemeStore';
+import { tr } from '../../i18n/tr';
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useThemeStore();
@@ -14,7 +15,7 @@ export function ThemeToggle() {
 
   return (
     <Tooltip
-      content={isDark ? 'Chuyển sang Giao diện Sáng (Light)' : 'Chuyển sang Giao diện Tối (Dark)'}
+      content={isDark ? tr("Chuyển sang Giao diện Sáng (Light)") : tr("Chuyển sang Giao diện Tối (Dark)")}
       placement="bottom"
     >
       <Button

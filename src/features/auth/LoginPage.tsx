@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useThemeStore } from '../../stores/useThemeStore';
+import { tr } from '../../i18n/tr';
 
 const REMEMBERED_EMAIL_KEY = 'denso_remembered_email';
 
@@ -57,7 +58,7 @@ export function LoginPage() {
     const trimmedPass = password.trim();
 
     if (!trimmedEmail || !trimmedPass) {
-      setFormError('Vui lòng nhập đầy đủ Email và Mật khẩu.');
+      setFormError(tr("Vui lòng nhập đầy đủ Email và Mật khẩu."));
       return;
     }
 
@@ -70,7 +71,7 @@ export function LoginPage() {
 
     const success = await login(trimmedEmail, trimmedPass);
     if (!success) {
-      setFormError(error || 'Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin.');
+      setFormError(error || tr("Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin."));
     }
   };
 
@@ -138,10 +139,10 @@ export function LoginPage() {
           {/* Dòng mô tả chi tiết */}
           <div className="space-y-0.5 pt-1.5 text-slate-200">
             <p className="text-sm sm:text-base font-medium">
-              Hệ thống giám sát & quản lý thiết bị công nghiệp
+              {tr("Hệ thống giám sát & quản lý thiết bị công nghiệp")}
             </p>
             <p className="text-xs sm:text-sm text-slate-300">
-              Nhà máy DENSO Việt Nam
+              {tr("Nhà máy DENSO Việt Nam")}
             </p>
           </div>
         </div>
@@ -155,7 +156,7 @@ export function LoginPage() {
                 <BarChart3 className="w-5 h-5 text-white" />
               </div>
               <span className="text-[11px] sm:text-xs text-slate-200 font-medium leading-tight">
-                Giám sát thời gian thực
+                {tr("Giám sát thời gian thực")}
               </span>
             </div>
 
@@ -165,7 +166,7 @@ export function LoginPage() {
                 <Settings className="w-5 h-5 text-white" />
               </div>
               <span className="text-[11px] sm:text-xs text-slate-200 font-medium leading-tight">
-                Quản lý thiết bị
+                {tr("Quản lý thiết bị")}
               </span>
             </div>
 
@@ -175,7 +176,7 @@ export function LoginPage() {
                 <ShieldCheck className="w-5 h-5 text-white" />
               </div>
               <span className="text-[11px] sm:text-xs text-slate-200 font-medium leading-tight">
-                An toàn & ổn định
+                {tr("An toàn & ổn định")}
               </span>
             </div>
           </div>
@@ -191,7 +192,7 @@ export function LoginPage() {
           <button
             type="button"
             onClick={toggleTheme}
-            title={theme === 'dark' ? 'Chuyển sang chế độ Sáng' : 'Chuyển sang chế độ Tối'}
+            title={theme === 'dark' ? tr("Chuyển sang chế độ Sáng") : tr("Chuyển sang chế độ Tối")}
             className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white shadow-xs cursor-pointer transition-all hover:scale-105"
           >
             {theme === 'dark' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4 text-amber-500" />}
@@ -227,7 +228,7 @@ export function LoginPage() {
             </span>
 
             <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-4">
-              Đăng nhập hệ thống
+              {tr("Đăng nhập hệ thống")}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
               DENSO Smart Factory – Industrial IoT Monitoring
@@ -254,7 +255,7 @@ export function LoginPage() {
                   type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email hoặc tên đăng nhập"
+                  placeholder={tr("Email hoặc tên đăng nhập")}
                   autoComplete="username"
                   className="w-full pl-10 pr-3.5 py-2.5 sm:py-3 text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-900/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#DC0017] focus:ring-2 focus:ring-[#DC0017]/20 transition-all"
                 />
@@ -271,7 +272,7 @@ export function LoginPage() {
                   type={isVisiblePassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Mật khẩu"
+                  placeholder={tr("Mật khẩu")}
                   autoComplete="current-password"
                   className="w-full pl-10 pr-10 py-2.5 sm:py-3 text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-900/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#DC0017] focus:ring-2 focus:ring-[#DC0017]/20 transition-all"
                 />
@@ -279,7 +280,7 @@ export function LoginPage() {
                   type="button"
                   onClick={() => setIsVisiblePassword(!isVisiblePassword)}
                   className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none cursor-pointer"
-                  aria-label={isVisiblePassword ? 'Ẩn mật khẩu' : 'Hiển thị mật khẩu'}
+                  aria-label={isVisiblePassword ? tr("Ẩn mật khẩu") : tr("Hiển thị mật khẩu")}
                 >
                   {isVisiblePassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -295,7 +296,7 @@ export function LoginPage() {
                   onChange={(e) => setRememberMe(e.target.checked)}
                   className="w-3.5 h-3.5 rounded border-slate-300 text-[#DC0017] focus:ring-[#DC0017] cursor-pointer"
                 />
-                <span className="text-[11px] sm:text-xs">Ghi nhớ đăng nhập</span>
+                <span className="text-[11px] sm:text-xs">{tr("Ghi nhớ đăng nhập")}</span>
               </label>
 
               <button
@@ -303,7 +304,7 @@ export function LoginPage() {
                 onClick={() => setShowForgotPasswordModal(true)}
                 className="text-[11px] sm:text-xs font-semibold text-[#DC0017] hover:text-[#A50016] hover:underline cursor-pointer transition-colors"
               >
-                Quên mật khẩu?
+                {tr("Quên mật khẩu?")}
               </button>
             </div>
 
@@ -316,12 +317,12 @@ export function LoginPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Đang xác thực...</span>
+                  <span>{tr("Đang xác thực...")}</span>
                 </>
               ) : (
                 <>
                   <LogIn className="w-4 h-4" />
-                  <span>Đăng nhập</span>
+                  <span>{tr("Đăng nhập")}</span>
                 </>
               )}
             </button>
@@ -331,7 +332,7 @@ export function LoginPage() {
           <div className="relative flex items-center justify-center my-4">
             <div className="border-t border-slate-200 dark:border-slate-800 w-full" />
             <span className="bg-white dark:bg-slate-900 px-3 text-[10px] sm:text-[11px] font-medium text-slate-400 whitespace-nowrap">
-              Hoặc đăng nhập với vai trò
+              {tr("Hoặc đăng nhập với vai trò")}
             </span>
             <div className="border-t border-slate-200 dark:border-slate-800 w-full" />
           </div>
@@ -354,7 +355,7 @@ export function LoginPage() {
                     ADMIN
                   </div>
                   <div className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                    Quản trị hệ thống
+                    {tr("Quản trị hệ thống")}
                   </div>
                 </div>
               </div>
@@ -376,7 +377,7 @@ export function LoginPage() {
                     OPERATOR
                   </div>
                   <div className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                    Vận hành & giám sát
+                    {tr("Vận hành & giám sát")}
                   </div>
                 </div>
               </div>
@@ -394,7 +395,7 @@ export function LoginPage() {
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm">
                 <HelpCircle className="w-4 h-4 text-[#DC0017]" />
-                <span>Hướng dẫn khôi phục mật khẩu</span>
+                <span>{tr("Hướng dẫn khôi phục mật khẩu")}</span>
               </div>
               <button
                 type="button"
@@ -407,14 +408,14 @@ export function LoginPage() {
 
             <div className="text-xs text-slate-600 dark:text-slate-300 space-y-2.5 leading-relaxed">
               <p>
-                Hệ thống <strong>DENSO Smart Factory (KaiLink)</strong> áp dụng quy định bảo mật công nghiệp với cơ chế xác thực nội bộ tập trung.
+                {tr("Hệ thống")} <strong>DENSO Smart Factory (KaiLink)</strong> {tr("áp dụng quy định bảo mật công nghiệp với cơ chế xác thực nội bộ tập trung.")}
               </p>
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-mono text-[11px] space-y-1">
-                <div>📧 Quản trị viên: <strong>admin@denso.com</strong></div>
-                <div>🏢 Đơn vị: Phòng Tự động hóa &amp; IT Nhà máy DENSO</div>
+                <div>{tr("📧 Quản trị viên:")} <strong>admin@denso.com</strong></div>
+                <div>{tr("🏢 Đơn vị: Phòng Tự động hóa & IT Nhà máy DENSO")}</div>
               </div>
               <p>
-                Để đảm bảo an toàn vận hành sản xuất, nhân viên vui lòng liên hệ trực tiếp Quản trị viên hoặc Trưởng ca để được cấp lại mật khẩu truy cập.
+                {tr("Để đảm bảo an toàn vận hành sản xuất, nhân viên vui lòng liên hệ trực tiếp Quản trị viên hoặc Trưởng ca để được cấp lại mật khẩu truy cập.")}
               </p>
             </div>
 
@@ -424,7 +425,7 @@ export function LoginPage() {
                 onClick={() => setShowForgotPasswordModal(false)}
                 className="px-4 py-2 rounded-xl bg-[#DC0017] hover:bg-[#B80013] text-white text-xs font-bold transition-colors cursor-pointer"
               >
-                Đã hiểu
+                {tr("Đã hiểu")}
               </button>
             </div>
           </div>

@@ -7,6 +7,7 @@ import { create } from 'zustand';
 import { UserProfile, UserRole } from '../types/auth';
 import { apiClient, tokenStorage } from '../services/api';
 import { mockUsers } from '../utils/mockData';
+import { tr } from '../i18n/tr';
 
 interface AuthState {
   currentUser: UserProfile;
@@ -28,13 +29,13 @@ interface AuthState {
 const defaultAdmin: UserProfile = {
   id: 'usr-admin-01',
   employeeId: 'DNS-1001',
-  name: 'Hoàng Minh Hải',
-  fullName: 'Hoàng Minh Hải',
+  name: tr("Hoàng Minh Hải"),
+  fullName: tr("Hoàng Minh Hải"),
   email: 'admin@denso.com',
   role: 'ADMIN',
   assignedLineId: 'ALL',
   status: 'active',
-  shift: 'Ca 1 (Sáng)',
+  shift: tr("Ca 1 (Sáng)"),
   code: 'DNS-1001',
 };
 
@@ -49,6 +50,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   error: null,
   availableUsers: mockUsers,
 
+  /**
+   * Đăng nhập xác thực bảo mật JWT (Kèm fallback demo mượt mà khi Backend đang khởi động)
+   */
   /**
    * Đăng nhập xác thực bảo mật JWT (Kèm fallback demo mượt mà khi Backend đang khởi động)
    */
@@ -98,7 +102,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       set({
         isLoading: false,
-        error: err.message || 'Đăng nhập thất bại. Vui lòng thử lại.',
+        error: err.message || tr("Đăng nhập thất bại. Vui lòng thử lại."),
       });
       return false;
     }

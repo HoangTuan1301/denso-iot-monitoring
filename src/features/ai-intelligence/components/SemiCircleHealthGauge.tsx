@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { tr } from '../../../i18n/tr';
 
 interface SemiCircleHealthGaugeProps {
   score: number | null;
@@ -16,8 +17,8 @@ interface SemiCircleHealthGaugeProps {
 export const SemiCircleHealthGauge: React.FC<SemiCircleHealthGaugeProps> = ({
   score,
   maxScore = 100,
-  subtitle = 'Trung bình (máy có dữ liệu)',
-  trendText = '+1.2 điểm so với 24h trước',
+  subtitle = tr("Trung bình (máy có dữ liệu)"),
+  trendText = tr("+1.2 điểm so với 24h trước"),
   isSpike = false,
 }) => {
   const currentScore = score !== null ? Math.min(maxScore, Math.max(0, score)) : 0;
@@ -101,11 +102,11 @@ export const SemiCircleHealthGauge: React.FC<SemiCircleHealthGaugeProps> = ({
         <div className="flex items-center justify-center gap-1 text-[11px] font-bold">
           {isSpike ? (
             <span className="text-rose-600 dark:text-rose-400">
-              ▼ -40.0 điểm (Diễn tập sự cố Header)
+              {tr("▼ -40.0 điểm (Diễn tập sự cố Header)")}
             </span>
           ) : (
             <span className="text-emerald-600 dark:text-emerald-400">
-              ▲ {trendText}
+              ▲ {String(trendText).replace(/^▲\s*/, "")}
             </span>
           )}
         </div>

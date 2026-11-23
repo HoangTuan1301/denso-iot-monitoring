@@ -8,6 +8,7 @@ import React, { useState } from 'react';
 import { Grid } from 'lucide-react';
 import { AIProcessedMachine } from '../adapters/aiTelemetryAdapter';
 import { ProductionLine } from '../../../types/hierarchy';
+import { tr } from '../../../i18n/tr';
 
 interface EquipmentRiskHeatmapProps {
   lines: ProductionLine[];
@@ -24,9 +25,9 @@ export const EquipmentRiskHeatmap: React.FC<EquipmentRiskHeatmapProps> = ({
 
   // Chuẩn hóa 3 dây chuyền DENSO: DC1, DC2, DC3
   const heatmapRows = [
-    { label: 'DC1', lineId: 'LINE-01', name: lines.find((l) => l.id === 'LINE-01')?.name || 'Dập & Hàn' },
-    { label: 'DC2', lineId: 'LINE-02', name: lines.find((l) => l.id === 'LINE-02')?.name || 'Sơn & Gia công' },
-    { label: 'DC3', lineId: 'LINE-03', name: lines.find((l) => l.id === 'LINE-03')?.name || 'Lắp ráp' },
+    { label: 'DC1', lineId: 'LINE-01', name: lines.find((l) => l.id === 'LINE-01')?.name || tr("Dập & Hàn") },
+    { label: 'DC2', lineId: 'LINE-02', name: lines.find((l) => l.id === 'LINE-02')?.name || tr("Sơn & Gia công") },
+    { label: 'DC3', lineId: 'LINE-03', name: lines.find((l) => l.id === 'LINE-03')?.name || tr("Lắp ráp") },
   ];
 
   const columns = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6'];
@@ -53,17 +54,17 @@ export const EquipmentRiskHeatmap: React.FC<EquipmentRiskHeatmapProps> = ({
         <div className="flex items-center gap-2">
           <Grid className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
-            Bản đồ Rủi ro Thiết bị (Heatmap)
+            {tr("Bản đồ Rủi ro Thiết bị (Heatmap)")}
           </h4>
         </div>
 
         {/* Hover quick preview info */}
         {hoveredMachine ? (
           <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 truncate max-w-[150px]">
-            {hoveredMachine.machineCode} ({hoveredMachine.healthScore ?? 'N/A'}đ)
+            {hoveredMachine.machineCode} ({hoveredMachine.healthScore ?? 'N/A'}{tr("đ)")}
           </span>
         ) : (
-          <span className="text-[10px] text-slate-400">Rê chuột xem chi tiết</span>
+          <span className="text-[10px] text-slate-400">{tr("Rê chuột xem chi tiết")}</span>
         )}
       </div>
 
@@ -108,18 +109,14 @@ export const EquipmentRiskHeatmap: React.FC<EquipmentRiskHeatmapProps> = ({
                           )}`}
                           title={
                             machine
-                              ? `${machine.machineCode} — ${machine.machineName}\nDây chuyền: ${row.name}\nĐiểm sức khỏe: ${
-                                  machine.healthScore != null ? `${machine.healthScore}/100` : 'Chưa có dữ liệu'
-                                }\nTrạng thái: ${
-                                  machine.hasActiveSpike || machine.riskLevel === 'CRITICAL'
-                                    ? 'NGUY HIỂM (Critical)'
+                              ? tr("{0} — {1}\nDây chuyền: {2}\nĐiểm sức khỏe: {3}\nTrạng thái: {4}", machine.machineCode, machine.machineName, row.name, machine.healthScore != null ? `${machine.healthScore}/100` : tr("Chưa có dữ liệu"), machine.hasActiveSpike || machine.riskLevel === 'CRITICAL'
+                                    ? tr("NGUY HIỂM (Critical)")
                                     : machine.riskLevel === 'HIGH'
-                                    ? 'CẢNH BÁO (Warning)'
+                                    ? tr("CẢNH BÁO (Warning)")
                                     : machine.isNoData
-                                    ? 'CHƯA CÓ DL (No Data)'
-                                    : 'AN TOÀN (Safe)'
-                                }`
-                              : 'Vị trí dự phòng mở rộng'
+                                    ? tr("CHƯA CÓ DL (No Data)")
+                                    : tr("AN TOÀN (Safe)"))
+                              : tr("Vị trí dự phòng mở rộng")
                           }
                         >
                           {machine ? (
@@ -144,19 +141,19 @@ export const EquipmentRiskHeatmap: React.FC<EquipmentRiskHeatmapProps> = ({
       <div className="pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
         <div className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-emerald-500" />
-          <span>An toàn</span>
+          <span>{tr("An toàn")}</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-amber-400" />
-          <span>Cảnh báo</span>
+          <span>{tr("Cảnh báo")}</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-rose-500" />
-          <span>Nguy hiểm</span>
+          <span>{tr("Nguy hiểm")}</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600" />
-          <span>Chưa có DL</span>
+          <span>{tr("Chưa có DL")}</span>
         </div>
       </div>
     </div>

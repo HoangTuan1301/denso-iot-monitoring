@@ -26,6 +26,7 @@ import { useAuthStore } from '../../stores/useAuthStore';
 import { useMonitoringStore } from '../../stores/useMonitoringStore';
 import { AlarmEvent } from '../../types/alarm';
 import { ModalPortal } from '../../components/common/ModalPortal';
+import { tr } from '../../i18n/tr';
 
 export function AlarmLogView() {
   const { alarms, acknowledgeAlarm, resolveAlarm } = useAlarmStore();
@@ -73,7 +74,7 @@ export function AlarmLogView() {
   const handleOpenResolveModal = (alarm: AlarmEvent) => {
     setResolvingAlarm(alarm);
     setResolutionNote(
-      `Đã kiểm tra và xử lý kỹ thuật bởi ${currentUser.name}. Thông số đã trở về dải an toàn.`
+      tr("Đã kiểm tra và xử lý kỹ thuật bởi {0}. Thông số đã trở về dải an toàn.", currentUser.name)
     );
   };
 
@@ -89,23 +90,27 @@ export function AlarmLogView() {
    * Xuất báo cáo sự cố dưới dạng file CSV/Excel UTF-8 có BOM
    * Mở trực tiếp trên Microsoft Excel không bị lỗi phông chữ tiếng Việt
    */
+  /**
+   * Xuất báo cáo sự cố dưới dạng file CSV/Excel UTF-8 có BOM
+   * Mở trực tiếp trên Microsoft Excel không bị lỗi phông chữ tiếng Việt
+   */
   const handleExportCSV = () => {
     const headers = [
-      'Mã Sự Cố',
-      'Dây Chuyền',
-      'Tên Thiết Bị',
-      'Chỉ Số Đo',
-      'Mức Độ',
-      'Giá Trị Đo',
-      'Ngưỡng Cho Phép',
-      'Đơn Vị',
-      'Nội Dung Cảnh Báo',
-      'Thời Gian Phát Sinh',
-      'Trạng Thái',
-      'Người Tiếp Nhận',
-      'Thời Gian Tiếp Nhận',
-      'Thời Gian Hoàn Tất',
-      'Ghi Chú Khắc Phục',
+      tr("Mã Sự Cố"),
+      tr("Dây Chuyền"),
+      tr("Tên Thiết Bị"),
+      tr("Chỉ Số Đo"),
+      tr("Mức Độ"),
+      tr("Giá Trị Đo"),
+      tr("Ngưỡng Cho Phép"),
+      tr("Đơn Vị"),
+      tr("Nội Dung Cảnh Báo"),
+      tr("Thời Gian Phát Sinh"),
+      tr("Trạng Thái"),
+      tr("Người Tiếp Nhận"),
+      tr("Thời Gian Tiếp Nhận"),
+      tr("Thời Gian Hoàn Tất"),
+      tr("Ghi Chú Khắc Phục"),
     ];
 
     const rows = filteredAlarms.map((a) => [
@@ -113,7 +118,7 @@ export function AlarmLogView() {
       `"${a.lineName} (${a.lineId})"`,
       `"${a.machineName} (${a.machineId})"`,
       `"${a.metricName}"`,
-      `"${a.severity === 'critical' ? 'NGHIÊM TRỌNG' : 'CẢNH BÁO'}"`,
+      `"${a.severity === 'critical' ? tr("NGHIÊM TRỌNG") : tr("CẢNH BÁO")}"`,
       `"${a.triggeredValue}"`,
       `"${a.thresholdValue}"`,
       `"${a.unit}"`,
@@ -121,12 +126,12 @@ export function AlarmLogView() {
       `"${new Date(a.timestamp).toLocaleString('vi-VN')}"`,
       `"${
         a.status === 'resolved'
-          ? 'Đã giải quyết'
+          ? tr("Đã giải quyết")
           : a.status === 'acknowledged'
-          ? 'Đang xử lý'
-          : 'Chờ tiếp nhận'
+          ? tr("Đang xử lý")
+          : tr("Chờ tiếp nhận")
       }"`,
-      `"${a.assignedTo || 'Chưa phân công'}"`,
+      `"${a.assignedTo || tr("Chưa phân công")}"`,
       `"${a.acknowledgedAt ? new Date(a.acknowledgedAt).toLocaleString('vi-VN') : ''}"`,
       `"${a.resolvedAt ? new Date(a.resolvedAt).toLocaleString('vi-VN') : ''}"`,
       `"${(a.resolutionNotes || '').replace(/"/g, '""')}"`,
@@ -164,14 +169,14 @@ export function AlarmLogView() {
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 rounded text-xs font-bold bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30">
-              NHẬT KÝ VẬN HÀNH
+              {tr("NHẬT KÝ VẬN HÀNH")}
             </span>
             <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-              Nhật Ký Cảnh Báo & Xử Lý Sự Cố
+              {tr("Nhật Ký Cảnh Báo & Xử Lý Sự Cố")}
             </h1>
           </div>
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-            Theo dõi dòng sự kiện bất thường thời gian thực, quản lý quy trình 3 bước tiếp nhận và xuất báo cáo vận hành.
+            {tr("Theo dõi dòng sự kiện bất thường thời gian thực, quản lý quy trình 3 bước tiếp nhận và xuất báo cáo vận hành.")}
           </p>
         </div>
 
@@ -182,7 +187,7 @@ export function AlarmLogView() {
           className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold text-xs px-4 h-9.5 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer shrink-0"
         >
           <Download className="w-4 h-4 shrink-0" />
-          <span>Xuất Báo Cáo (CSV/Excel)</span>
+          <span>{tr("Xuất Báo Cáo (CSV/Excel)")}</span>
         </button>
       </div>
 
@@ -194,7 +199,7 @@ export function AlarmLogView() {
         <div className="bg-red-50/70 dark:bg-rose-950/20 border border-slate-200/80 dark:border-slate-800 border-l-4 border-l-red-500 rounded-xl p-4 shadow-sm flex items-center justify-between transition-all hover:shadow-md">
           <div>
             <p className="text-[11px] font-bold text-red-700 dark:text-red-400 uppercase tracking-wider">
-              Nguy hiểm (Critical)
+              {tr("Nguy hiểm (Critical)")}
             </p>
             <p className="font-mono text-3xl font-black text-red-600 dark:text-red-400 mt-1">
               {criticalCount}
@@ -209,7 +214,7 @@ export function AlarmLogView() {
         <div className="bg-amber-50/70 dark:bg-amber-950/20 border border-slate-200/80 dark:border-slate-800 border-l-4 border-l-amber-500 rounded-xl p-4 shadow-sm flex items-center justify-between transition-all hover:shadow-md">
           <div>
             <p className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">
-              Chờ xử lý (Pending)
+              {tr("Chờ xử lý (Pending)")}
             </p>
             <p className="font-mono text-3xl font-black text-amber-600 dark:text-amber-400 mt-1">
               {pendingCount}
@@ -224,7 +229,7 @@ export function AlarmLogView() {
         <div className="bg-emerald-50/70 dark:bg-emerald-950/20 border border-slate-200/80 dark:border-slate-800 border-l-4 border-l-emerald-500 rounded-xl p-4 shadow-sm flex items-center justify-between transition-all hover:shadow-md">
           <div>
             <p className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
-              Đã giải quyết (Resolved)
+              {tr("Đã giải quyết (Resolved)")}
             </p>
             <p className="font-mono text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
               {resolvedCount}
@@ -239,7 +244,7 @@ export function AlarmLogView() {
         <div className="bg-slate-50 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800 border-l-4 border-l-slate-400 rounded-xl p-4 shadow-sm flex items-center justify-between transition-all hover:shadow-md">
           <div>
             <p className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-              Tổng sự cố
+              {tr("Tổng sự cố")}
             </p>
             <p className="font-mono text-3xl font-black text-slate-800 dark:text-slate-100 mt-1">
               {totalAlarms}
@@ -260,7 +265,7 @@ export function AlarmLogView() {
           <div className="flex-1 min-w-[260px]">
             <Input
               size="sm"
-              placeholder="Tìm theo mã sự cố, thiết bị, nội dung..."
+              placeholder={tr("Tìm theo mã sự cố, thiết bị, nội dung...")}
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
               startContent={<Search className="w-4 h-4 text-slate-400" />}
@@ -279,10 +284,10 @@ export function AlarmLogView() {
             <select
               value={selectedLine}
               onChange={(e) => setSelectedLine(e.target.value)}
-              aria-label="Lọc theo Dây chuyền"
+              aria-label={tr("Lọc theo Dây chuyền")}
               className="w-full sm:w-auto min-w-[160px] bg-white dark:bg-factory-bg border border-slate-200 dark:border-factory-border text-slate-800 dark:text-slate-200 rounded-xl text-xs h-9.5 px-3 outline-none cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 transition-colors shadow-xs"
             >
-              <option value="all">Tất cả Dây chuyền</option>
+              <option value="all">{tr("Tất cả Dây chuyền")}</option>
               {lines.map((l) => (
                 <option key={l.id} value={l.id}>
                   {l.code} - {l.name}
@@ -294,25 +299,25 @@ export function AlarmLogView() {
             <select
               value={selectedSeverity}
               onChange={(e) => setSelectedSeverity(e.target.value)}
-              aria-label="Lọc theo Mức độ"
+              aria-label={tr("Lọc theo Mức độ")}
               className="w-full sm:w-auto min-w-[130px] bg-white dark:bg-factory-bg border border-slate-200 dark:border-factory-border text-slate-800 dark:text-slate-200 rounded-xl text-xs h-9.5 px-3 outline-none cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 transition-colors shadow-xs"
             >
-              <option value="all">Tất cả Mức độ</option>
-              <option value="critical">Critical (Nguy hiểm)</option>
-              <option value="warning">Warning (Cảnh báo)</option>
+              <option value="all">{tr("Tất cả Mức độ")}</option>
+              <option value="critical">{tr("Critical (Nguy hiểm)")}</option>
+              <option value="warning">{tr("Warning (Cảnh báo)")}</option>
             </select>
 
             {/* Lọc theo Trạng thái quy trình */}
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              aria-label="Lọc theo Trạng thái"
+              aria-label={tr("Lọc theo Trạng thái")}
               className="w-full sm:w-auto min-w-[160px] bg-white dark:bg-factory-bg border border-slate-200 dark:border-factory-border text-slate-800 dark:text-slate-200 rounded-xl text-xs h-9.5 px-3 outline-none cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 transition-colors shadow-xs"
             >
-              <option value="all">Tất cả Trạng thái</option>
-              <option value="pending">Chờ tiếp nhận ({pendingCount})</option>
-              <option value="acknowledged">Đang xử lý ({acknowledgedCount})</option>
-              <option value="resolved">Đã giải quyết ({resolvedCount})</option>
+              <option value="all">{tr("Tất cả Trạng thái")}</option>
+              <option value="pending">{tr("Chờ tiếp nhận (")}{pendingCount})</option>
+              <option value="acknowledged">{tr("Đang xử lý (")}{acknowledgedCount})</option>
+              <option value="resolved">{tr("Đã giải quyết (")}{resolvedCount})</option>
             </select>
           </div>
         </div>
@@ -325,14 +330,14 @@ export function AlarmLogView() {
         <div className="flex items-center justify-between border-b border-factory-border pb-3">
           <div>
             <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-              Bảng Sự Cố Vận Hành ({filteredAlarms.length} sự cố)
+              {tr("Bảng Sự Cố Vận Hành (")}{filteredAlarms.length} {tr("sự cố)")}
             </h2>
             <p className="text-xs text-slate-600 dark:text-slate-400">
-              Quy trình 3 bước: Chờ tiếp nhận &rarr; Thợ nhận sửa &rarr; Đã khắc phục hoàn tất
+              {tr("Quy trình 3 bước: Chờ tiếp nhận → Thợ nhận sửa → Đã khắc phục hoàn tất")}
             </p>
           </div>
           <span className="text-xs font-mono text-slate-500 dark:text-slate-400 font-bold">
-            {filteredAlarms.length} / {totalAlarms} sự cố
+            {filteredAlarms.length} / {totalAlarms} {tr("sự cố")}
           </span>
         </div>
 
@@ -340,20 +345,20 @@ export function AlarmLogView() {
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="bg-slate-100/90 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold uppercase text-[11px] tracking-wider py-3.5 border-b border-slate-200 dark:border-slate-700">
-                <th className="py-3.5 px-3 w-[13%]">MÃ & THỜI ĐIỂM</th>
-                <th className="py-3.5 px-2 w-[13%]">VỊ TRÍ / THIẾT BỊ</th>
-                <th className="py-3.5 px-2 w-[13%]">CHỈ SỐ & GIÁ TRỊ</th>
-                <th className="py-3.5 px-2 w-[12%]">MỨC ĐỘ</th>
-                <th className="py-3.5 px-3 w-[35%]">NỘI DUNG SỰ CỐ</th>
-                <th className="py-3.5 px-2 w-[11%]">TRẠNG THÁI</th>
-                <th className="py-3.5 px-3 w-[13%] text-right">QUY TRÌNH XỬ LÝ</th>
+                <th className="py-3.5 px-3 w-[13%]">{tr("MÃ & THỜI ĐIỂM")}</th>
+                <th className="py-3.5 px-2 w-[13%]">{tr("VỊ TRÍ / THIẾT BỊ")}</th>
+                <th className="py-3.5 px-2 w-[13%]">{tr("CHỈ SỐ & GIÁ TRỊ")}</th>
+                <th className="py-3.5 px-2 w-[12%]">{tr("MỨC ĐỘ")}</th>
+                <th className="py-3.5 px-3 w-[35%]">{tr("NỘI DUNG SỰ CỐ")}</th>
+                <th className="py-3.5 px-2 w-[11%]">{tr("TRẠNG THÁI")}</th>
+                <th className="py-3.5 px-3 w-[13%] text-right">{tr("QUY TRÌNH XỬ LÝ")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
               {filteredAlarms.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-slate-500 dark:text-slate-400 text-xs">
-                    Không tìm thấy sự cố nào phù hợp với bộ lọc hiện tại.
+                    {tr("Không tìm thấy sự cố nào phù hợp với bộ lọc hiện tại.")}
                   </td>
                 </tr>
               ) : (
@@ -406,7 +411,7 @@ export function AlarmLogView() {
                           </span>
                         </div>
                         <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                          Ngưỡng: &gt;{alarm.thresholdValue} {alarm.unit}
+                          {tr("Ngưỡng: >")}{alarm.thresholdValue} {alarm.unit}
                         </p>
                       </td>
 
@@ -438,7 +443,7 @@ export function AlarmLogView() {
                         {alarm.resolutionNotes && (
                           <div className="bg-emerald-50/80 dark:bg-emerald-950/30 border-l-2 border-emerald-500 p-2 mt-1.5 rounded-r text-xs text-emerald-800 dark:text-emerald-300 flex items-start gap-1.5 shadow-xs">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                            <span>Xử lý: {alarm.resolutionNotes}</span>
+                            <span>{tr("Xử lý:")} {alarm.resolutionNotes}</span>
                           </div>
                         )}
                       </td>
@@ -447,23 +452,23 @@ export function AlarmLogView() {
                       <td className="py-3.5 px-2">
                         {alarm.status === 'pending' && (
                           <Chip size="sm" color="danger" variant="dot" className="font-semibold text-[11px]">
-                            Chờ tiếp nhận
+                            {tr("Chờ tiếp nhận")}
                           </Chip>
                         )}
                         {alarm.status === 'acknowledged' && (
                           <div>
                             <Chip size="sm" color="warning" variant="flat" className="font-semibold text-[11px]">
-                              Đang xử lý
+                              {tr("Đang xử lý")}
                             </Chip>
                             <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium truncate">
-                              Bởi: {alarm.assignedTo}
+                              {tr("Bởi:")} {alarm.assignedTo}
                             </p>
                           </div>
                         )}
                         {alarm.status === 'resolved' && (
                           <div>
                             <Chip size="sm" color="success" variant="flat" className="font-semibold text-[11px]">
-                              Đã giải quyết
+                              {tr("Đã giải quyết")}
                             </Chip>
                             <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium truncate">
                               Xong: {alarm.assignedTo}
@@ -484,7 +489,7 @@ export function AlarmLogView() {
                               startContent={<UserCheck className="w-3.5 h-3.5" />}
                               onPress={() => handleAcknowledge(alarm.id)}
                             >
-                              Tiếp nhận
+                              {tr("Tiếp nhận")}
                             </Button>
                           )}
 
@@ -497,14 +502,14 @@ export function AlarmLogView() {
                               startContent={<CheckCircle2 className="w-3.5 h-3.5" />}
                               onPress={() => handleOpenResolveModal(alarm)}
                             >
-                              Hoàn thành
+                              {tr("Hoàn thành")}
                             </Button>
                           )}
 
                           {alarm.status === 'resolved' && (
                             <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                               <CheckCircle2 className="w-3.5 h-3.5" />
-                              Khép quy trình
+                              {tr("Khép quy trình")}
                             </span>
                           )}
                         </div>
@@ -535,10 +540,10 @@ export function AlarmLogView() {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900 dark:text-white leading-tight">
-                    Xác Nhận Hoàn Thành Xử Lý Sự Cố
+                    {tr("Xác Nhận Hoàn Thành Xử Lý Sự Cố")}
                   </h3>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    Ghi nhận kết quả khắc phục kỹ thuật vào nhật ký hệ thống
+                    {tr("Ghi nhận kết quả khắc phục kỹ thuật vào nhật ký hệ thống")}
                   </p>
                 </div>
               </div>
@@ -546,7 +551,7 @@ export function AlarmLogView() {
                 type="button"
                 onClick={() => setResolvingAlarm(null)}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700/50 cursor-pointer"
-                aria-label="Đóng"
+                aria-label={tr("Đóng")}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -566,7 +571,7 @@ export function AlarmLogView() {
                 </div>
                 <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 font-medium pt-0.5">
                   <span>
-                    Thiết bị:{' '}
+                    {tr("Thiết bị:")}{' '}
                     <strong className="text-slate-800 dark:text-slate-200">
                       {resolvingAlarm.machineName}
                     </strong>
@@ -583,13 +588,13 @@ export function AlarmLogView() {
               {/* Ghi chú khắc phục */}
               <div>
                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1.5">
-                  Ghi chú khắc phục & biên bản xử lý:
+                  {tr("Ghi chú khắc phục & biên bản xử lý:")}
                 </label>
                 <textarea
                   rows={3}
                   value={resolutionNote}
                   onChange={(e) => setResolutionNote(e.target.value)}
-                  placeholder="Nhập chi tiết linh kiện đã thay thế, biện pháp can thiệp..."
+                  placeholder={tr("Nhập chi tiết linh kiện đã thay thế, biện pháp can thiệp...")}
                   className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all resize-none"
                 />
               </div>
@@ -601,7 +606,7 @@ export function AlarmLogView() {
                   onClick={() => setResolvingAlarm(null)}
                   className="border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 px-5 py-2.5 rounded-xl font-medium text-xs sm:text-sm cursor-pointer transition-colors"
                 >
-                  Đóng
+                  {tr("Đóng")}
                 </button>
                 <button
                   type="button"
@@ -609,7 +614,7 @@ export function AlarmLogView() {
                   className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-medium text-xs sm:text-sm shadow-sm cursor-pointer transition-colors flex items-center gap-2"
                 >
                   <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span>Xác Nhận Đã Khắc Phục</span>
+                  <span>{tr("Xác Nhận Đã Khắc Phục")}</span>
                 </button>
               </div>
             </div>

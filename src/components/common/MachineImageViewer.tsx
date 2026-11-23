@@ -16,6 +16,7 @@ import {
   MachineImageProps,
   getMachineImageConfig,
 } from '../../config/machineImages';
+import { tr } from '../../i18n/tr';
 
 export interface MachineImageViewerProps extends MachineImageProps {
   /** Tên thiết bị hiển thị ở modal header */
@@ -50,7 +51,7 @@ export function MachineImageViewer({
   // 2. Lấy thông tin registry và danh sách ảnh fallback đồng bộ với MachineImage
   // -------------------------------------------------------------------------
   const cfg = getMachineImageConfig(machineId) || getMachineImageConfig(machineCode);
-  const displayName = name || cfg?.machineName || alt || 'Thiết bị công nghiệp';
+  const displayName = name || cfg?.machineName || alt || tr("Thiết bị công nghiệp");
   const displayCode = code || cfg?.machineCode || machineCode || machineId || 'MCH';
   const baseCode = cfg?.machineCode || machineCode || machineId || 'MCH';
 
@@ -149,7 +150,7 @@ export function MachineImageViewer({
       <div
         className="cursor-pointer group/thumb relative transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]"
         onClick={() => setIsOpen(true)}
-        title="Nhấn để xem ảnh phóng to"
+        title={tr("Nhấn để xem ảnh phóng to")}
       >
         <MachineImage
           machineId={machineId}
@@ -197,7 +198,7 @@ export function MachineImageViewer({
               type="button"
               onClick={() => setIsOpen(false)}
               className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
-              aria-label="Đóng"
+              aria-label={tr("Đóng")}
             >
               <X className="w-5 h-5" />
             </button>
@@ -236,7 +237,7 @@ export function MachineImageViewer({
                     {displayName}
                   </p>
                   <p className="text-xs text-slate-400 mt-1 font-mono">
-                    {displayCode} &bull; Hình ảnh thiết bị đang được cập nhật
+                    {displayCode} {tr("• Hình ảnh thiết bị đang được cập nhật")}
                   </p>
                 </div>
               )}
@@ -251,7 +252,7 @@ export function MachineImageViewer({
                 onClick={handleZoomOut}
                 disabled={zoom <= 50}
                 className="w-8 h-8 rounded-full bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white shadow-xs flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                aria-label="Thu nhỏ"
+                aria-label={tr("Thu nhỏ")}
               >
                 <Minus className="w-4 h-4" />
               </button>
@@ -265,7 +266,7 @@ export function MachineImageViewer({
                 onClick={handleZoomIn}
                 disabled={zoom >= 300}
                 className="w-8 h-8 rounded-full bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white shadow-xs flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                aria-label="Phóng to"
+                aria-label={tr("Phóng to")}
               >
                 <Plus className="w-4 h-4" />
               </button>

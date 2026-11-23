@@ -1,3 +1,4 @@
+import { tr } from '../i18n/tr';
 /**
  * @file demoBaselines.ts
  * @description Danh mục giá trị danh định chuẩn (Nominal Baselines) cho hệ thống cảm biến DENSO IoT
@@ -18,6 +19,9 @@ export interface MetricBaselineMeta {
 /**
  * Từ điển các giá trị danh định đã xác minh theo tiêu chuẩn nhà máy DENSO
  */
+/**
+ * Từ điển các giá trị danh định đã xác minh theo tiêu chuẩn nhà máy DENSO
+ */
 export const DEMO_METRIC_BASELINES: Record<string, MetricBaselineMeta> = {
   // --- 1. DÂY CHUYỀN 1: DẬP & HÀN KHUNG GẦM (LN-PRS-01) ---
   'MTR-FDR-01-PRS': {
@@ -25,49 +29,49 @@ export const DEMO_METRIC_BASELINES: Record<string, MetricBaselineMeta> = {
     nominal: 6.2,
     unit: 'bar',
     source: 'DENSO_EQUIPMENT_SPEC',
-    description: 'Áp suất khí nén cấp phôi tiêu chuẩn (Trạm cấp liệu A1)',
+    description: tr("Áp suất khí nén cấp phôi tiêu chuẩn (Trạm cấp liệu A1)"),
   },
   'MTR-FDR-01-SPD': {
     code: 'MTR-FDR-01-SPD',
     nominal: 45.0,
-    unit: 'chi tiết/phút',
+    unit: tr("chi tiết/phút"),
     source: 'DENSO_EQUIPMENT_SPEC',
-    description: 'Tốc độ mâm xoay cấp phôi danh định',
+    description: tr("Tốc độ mâm xoay cấp phôi danh định"),
   },
   'MTR-CYL-01-PRS': {
     code: 'MTR-CYL-01-PRS',
     nominal: 125.4,
     unit: 'bar',
     source: 'DENSO_EQUIPMENT_SPEC',
-    description: 'Áp suất nén ép trục chính xi-lanh thủy lực SMC',
+    description: tr("Áp suất nén ép trục chính xi-lanh thủy lực SMC"),
   },
   'MTR-CYL-01-TMP': {
     code: 'MTR-CYL-01-TMP',
     nominal: 54.2,
     unit: '°C',
     source: 'DENSO_EQUIPMENT_SPEC',
-    description: 'Nhiệt độ dầu thủy lực tuần hoàn ổn định của máy ép',
+    description: tr("Nhiệt độ dầu thủy lực tuần hoàn ổn định của máy ép"),
   },
   'MTR-CYL-01-VIB': {
     code: 'MTR-CYL-01-VIB',
     nominal: 2.1,
     unit: 'mm/s',
     source: 'FACTORY_BASELINE',
-    description: 'Độ rung khung máy dập theo tiêu chuẩn ISO 10816 Class II',
+    description: tr("Độ rung khung máy dập theo tiêu chuẩn ISO 10816 Class II"),
   },
   'MTR-ROB-02-TRQ': {
     code: 'MTR-ROB-02-TRQ',
     nominal: 34.8,
     unit: 'N.m',
     source: 'DENSO_EQUIPMENT_SPEC',
-    description: 'Mô-men siết bu-lông của tay gắp robot Fanuc',
+    description: tr("Mô-men siết bu-lông của tay gắp robot Fanuc"),
   },
   'MTR-ROB-02-MOT': {
     code: 'MTR-ROB-02-MOT',
     nominal: 46.5,
     unit: '°C',
     source: 'DENSO_EQUIPMENT_SPEC',
-    description: 'Nhiệt độ cuộn dây Servo Motor trục 1',
+    description: tr("Nhiệt độ cuộn dây Servo Motor trục 1"),
   },
 
   // --- 2. THÔNG SỐ CHECK SHEET THAM CHIẾU (ẢNH MẪU MENTOR & CATALOG CHUẨN) ---
@@ -76,91 +80,91 @@ export const DEMO_METRIC_BASELINES: Record<string, MetricBaselineMeta> = {
     nominal: 42.6,
     unit: 'A',
     source: 'MENTOR_REFERENCE',
-    description: 'Dòng điện tải động cơ chuẩn theo ảnh tham chiếu Check Sheet OP50',
+    description: tr("Dòng điện tải động cơ chuẩn theo ảnh tham chiếu Check Sheet OP50"),
   },
   'TORQUE_TIGHTENING': {
     code: 'TORQUE_TIGHTENING',
     nominal: 35.0,
     unit: 'N.m',
     source: 'DENSO_EQUIPMENT_SPEC',
-    description: 'Mô-men xoắn siết bulong tiêu chuẩn (35 N.m)',
+    description: tr("Mô-men xoắn siết bulong tiêu chuẩn (35 N.m)"),
   },
   'PRESSURE_HYDRAULIC': {
     code: 'PRESSURE_HYDRAULIC',
     nominal: 125.4,
     unit: 'bar',
     source: 'DENSO_EQUIPMENT_SPEC',
-    description: 'Áp suất dầu thủy lực tuần hoàn tiêu chuẩn',
+    description: tr("Áp suất dầu thủy lực tuần hoàn tiêu chuẩn"),
   },
   'PRESSURE_PNEUMATIC': {
     code: 'PRESSURE_PNEUMATIC',
     nominal: 6.2,
     unit: 'bar',
     source: 'DENSO_EQUIPMENT_SPEC',
-    description: 'Áp suất khí nén cấp tiêu chuẩn',
+    description: tr("Áp suất khí nén cấp tiêu chuẩn"),
   },
   'ROTATION_SPEED': {
     code: 'ROTATION_SPEED',
     nominal: 1450.0,
     unit: 'RPM',
     source: 'DENSO_EQUIPMENT_SPEC',
-    description: 'Tốc độ quay trục chính danh định',
+    description: tr("Tốc độ quay trục chính danh định"),
   },
   'TEMPERATURE': {
     code: 'TEMPERATURE',
     nominal: 54.2,
     unit: '°C',
     source: 'DENSO_EQUIPMENT_SPEC',
-    description: 'Nhiệt độ làm việc danh định',
+    description: tr("Nhiệt độ làm việc danh định"),
   },
   'VIBRATION_RMS': {
     code: 'VIBRATION_RMS',
     nominal: 2.1,
     unit: 'mm/s',
     source: 'FACTORY_BASELINE',
-    description: 'Vận tốc rung hiệu dụng ISO 10816',
+    description: tr("Vận tốc rung hiệu dụng ISO 10816"),
   },
   'ENERGY_CONSUMPTION': {
     code: 'ENERGY_CONSUMPTION',
     nominal: 45.0,
     unit: 'kW',
     source: 'DENSO_EQUIPMENT_SPEC',
-    description: 'Công suất điện tiêu thụ danh định',
+    description: tr("Công suất điện tiêu thụ danh định"),
   },
   'OIL_LEVEL': {
     code: 'OIL_LEVEL',
     nominal: 85.0,
     unit: '%',
     source: 'FACTORY_BASELINE',
-    description: 'Mức dầu bôi trơn an toàn',
+    description: tr("Mức dầu bôi trơn an toàn"),
   },
   'VOLTAGE_LINE': {
     code: 'VOLTAGE_LINE',
     nominal: 380.0,
     unit: 'V',
     source: 'FACTORY_BASELINE',
-    description: 'Điện áp lưới cung cấp 3 pha',
+    description: tr("Điện áp lưới cung cấp 3 pha"),
   },
   'MTR-MS-10-CURRENT_PHASE': {
     code: 'MTR-MS-10-CURRENT_PHASE',
     nominal: 42.6,
     unit: 'A',
     source: 'MENTOR_REFERENCE',
-    description: 'Dòng điện tải động cơ - Messi (MS-10)',
+    description: tr("Dòng điện tải động cơ - Messi (MS-10)"),
   },
   'MTR-MS-10-TORQUE_TIGHTENING': {
     code: 'MTR-MS-10-TORQUE_TIGHTENING',
     nominal: 35.0,
     unit: 'N.m',
     source: 'DENSO_EQUIPMENT_SPEC',
-    description: 'Mô-men xoắn siết bulong - Messi (MS-10)',
+    description: tr("Mô-men xoắn siết bulong - Messi (MS-10)"),
   },
   'FLOW_COOLANT': {
     code: 'FLOW_COOLANT',
     nominal: 48.2,
     unit: 'L/min',
     source: 'MENTOR_REFERENCE',
-    description: 'Lưu lượng dung dịch làm mát chuẩn theo ảnh tham chiếu Check Sheet OP50',
+    description: tr("Lưu lượng dung dịch làm mát chuẩn theo ảnh tham chiếu Check Sheet OP50"),
   },
 
   // --- 3. BẢNG 4 THÔNG SỐ VẬN HÀNH CHÍNH TRÊN LINE OVERVIEW & MACHINE DETAIL ---
@@ -169,28 +173,28 @@ export const DEMO_METRIC_BASELINES: Record<string, MetricBaselineMeta> = {
     nominal: 56.2,
     unit: '°C',
     source: 'MENTOR_REFERENCE',
-    description: 'Nhiệt độ dầu thủy lực chuẩn (ảnh tham chiếu Line Overview / Machine Detail)',
+    description: tr("Nhiệt độ dầu thủy lực chuẩn (ảnh tham chiếu Line Overview / Machine Detail)"),
   },
   'SPINDLE_VIBRATION': {
     code: 'SPINDLE_VIBRATION',
     nominal: 3.1,
     unit: 'mm/s',
     source: 'MENTOR_REFERENCE',
-    description: 'Độ rung trục chính danh định (ảnh tham chiếu)',
+    description: tr("Độ rung trục chính danh định (ảnh tham chiếu)"),
   },
   'MAIN_PUMP_PRESSURE': {
     code: 'MAIN_PUMP_PRESSURE',
     nominal: 0.62,
     unit: 'MPa',
     source: 'MENTOR_REFERENCE',
-    description: 'Áp suất bơm chính danh định (ảnh tham chiếu)',
+    description: tr("Áp suất bơm chính danh định (ảnh tham chiếu)"),
   },
   'MOTOR_LOAD_CURRENT': {
     code: 'MOTOR_LOAD_CURRENT',
     nominal: 18.4,
     unit: 'A',
     source: 'MENTOR_REFERENCE',
-    description: 'Dòng điện tải động cơ danh định (ảnh tham chiếu)',
+    description: tr("Dòng điện tải động cơ danh định (ảnh tham chiếu)"),
   },
 
   // --- 4. CÁC THIẾT BỊ KIỂM TRA & BĂNG CHUYỀN (LINE-02, LINE-03) ---
@@ -199,56 +203,56 @@ export const DEMO_METRIC_BASELINES: Record<string, MetricBaselineMeta> = {
     nominal: 412.0,
     unit: 'kPa',
     source: 'DENSO_EQUIPMENT_SPEC',
-    description: 'Áp suất buồng thử kín danh định',
+    description: tr("Áp suất buồng thử kín danh định"),
   },
   'MTR-TST-01-LEAK': {
     code: 'MTR-TST-01-LEAK',
     nominal: 1.5,
     unit: 'sccm',
     source: 'FACTORY_BASELINE',
-    description: 'Mức rò rỉ khí danh định tiêu chuẩn trong ngưỡng an toàn (< 4.0 sccm)',
+    description: tr("Mức rò rỉ khí danh định tiêu chuẩn trong ngưỡng an toàn (< 4.0 sccm)"),
   },
   'MTR-NVH-01-DB': {
     code: 'MTR-NVH-01-DB',
     nominal: 68.2,
     unit: 'dB',
     source: 'FACTORY_BASELINE',
-    description: 'Mức áp suất âm thanh phòng tiêu âm thử nghiệm',
+    description: tr("Mức áp suất âm thanh phòng tiêu âm thử nghiệm"),
   },
   'MTR-NVH-01-RMS': {
     code: 'MTR-NVH-01-RMS',
     nominal: 1.85,
     unit: 'mm/s',
     source: 'FACTORY_BASELINE',
-    description: 'Vận tốc rung hiệu dụng RMS bệ thử NVH',
+    description: tr("Vận tốc rung hiệu dụng RMS bệ thử NVH"),
   },
   'MTR-CVY-01-FREQ': {
     code: 'MTR-CVY-01-FREQ',
     nominal: 49.8,
     unit: 'Hz',
     source: 'FACTORY_BASELINE',
-    description: 'Tần số lưới điện vận hành biến tần băng chuyền (~50 Hz)',
+    description: tr("Tần số lưới điện vận hành biến tần băng chuyền (~50 Hz)"),
   },
   'MTR-CVY-01-TMP': {
     code: 'MTR-CVY-01-TMP',
     nominal: 52.0,
     unit: '°C',
     source: 'FACTORY_BASELINE',
-    description: 'Nhiệt độ ổ bi danh định tiêu chuẩn trong ngưỡng an toàn (< 75.0 °C)',
+    description: tr("Nhiệt độ ổ bi danh định tiêu chuẩn trong ngưỡng an toàn (< 75.0 °C)"),
   },
   'MTR-CVY-01-CUR': {
     code: 'MTR-CVY-01-CUR',
     nominal: 14.2,
     unit: 'A',
     source: 'DENSO_EQUIPMENT_SPEC',
-    description: 'Dòng điện định mức động cơ kéo',
+    description: tr("Dòng điện định mức động cơ kéo"),
   },
   'MTR-PLT-01-CYC': {
     code: 'MTR-PLT-01-CYC',
     nominal: 8.4,
-    unit: 'giây',
+    unit: tr("giây"),
     source: 'DENSO_EQUIPMENT_SPEC',
-    description: 'Thời gian hoàn tất 1 chu kỳ pallet tiêu chuẩn',
+    description: tr("Thời gian hoàn tất 1 chu kỳ pallet tiêu chuẩn"),
   },
 };
 

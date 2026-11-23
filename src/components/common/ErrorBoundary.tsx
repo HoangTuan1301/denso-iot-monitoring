@@ -7,6 +7,7 @@
 
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertOctagon, RotateCcw, Home } from 'lucide-react';
+import { tr } from '../../i18n/tr';
 
 interface Props {
   children: ReactNode;
@@ -57,10 +58,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                {this.props.fallbackTitle || 'Đã xảy ra sự cố khi hiển thị màn hình này'}
+                {this.props.fallbackTitle || tr("Đã xảy ra sự cố khi hiển thị màn hình này")}
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
-                Hệ thống đã tự động chặn lỗi và bảo vệ phiên làm việc của bạn. Không phát sinh mất mát dữ liệu hoặc gián đoạn luồng giám sát.
+                {tr("Hệ thống đã tự động chặn lỗi và bảo vệ phiên làm việc của bạn. Không phát sinh mất mát dữ liệu hoặc gián đoạn luồng giám sát.")}
               </p>
             </div>
 
@@ -82,7 +83,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
               >
                 <Home className="w-4 h-4" />
-                <span>Quay lại Dashboard Tổng quan</span>
+                <span>{tr("Quay lại Dashboard Tổng quan")}</span>
               </button>
 
               <button
@@ -91,7 +92,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 text-xs font-semibold transition-all cursor-pointer"
               >
                 <RotateCcw className="w-4 h-4" />
-                <span>Tải lại trang</span>
+                <span>{tr("Tải lại trang")}</span>
               </button>
             </div>
           </div>

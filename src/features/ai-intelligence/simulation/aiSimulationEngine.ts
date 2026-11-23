@@ -21,6 +21,7 @@ import {
   AITrendPoint,
   AIChatMessage,
 } from '../types/ai';
+import { tr } from '../../../i18n/tr';
 
 /* ------------------------------------------------------------------ */
 /* 1. DANH MỤC THÔNG SỐ CHUẨN (METRIC CATALOG DEFINITIONS)             */
@@ -38,96 +39,97 @@ export interface MetricMeta {
 export const METRIC_CATALOG: Record<string, MetricMeta> = {
   TEMP_HYD: {
     code: 'TEMP_HYD',
-    name: 'Nhiệt độ dầu thủy lực',
+    name: tr("Nhiệt độ dầu thủy lực"),
     unit: '°C',
     nominal: 52.4,
     warningMax: 70.0,
     criticalMax: 80.0,
-    description: 'Nhiệt độ nhớt tuần hoàn trong hệ thống thủy lực máy dập',
+    description: tr("Nhiệt độ nhớt tuần hoàn trong hệ thống thủy lực máy dập"),
   },
   VIB_RMS: {
     code: 'VIB_RMS',
-    name: 'Độ rung hiệu dụng RMS',
+    name: tr("Độ rung hiệu dụng RMS"),
     unit: 'mm/s',
     nominal: 2.2,
     warningMax: 4.5,
     criticalMax: 7.0,
-    description: 'Vận tốc rung hiệu dụng khớp trục cơ khí theo ISO 10816',
+    description: tr("Vận tốc rung hiệu dụng khớp trục cơ khí theo ISO 10816"),
   },
   PRESSURE_HYD: {
     code: 'PRESSURE_HYD',
-    name: 'Áp suất bơm chính',
+    name: tr("Áp suất bơm chính"),
     unit: 'bar',
     nominal: 205.0,
     warningMax: 230.0,
     criticalMax: 250.0,
-    description: 'Áp suất dầu thủy lực cung cấp cho xy-lanh ép',
+    description: tr("Áp suất dầu thủy lực cung cấp cho xy-lanh ép"),
   },
   TEMP_CHAMBER: {
     code: 'TEMP_CHAMBER',
-    name: 'Nhiệt độ buồng sấy',
+    name: tr("Nhiệt độ buồng sấy"),
     unit: '°C',
     nominal: 145.0,
     warningMax: 170.0,
     criticalMax: 185.0,
-    description: 'Nhiệt độ sấy hồng ngoại đối lưu bề mặt sản phẩm',
+    description: tr("Nhiệt độ sấy hồng ngoại đối lưu bề mặt sản phẩm"),
   },
   FLOW_RATE: {
     code: 'FLOW_RATE',
-    name: 'Lưu lượng vòi phun sơn',
+    name: tr("Lưu lượng vòi phun sơn"),
     unit: 'L/min',
     nominal: 4.2,
     warningMax: 6.0,
     criticalMax: 7.5,
-    description: 'Tốc độ phun sơn tĩnh điện tự động',
+    description: tr("Tốc độ phun sơn tĩnh điện tự động"),
   },
   TORQUE: {
     code: 'TORQUE',
-    name: 'Mô-men siết bu-lông',
+    name: tr("Mô-men siết bu-lông"),
     unit: 'Nm',
     nominal: 95.0,
     warningMax: 125.0,
     criticalMax: 140.0,
-    description: 'Lực xoắn siết bu-lông khung gầm của robot tự động',
+    description: tr("Lực xoắn siết bu-lông khung gầm của robot tự động"),
   },
   NOISE_LEVEL: {
     code: 'NOISE_LEVEL',
-    name: 'Độ ồn buồng thử nghiệm',
+    name: tr("Độ ồn buồng thử nghiệm"),
     unit: 'dB',
     nominal: 68.0,
     warningMax: 82.0,
     criticalMax: 90.0,
-    description: 'Mức áp suất âm thanh trong chu kỳ kiểm tra tải',
+    description: tr("Mức áp suất âm thanh trong chu kỳ kiểm tra tải"),
   },
   CURRENT_PHASE: {
     code: 'CURRENT_PHASE',
-    name: 'Dòng điện tải',
+    name: tr("Dòng điện tải"),
     unit: 'A',
     nominal: 18.5,
     warningMax: 28.0,
     criticalMax: 35.0,
-    description: 'Cường độ dòng điện pha động cơ tải chính',
+    description: tr("Cường độ dòng điện pha động cơ tải chính"),
   },
   TEMP_MOTOR: {
     code: 'TEMP_MOTOR',
-    name: 'Nhiệt độ động cơ trục',
+    name: tr("Nhiệt độ động cơ trục"),
     unit: '°C',
     nominal: 54.0,
     warningMax: 75.0,
     criticalMax: 88.0,
-    description: 'Nhiệt độ cuộn dây stato động cơ servo',
+    description: tr("Nhiệt độ cuộn dây stato động cơ servo"),
   },
   AIR_FLOW: {
     code: 'AIR_FLOW',
-    name: 'Lưu lượng khí đối lưu',
+    name: tr("Lưu lượng khí đối lưu"),
     unit: 'm³/h',
     nominal: 420.0,
     warningMax: 500.0,
     criticalMax: 550.0,
-    description: 'Lưu lượng gió làm mát buồng nhiệt',
+    description: tr("Lưu lượng gió làm mát buồng nhiệt"),
   },
 };
 
+/** Tra cứu thông tin chuẩn của một metric code, tránh hoàn toàn lỗi nhầm đơn vị */
 /** Tra cứu thông tin chuẩn của một metric code, tránh hoàn toàn lỗi nhầm đơn vị */
 export function getMetricDefinition(metricCode: string): MetricMeta {
   if (METRIC_CATALOG[metricCode]) {
@@ -152,7 +154,7 @@ export function getMetricDefinition(metricCode: string): MetricMeta {
     nominal: 50,
     warningMax: 75,
     criticalMax: 90,
-    description: 'Thông số cảm biến quan trắc',
+    description: tr("Thông số cảm biến quan trắc"),
   };
 }
 
@@ -162,53 +164,53 @@ export function getMetricDefinition(metricCode: string): MetricMeta {
 export const AVAILABLE_SCENARIOS: AIScenario[] = [
   {
     id: 'normal',
-    name: 'Kịch bản 1: Hoạt động Tiêu chuẩn (Normal Operation)',
-    description: 'Tất cả thiết bị vận hành ổn định trong giới hạn định mức, không ghi nhận bất thường.',
+    name: tr("Kịch bản 1: Hoạt động Tiêu chuẩn (Normal Operation)"),
+    description: tr("Tất cả thiết bị vận hành ổn định trong giới hạn định mức, không ghi nhận bất thường."),
     targetMachineId: 'ALL',
-    targetMachineName: 'Toàn bộ thiết bị nhà máy',
+    targetMachineName: tr("Toàn bộ thiết bị nhà máy"),
     severity: 'low',
-    recommendedAction: 'Duy trì kế hoạch giám sát tự động và kiểm tra định kỳ theo ca sản xuất.',
-    rootCause: 'Hệ thống vận hành trơn tru, tải cơ khí và nhiệt độ ở mức tối ưu.',
+    recommendedAction: tr("Duy trì kế hoạch giám sát tự động và kiểm tra định kỳ theo ca sản xuất."),
+    rootCause: tr("Hệ thống vận hành trơn tru, tải cơ khí và nhiệt độ ở mức tối ưu."),
   },
   {
     id: 'high_temp',
-    name: 'Kịch bản 2: Quá nhiệt Trục chính & Dầu Thủy lực',
-    description: 'Nhiệt độ dầu thủy lực Máy dập MCH-PRS-01 tăng vọt lên 86.4°C, vượt ngưỡng Critical (80°C).',
+    name: tr("Kịch bản 2: Quá nhiệt Trục chính & Dầu Thủy lực"),
+    description: tr("Nhiệt độ dầu thủy lực Máy dập MCH-PRS-01 tăng vọt lên 86.4°C, vượt ngưỡng Critical (80°C)."),
     targetMachineId: 'MCH-PRS-01',
-    targetMachineName: 'Máy Dập Thủy Lực 500T (MCH-PRS-01)',
+    targetMachineName: tr("Máy Dập Thủy Lực 500T (MCH-PRS-01)"),
     severity: 'critical',
-    recommendedAction: 'Giảm tải ngay và kiểm tra dàn làm mát dầu, vệ sinh lưới lọc thủy lực.',
-    rootCause: 'Tắc nghẽn van tuần hoàn dầu làm mát hoặc quạt tản nhiệt dàn trao đổi nhiệt bị kẹt cánh.',
+    recommendedAction: tr("Giảm tải ngay và kiểm tra dàn làm mát dầu, vệ sinh lưới lọc thủy lực."),
+    rootCause: tr("Tắc nghẽn van tuần hoàn dầu làm mát hoặc quạt tản nhiệt dàn trao đổi nhiệt bị kẹt cánh."),
   },
   {
     id: 'abnormal_vibration',
-    name: 'Kịch bản 3: Rung động Bất thường Robot Hàn',
-    description: 'Độ rung RMS tại trục số 2 Robot hàn MCH-WLD-01 tăng vọt lên 8.4 mm/s (ngưỡng Warning: 4.5 mm/s).',
+    name: tr("Kịch bản 3: Rung động Bất thường Robot Hàn"),
+    description: tr("Độ rung RMS tại trục số 2 Robot hàn MCH-WLD-01 tăng vọt lên 8.4 mm/s (ngưỡng Warning: 4.5 mm/s)."),
     targetMachineId: 'MCH-WLD-01',
-    targetMachineName: 'Robot Hàn Điểm (MCH-WLD-01)',
+    targetMachineName: tr("Robot Hàn Điểm (MCH-WLD-01)"),
     severity: 'high',
-    recommendedAction: 'Kiểm tra độ rơ bạc đạn khớp trục và siết lại cụm bu-lông chân đế robot.',
-    rootCause: 'Mòn ổ bi bạc đạn dẫn hướng trục xoay do thiếu mỡ bôi trơn công nghiệp chịu nhiệt.',
+    recommendedAction: tr("Kiểm tra độ rơ bạc đạn khớp trục và siết lại cụm bu-lông chân đế robot."),
+    rootCause: tr("Mòn ổ bi bạc đạn dẫn hướng trục xoay do thiếu mỡ bôi trơn công nghiệp chịu nhiệt."),
   },
   {
     id: 'multiple_anomalies',
-    name: 'Kịch bản 4: Đa Thiết bị Bất thường Đồng thời',
-    description: 'Lò sấy MCH-DRY-01 quá nhiệt buồng sấy (188°C) và Máy dập MCH-PRS-01 sụt áp suất ép.',
+    name: tr("Kịch bản 4: Đa Thiết bị Bất thường Đồng thời"),
+    description: tr("Lò sấy MCH-DRY-01 quá nhiệt buồng sấy (188°C) và Máy dập MCH-PRS-01 sụt áp suất ép."),
     targetMachineId: 'MCH-DRY-01',
-    targetMachineName: 'Lò Sấy Công Nghiệp (MCH-DRY-01)',
+    targetMachineName: tr("Lò Sấy Công Nghiệp (MCH-DRY-01)"),
     severity: 'critical',
-    recommendedAction: 'Cắt tải nhiệt buồng sấy khẩn cấp và kích hoạt van xả áp an toàn.',
-    rootCause: 'Hỏng rơ-le bán dẫn SSR điều khiển thanh gia nhiệt và hở phốt làm kín xi-lanh.',
+    recommendedAction: tr("Cắt tải nhiệt buồng sấy khẩn cấp và kích hoạt van xả áp an toàn."),
+    rootCause: tr("Hỏng rơ-le bán dẫn SSR điều khiển thanh gia nhiệt và hở phốt làm kín xi-lanh."),
   },
   {
     id: 'recovery',
-    name: 'Kịch bản 5: Phục hồi Ổn định sau Bảo trì',
-    description: 'Kỹ thuật viên đã thay dầu, tra mỡ và hiệu chuẩn cảm biến. Các chỉ số trở về vùng xanh.',
+    name: tr("Kịch bản 5: Phục hồi Ổn định sau Bảo trì"),
+    description: tr("Kỹ thuật viên đã thay dầu, tra mỡ và hiệu chuẩn cảm biến. Các chỉ số trở về vùng xanh."),
     targetMachineId: 'ALL',
-    targetMachineName: 'Toàn bộ thiết bị sau bảo dưỡng',
+    targetMachineName: tr("Toàn bộ thiết bị sau bảo dưỡng"),
     severity: 'low',
-    recommendedAction: 'Ghi nhận hoàn tất phiếu bảo trì vào nhật ký và theo dõi ổn định trong 2 giờ.',
-    rootCause: 'Bảo trì thành công, các cụm cơ cấu cơ khí và cảm biến đã ổn định hoàn toàn.',
+    recommendedAction: tr("Ghi nhận hoàn tất phiếu bảo trì vào nhật ký và theo dõi ổn định trong 2 giờ."),
+    rootCause: tr("Bảo trì thành công, các cụm cơ cấu cơ khí và cảm biến đã ổn định hoàn toàn."),
   },
 ];
 
@@ -249,7 +251,7 @@ export function computeEquipmentHealth(
   let keyMetricValue = keyMetric.nominal;
   let activeAnomaliesCount = 0;
   let trendDirection: 'up' | 'down' | 'stable' = 'stable';
-  let explanation = 'Thiết bị hoạt động trong giới hạn dung sai cho phép, không phát hiện nguy cơ.';
+  let explanation: string = tr("Thiết bị hoạt động trong giới hạn dung sai cho phép, không phát hiện nguy cơ.");
 
   if (!isDemoActive) {
     // Trạng thái tĩnh khi tạm dừng mô phỏng
@@ -260,7 +262,7 @@ export function computeEquipmentHealth(
       machineName: machine.name,
       lineId: machine.lineId,
       lineName,
-      type: machine.type || 'Thiết bị công nghiệp',
+      type: machine.type || tr("Thiết bị công nghiệp"),
       healthScore,
       riskLevel: 'LOW',
       status: 'NORMAL',
@@ -271,11 +273,11 @@ export function computeEquipmentHealth(
         pressurePenalty: 0,
         currentPenalty: 0,
         agePenalty,
-        explanation: 'Dữ liệu đo lường thực tế ổn định, thông số nằm trong ngưỡng an toàn.',
+        explanation: tr("Dữ liệu đo lường thực tế ổn định, thông số nằm trong ngưỡng an toàn."),
       },
       activeAnomaliesCount: 0,
       trendDirection: 'stable',
-      lastEvaluated: 'Vừa xong',
+      lastEvaluated: tr("Vừa xong"),
       keyMetricCode: keyMetric.code,
       keyMetricName: keyMetric.name,
       keyMetricValue: keyMetric.nominal,
@@ -287,7 +289,7 @@ export function computeEquipmentHealth(
   switch (scenarioId) {
     case 'normal':
       agePenalty = 3;
-      explanation = 'Tất cả thông số đo lường nằm trong giới hạn kiểm soát thống kê (SPC).';
+      explanation = tr("Tất cả thông số đo lường nằm trong giới hạn kiểm soát thống kê (SPC).");
       break;
 
     case 'high_temp':
@@ -297,7 +299,7 @@ export function computeEquipmentHealth(
         keyMetricValue = 86.4;
         activeAnomaliesCount = 2;
         trendDirection = 'down';
-        explanation = 'Phạt 38đ do nhiệt độ dầu vượt ngưỡng Critical (80°C). Phạt 8đ do suy giảm độ nhớt thủy lực.';
+        explanation = tr("Phạt 38đ do nhiệt độ dầu vượt ngưỡng Critical (80°C). Phạt 8đ do suy giảm độ nhớt thủy lực.");
       } else {
         agePenalty = 4;
       }
@@ -310,7 +312,7 @@ export function computeEquipmentHealth(
         keyMetricValue = 8.4;
         activeAnomaliesCount = 2;
         trendDirection = 'down';
-        explanation = 'Phạt 44đ do độ rung RMS tăng vọt lên 8.4 mm/s (Z-score = 3.8). Cảnh báo mòn ổ bi trục xoay số 2.';
+        explanation = tr("Phạt 44đ do độ rung RMS tăng vọt lên 8.4 mm/s (Z-score = 3.8). Cảnh báo mòn ổ bi trục xoay số 2.");
       } else {
         agePenalty = 3;
       }
@@ -322,14 +324,14 @@ export function computeEquipmentHealth(
         activeAnomaliesCount = 2;
         keyMetricValue = 188.0;
         trendDirection = 'down';
-        explanation = 'Phạt 42đ do nhiệt độ buồng sấy vượt ngưỡng tới hạn 185°C. Rơ-le gia nhiệt SSR bị dính tiếp điểm.';
+        explanation = tr("Phạt 42đ do nhiệt độ buồng sấy vượt ngưỡng tới hạn 185°C. Rơ-le gia nhiệt SSR bị dính tiếp điểm.");
       } else if (mId === 'MCH-PRS-01' || mCode.includes('PRS')) {
         pressurePenalty = 32;
         tempPenalty = 10;
         activeAnomaliesCount = 1;
         keyMetricValue = 142.0;
         trendDirection = 'down';
-        explanation = 'Phạt 32đ do tụt áp suất ép chính. Phạt 10đ do rò rỉ nhiệt cục bộ.';
+        explanation = tr("Phạt 32đ do tụt áp suất ép chính. Phạt 10đ do rò rỉ nhiệt cục bộ.");
       } else {
         agePenalty = 5;
       }
@@ -338,7 +340,7 @@ export function computeEquipmentHealth(
     case 'recovery':
       agePenalty = 1;
       trendDirection = 'up';
-      explanation = 'Thiết bị đã được bảo dưỡng, thay mới linh kiện và hiệu chuẩn, điểm sức khỏe phục hồi tối ưu.';
+      explanation = tr("Thiết bị đã được bảo dưỡng, thay mới linh kiện và hiệu chuẩn, điểm sức khỏe phục hồi tối ưu.");
       break;
   }
 
@@ -367,7 +369,7 @@ export function computeEquipmentHealth(
     machineName: machine.name,
     lineId: machine.lineId,
     lineName,
-    type: machine.type || 'Thiết bị công nghiệp',
+    type: machine.type || tr("Thiết bị công nghiệp"),
     healthScore: finalScore,
     riskLevel,
     status,
@@ -382,7 +384,7 @@ export function computeEquipmentHealth(
     },
     activeAnomaliesCount,
     trendDirection,
-    lastEvaluated: 'Vừa xong',
+    lastEvaluated: tr("Vừa xong"),
     keyMetricCode: keyMetric.code,
     keyMetricName: keyMetric.name,
     keyMetricValue,
@@ -390,6 +392,7 @@ export function computeEquipmentHealth(
   };
 }
 
+/** Tính toán sức khỏe cho toàn bộ danh sách thiết bị nạp từ store */
 /** Tính toán sức khỏe cho toàn bộ danh sách thiết bị nạp từ store */
 export function computeAllEquipmentHealth(
   machines: any[],
@@ -405,7 +408,7 @@ export function computeAllEquipmentHealth(
         lineId: m.lineId || 'LINE-01',
         type: m.type,
       },
-      m.lineName || 'Dây chuyền sản xuất',
+      m.lineName || tr("Dây chuyền sản xuất"),
       scenarioId,
       isDemoActive
     )
@@ -457,7 +460,7 @@ export function generateTrendPoints(
           if (val >= warnMax) {
             isAnomaly = true;
             anomalyType = val >= critMax ? 'THRESHOLD_BREACH' : 'SUDDEN_SPIKE';
-            note = val >= critMax ? 'Vượt ngưỡng Nguy hiểm (Critical)' : 'Vượt ngưỡng Cảnh báo (Warning)';
+            note = val >= critMax ? tr("Vượt ngưỡng Nguy hiểm (Critical)") : tr("Vượt ngưỡng Cảnh báo (Warning)");
           }
         }
       } else if (scenarioId === 'abnormal_vibration' && (metricCode.includes('VIB') || metricCode === 'VIB_RMS')) {
@@ -465,7 +468,7 @@ export function generateTrendPoints(
           val = nominal + 2.0 + (6 - i) * 0.75; // Vọt lên 8.4 mm/s
           isAnomaly = true;
           anomalyType = val >= critMax ? 'THRESHOLD_BREACH' : 'SUDDEN_SPIKE';
-          note = 'Dao động cộng hưởng cơ khí vượt chuẩn ISO 10816';
+          note = tr("Dao động cộng hưởng cơ khí vượt chuẩn ISO 10816");
         }
       } else if (scenarioId === 'multiple_anomalies') {
         if (metricCode.includes('TEMP') && mUpper.includes('DRY')) {
@@ -473,14 +476,14 @@ export function generateTrendPoints(
             val = nominal + 15 + (6 - i) * 5; // Vọt lên 188°C
             isAnomaly = true;
             anomalyType = 'THRESHOLD_BREACH';
-            note = 'Nhiệt buồng sấy vượt quá ngưỡng tới hạn sơn tĩnh điện';
+            note = tr("Nhiệt buồng sấy vượt quá ngưỡng tới hạn sơn tĩnh điện");
           }
         } else if (metricCode.includes('PRESS') && mUpper.includes('PRS')) {
           if (i < 6) {
             val = nominal - 25 - (6 - i) * 7; // Tụt áp xuống 142 bar
             isAnomaly = true;
             anomalyType = 'PERSISTENT_DRIFT';
-            note = 'Tụt áp lực kéo dài qua nhiều chu kỳ dập';
+            note = tr("Tụt áp lực kéo dài qua nhiều chu kỳ dập");
           }
         }
       }
@@ -531,18 +534,18 @@ export function generateAnomalyEvents(
       timestamp: formatTime(3),
       machineId: 'MCH-PRS-01',
       machineCode: 'MCH-PRS-01',
-      machineName: 'Máy Dập Thủy Lực 500T Komatsu',
-      lineName: 'Dây Chuyền Dập & Đột',
+      machineName: tr("Máy Dập Thủy Lực 500T Komatsu"),
+      lineName: tr("Dây Chuyền Dập & Đột"),
       metricCode: 'TEMP_HYD',
-      metricName: 'Nhiệt độ dầu thủy lực',
-      category: 'Nhiệt độ',
+      metricName: tr("Nhiệt độ dầu thủy lực"),
+      category: tr("Nhiệt độ"),
       value: 86.4,
       unit: '°C',
       warningThreshold: 70.0,
       criticalThreshold: 80.0,
       severity: 'CRITICAL',
       detectionRule: 'THRESHOLD_BREACH',
-      ruleExplanation: 'Giá trị tức thời 86.4°C vượt ngưỡng Critical (80.0°C). Tốc độ tăng nhiệt: +3.2°C/phút.',
+      ruleExplanation: tr("Giá trị tức thời 86.4°C vượt ngưỡng Critical (80.0°C). Tốc độ tăng nhiệt: +3.2°C/phút."),
       deviationPercent: 8.0,
     });
     events.push({
@@ -550,18 +553,18 @@ export function generateAnomalyEvents(
       timestamp: formatTime(12),
       machineId: 'MCH-PRS-01',
       machineCode: 'MCH-PRS-01',
-      machineName: 'Máy Dập Thủy Lực 500T Komatsu',
-      lineName: 'Dây Chuyền Dập & Đột',
+      machineName: tr("Máy Dập Thủy Lực 500T Komatsu"),
+      lineName: tr("Dây Chuyền Dập & Đột"),
       metricCode: 'PRESSURE_HYD',
-      metricName: 'Áp suất bơm chính',
-      category: 'Áp suất',
+      metricName: tr("Áp suất bơm chính"),
+      category: tr("Áp suất"),
       value: 236.0,
       unit: 'bar',
       warningThreshold: 230.0,
       criticalThreshold: 250.0,
       severity: 'WARNING',
       detectionRule: 'SUDDEN_SPIKE',
-      ruleExplanation: 'Xung áp đột biến vượt ngưỡng cảnh báo sau hành trình ép dập tải nặng.',
+      ruleExplanation: tr("Xung áp đột biến vượt ngưỡng cảnh báo sau hành trình ép dập tải nặng."),
       deviationPercent: 2.6,
     });
   } else if (scenarioId === 'abnormal_vibration') {
@@ -570,18 +573,18 @@ export function generateAnomalyEvents(
       timestamp: formatTime(5),
       machineId: 'MCH-WLD-01',
       machineCode: 'MCH-WLD-01',
-      machineName: 'Robot Hàn Điểm Fanuc R-2000iC',
-      lineName: 'Dây Chuyền Dập & Đột',
+      machineName: tr("Robot Hàn Điểm Fanuc R-2000iC"),
+      lineName: tr("Dây Chuyền Dập & Đột"),
       metricCode: 'VIB_RMS',
-      metricName: 'Độ rung hiệu dụng RMS',
-      category: 'Rung động',
+      metricName: tr("Độ rung hiệu dụng RMS"),
+      category: tr("Rung động"),
       value: 8.4,
       unit: 'mm/s',
       warningThreshold: 4.5,
       criticalThreshold: 7.0,
       severity: 'CRITICAL',
       detectionRule: 'THRESHOLD_BREACH',
-      ruleExplanation: 'Biên độ rung vượt tiêu chuẩn rung động công nghiệp ISO 10816 class III (+20%).',
+      ruleExplanation: tr("Biên độ rung vượt tiêu chuẩn rung động công nghiệp ISO 10816 class III (+20%)."),
       deviationPercent: 20.0,
     });
   } else if (scenarioId === 'multiple_anomalies') {
@@ -590,18 +593,18 @@ export function generateAnomalyEvents(
       timestamp: formatTime(2),
       machineId: 'MCH-DRY-01',
       machineCode: 'MCH-DRY-01',
-      machineName: 'Lò Sấy Hồng Ngoại Đối Lưu',
-      lineName: 'Dây Chuyền Sơn Tĩnh Điện',
+      machineName: tr("Lò Sấy Hồng Ngoại Đối Lưu"),
+      lineName: tr("Dây Chuyền Sơn Tĩnh Điện"),
       metricCode: 'TEMP_CHAMBER',
-      metricName: 'Nhiệt độ buồng sấy',
-      category: 'Nhiệt độ',
+      metricName: tr("Nhiệt độ buồng sấy"),
+      category: tr("Nhiệt độ"),
       value: 188.0,
       unit: '°C',
       warningThreshold: 170.0,
       criticalThreshold: 185.0,
       severity: 'CRITICAL',
       detectionRule: 'THRESHOLD_BREACH',
-      ruleExplanation: 'Nhiệt độ lò sấy vượt ngưỡng tới hạn gây rủi ro phồng rộp màng sơn chi tiết.',
+      ruleExplanation: tr("Nhiệt độ lò sấy vượt ngưỡng tới hạn gây rủi ro phồng rộp màng sơn chi tiết."),
       deviationPercent: 1.6,
     });
     events.push({
@@ -609,18 +612,18 @@ export function generateAnomalyEvents(
       timestamp: formatTime(8),
       machineId: 'MCH-PRS-01',
       machineCode: 'MCH-PRS-01',
-      machineName: 'Máy Dập Thủy Lực 500T Komatsu',
-      lineName: 'Dây Chuyền Dập & Đột',
+      machineName: tr("Máy Dập Thủy Lực 500T Komatsu"),
+      lineName: tr("Dây Chuyền Dập & Đột"),
       metricCode: 'PRESSURE_HYD',
-      metricName: 'Áp suất bơm chính',
-      category: 'Áp suất',
+      metricName: tr("Áp suất bơm chính"),
+      category: tr("Áp suất"),
       value: 142.0,
       unit: 'bar',
       warningThreshold: 200.0,
       criticalThreshold: 160.0,
       severity: 'CRITICAL',
       detectionRule: 'PERSISTENT_DRIFT',
-      ruleExplanation: 'Tụt giảm áp suất kéo dài liên tục qua 6 chu kỳ ép phôi (-29% so với định mức).',
+      ruleExplanation: tr("Tụt giảm áp suất kéo dài liên tục qua 6 chu kỳ ép phôi (-29% so với định mức)."),
       deviationPercent: 29.0,
     });
   }
@@ -642,17 +645,17 @@ export function generatePredictiveOrders(
         id: 'WO-ROUTINE-001',
         machineId: 'MCH-PRS-01',
         machineCode: 'MCH-PRS-01',
-        machineName: 'Máy Dập Thủy Lực 500T Komatsu',
-        lineName: 'Dây Chuyền Dập & Đột',
+        machineName: tr("Máy Dập Thủy Lực 500T Komatsu"),
+        lineName: tr("Dây Chuyền Dập & Đột"),
         priority: 'P4_ROUTINE',
         healthScore: 97,
-        component: 'Lưới lọc hút dầu đáy bồn',
-        symptom: 'Các chỉ số ổn định, tích lũy 480 giờ vận hành.',
-        rootCause: 'Bảo trì ngăn ngừa theo khuyến nghị nhà sản xuất Komatsu.',
-        recommendedAction: 'Vệ sinh lưới lọc hút và kiểm tra mức dầu thùng chứa.',
-        estimatedTimeToDegrade: '> 720 giờ máy (Mô phỏng Demo)',
+        component: tr("Lưới lọc hút dầu đáy bồn"),
+        symptom: tr("Các chỉ số ổn định, tích lũy 480 giờ vận hành."),
+        rootCause: tr("Bảo trì ngăn ngừa theo khuyến nghị nhà sản xuất Komatsu."),
+        recommendedAction: tr("Vệ sinh lưới lọc hút và kiểm tra mức dầu thùng chứa."),
+        estimatedTimeToDegrade: tr("> 720 giờ máy (Mô phỏng Demo)"),
         estimatedWorkHours: 1.0,
-        suggestedTools: ['Cờ lê tròng 19mm', 'Khay hứng dầu', 'Dung dịch tẩy rửa công nghiệp'],
+        suggestedTools: [tr("Cờ lê tròng 19mm"), tr("Khay hứng dầu"), tr("Dung dịch tẩy rửa công nghiệp")],
         status: 'PENDING',
       },
     ];
@@ -664,17 +667,17 @@ export function generatePredictiveOrders(
         id: 'WO-HIGH-TEMP-001',
         machineId: 'MCH-PRS-01',
         machineCode: 'MCH-PRS-01',
-        machineName: 'Máy Dập Thủy Lực 500T Komatsu',
-        lineName: 'Dây Chuyền Dập & Đột',
+        machineName: tr("Máy Dập Thủy Lực 500T Komatsu"),
+        lineName: tr("Dây Chuyền Dập & Đột"),
         priority: 'P1_CRITICAL',
         healthScore: 52,
-        component: 'Van tỉ lệ & Bộ tản nhiệt dầu thủy lực',
-        symptom: 'Nhiệt độ dầu đạt 86.4°C, áp suất dao động bất thường.',
-        rootCause: 'Tắc van điều lưu giải nhiệt hoặc kẹt cánh quạt làm mát.',
-        recommendedAction: 'Dừng máy kiểm tra khẩn cấp cánh tản nhiệt và thông rửa đường ống giải nhiệt.',
-        estimatedTimeToDegrade: 'Khoảng 4 - 6 giờ máy (Mô phỏng Demo)',
+        component: tr("Van tỉ lệ & Bộ tản nhiệt dầu thủy lực"),
+        symptom: tr("Nhiệt độ dầu đạt 86.4°C, áp suất dao động bất thường."),
+        rootCause: tr("Tắc van điều lưu giải nhiệt hoặc kẹt cánh quạt làm mát."),
+        recommendedAction: tr("Dừng máy kiểm tra khẩn cấp cánh tản nhiệt và thông rửa đường ống giải nhiệt."),
+        estimatedTimeToDegrade: tr("Khoảng 4 - 6 giờ máy (Mô phỏng Demo)"),
         estimatedWorkHours: 2.5,
-        suggestedTools: ['Đồng hồ đo áp suất 400 bar', 'Súng nhiệt hồng ngoại', 'Bộ cờ lê lực'],
+        suggestedTools: [tr("Đồng hồ đo áp suất 400 bar"), tr("Súng nhiệt hồng ngoại"), tr("Bộ cờ lê lực")],
         status: 'PENDING',
       },
     ];
@@ -686,17 +689,17 @@ export function generatePredictiveOrders(
         id: 'WO-VIB-001',
         machineId: 'MCH-WLD-01',
         machineCode: 'MCH-WLD-01',
-        machineName: 'Robot Hàn Điểm Fanuc R-2000iC',
-        lineName: 'Dây Chuyền Dập & Đột',
+        machineName: tr("Robot Hàn Điểm Fanuc R-2000iC"),
+        lineName: tr("Dây Chuyền Dập & Đột"),
         priority: 'P2_HIGH',
         healthScore: 48,
-        component: 'Ổ bi đỡ & Khớp xoay trục số 2 J2',
-        symptom: 'Độ rung RMS vọt lên 8.4 mm/s, xuất hiện tiếng rít cơ khí.',
-        rootCause: 'Mòn ổ bi bạc đạn dẫn hướng trục do suy giảm mỡ bôi trơn.',
-        recommendedAction: 'Bơm mỡ bôi trơn chuyên dụng mỡ cao áp Mobilux EP2 và siết bu-lông chân đế.',
-        estimatedTimeToDegrade: 'Khoảng 12 - 16 giờ máy (Mô phỏng Demo)',
+        component: tr("Ổ bi đỡ & Khớp xoay trục số 2 J2"),
+        symptom: tr("Độ rung RMS vọt lên 8.4 mm/s, xuất hiện tiếng rít cơ khí."),
+        rootCause: tr("Mòn ổ bi bạc đạn dẫn hướng trục do suy giảm mỡ bôi trơn."),
+        recommendedAction: tr("Bơm mỡ bôi trơn chuyên dụng mỡ cao áp Mobilux EP2 và siết bu-lông chân đế."),
+        estimatedTimeToDegrade: tr("Khoảng 12 - 16 giờ máy (Mô phỏng Demo)"),
         estimatedWorkHours: 2.0,
-        suggestedTools: ['Súng bơm mỡ áp lực cao', 'Cờ lê lực 120Nm', 'Máy đo rung cầm tay'],
+        suggestedTools: [tr("Súng bơm mỡ áp lực cao"), tr("Cờ lê lực 120Nm"), tr("Máy đo rung cầm tay")],
         status: 'PENDING',
       },
     ];
@@ -708,34 +711,34 @@ export function generatePredictiveOrders(
         id: 'WO-MULTI-001',
         machineId: 'MCH-DRY-01',
         machineCode: 'MCH-DRY-01',
-        machineName: 'Lò Sấy Hồng Ngoại Đối Lưu',
-        lineName: 'Dây Chuyền Sơn Tĩnh Điện',
+        machineName: tr("Lò Sấy Hồng Ngoại Đối Lưu"),
+        lineName: tr("Dây Chuyền Sơn Tĩnh Điện"),
         priority: 'P1_CRITICAL',
         healthScore: 54,
-        component: 'Rơ-le bán dẫn SSR & Thanh gia nhiệt buồng sấy 1',
-        symptom: 'Nhiệt độ buồng sấy không ngắt tại 170°C, leo dốc lên 188°C.',
-        rootCause: 'Rơ-le SSR điều khiển thanh nhiệt bị dính tiếp điểm ngõ ra.',
-        recommendedAction: 'Ngắt nguồn rơ-le SSR, kiểm tra điện trở cách điện và thay thế khối rơ-le Omron.',
-        estimatedTimeToDegrade: 'Khoảng 2 - 4 giờ máy (Mô phỏng Demo)',
+        component: tr("Rơ-le bán dẫn SSR & Thanh gia nhiệt buồng sấy 1"),
+        symptom: tr("Nhiệt độ buồng sấy không ngắt tại 170°C, leo dốc lên 188°C."),
+        rootCause: tr("Rơ-le SSR điều khiển thanh nhiệt bị dính tiếp điểm ngõ ra."),
+        recommendedAction: tr("Ngắt nguồn rơ-le SSR, kiểm tra điện trở cách điện và thay thế khối rơ-le Omron."),
+        estimatedTimeToDegrade: tr("Khoảng 2 - 4 giờ máy (Mô phỏng Demo)"),
         estimatedWorkHours: 1.5,
-        suggestedTools: ['Đồng hồ vạn năng Fluke', 'Kìm bấm cos', 'Rơ-le SSR Omron G3NA'],
+        suggestedTools: [tr("Đồng hồ vạn năng Fluke"), tr("Kìm bấm cos"), tr("Rơ-le SSR Omron G3NA")],
         status: 'PENDING',
       },
       {
         id: 'WO-MULTI-002',
         machineId: 'MCH-PRS-01',
         machineCode: 'MCH-PRS-01',
-        machineName: 'Máy Dập Thủy Lực 500T Komatsu',
-        lineName: 'Dây Chuyền Dập & Đột',
+        machineName: tr("Máy Dập Thủy Lực 500T Komatsu"),
+        lineName: tr("Dây Chuyền Dập & Đột"),
         priority: 'P2_HIGH',
         healthScore: 58,
-        component: 'Phốt làm kín Piston ép chính',
-        symptom: 'Áp suất ép giảm từ 210 bar xuống 142 bar trong ca làm việc.',
-        rootCause: 'Rách viền phốt thủy lực chịu mài mòn cao sau 1800 giờ máy.',
-        recommendedAction: 'Thay thế cụm phốt làm kín Piston Seal Kit 120mm.',
-        estimatedTimeToDegrade: 'Khoảng 18 - 24 giờ máy (Mô phỏng Demo)',
+        component: tr("Phốt làm kín Piston ép chính"),
+        symptom: tr("Áp suất ép giảm từ 210 bar xuống 142 bar trong ca làm việc."),
+        rootCause: tr("Rách viền phốt thủy lực chịu mài mòn cao sau 1800 giờ máy."),
+        recommendedAction: tr("Thay thế cụm phốt làm kín Piston Seal Kit 120mm."),
+        estimatedTimeToDegrade: tr("Khoảng 18 - 24 giờ máy (Mô phỏng Demo)"),
         estimatedWorkHours: 3.5,
-        suggestedTools: ['Bộ móc tháo phốt thủy lực', 'Bộ Piston Seal Kit Komatsu', 'Cờ lê thủy lực'],
+        suggestedTools: [tr("Bộ móc tháo phốt thủy lực"), tr("Bộ Piston Seal Kit Komatsu"), tr("Cờ lê thủy lực")],
         status: 'PENDING',
       },
     ];
@@ -747,17 +750,17 @@ export function generatePredictiveOrders(
       id: 'WO-REC-001',
       machineId: 'MCH-PRS-01',
       machineCode: 'MCH-PRS-01',
-      machineName: 'Máy Dập Thủy Lực 500T Komatsu',
-      lineName: 'Dây Chuyền Dập & Đột',
+      machineName: tr("Máy Dập Thủy Lực 500T Komatsu"),
+      lineName: tr("Dây Chuyền Dập & Đột"),
       priority: 'P4_ROUTINE',
       healthScore: 98,
-      component: 'Hệ thống tuần hoàn làm mát',
-      symptom: 'Các thông số đã phục hồi về mức chuẩn.',
-      rootCause: 'Đã hoàn tất quy trình bảo dưỡng.',
-      recommendedAction: 'Nghiệm thu ca và đưa vào nhật ký số.',
-      estimatedTimeToDegrade: '> 1000 giờ máy (Mô phỏng Demo)',
+      component: tr("Hệ thống tuần hoàn làm mát"),
+      symptom: tr("Các thông số đã phục hồi về mức chuẩn."),
+      rootCause: tr("Đã hoàn tất quy trình bảo dưỡng."),
+      recommendedAction: tr("Nghiệm thu ca và đưa vào nhật ký số."),
+      estimatedTimeToDegrade: tr("> 1000 giờ máy (Mô phỏng Demo)"),
       estimatedWorkHours: 0.5,
-      suggestedTools: ['Biên bản nghiệm thu số'],
+      suggestedTools: [tr("Biên bản nghiệm thu số")],
       status: 'COMPLETED',
     },
   ];
@@ -787,19 +790,19 @@ export function answerAssistantQuery(
       return {
         id: `bot-${Date.now()}`,
         sender: 'assistant',
-        text: `Hiện tại thiết bị có nguy cơ cao nhất là **${worst.machineCode}** (${worst.machineName}) thuộc **${worst.lineName}** với Điểm Sức khỏe chỉ đạt **${worst.healthScore}/100** (Mức rủi ro: **${worst.riskLevel}**).\n\n**Nguyên nhân:**\n- ${worst.factors.explanation}\n- Đã ghi nhận **${worst.activeAnomaliesCount}** cảnh báo bất thường trong ca làm việc.\n\n**Hành động khuyến nghị:**\n${context.scenario.recommendedAction}`,
+        text: tr("Hiện tại thiết bị có nguy cơ cao nhất là **{0}** ({1}) thuộc **{2}** với Điểm Sức khỏe chỉ đạt **{3}/100** (Mức rủi ro: **{4}**).\n\n**Nguyên nhân:**\n- {5}\n- Đã ghi nhận **{6}** cảnh báo bất thường trong ca làm việc.\n\n**Hành động khuyến nghị:**\n{7}", worst.machineCode, worst.machineName, worst.lineName, worst.healthScore, worst.riskLevel, worst.factors.explanation, worst.activeAnomaliesCount, context.scenario.recommendedAction),
         timestamp: now,
         highlightCard: {
-          title: `${worst.machineCode} — Cần can thiệp khẩn cấp`,
-          subtitle: `Điểm sức khỏe suy giảm nghiêm trọng (${worst.healthScore}/100)`,
+          title: tr("{0} — Cần can thiệp khẩn cấp", worst.machineCode),
+          subtitle: tr("Điểm sức khỏe suy giảm nghiêm trọng ({0}/100)", worst.healthScore),
           score: worst.healthScore,
           badge: worst.riskLevel,
           badgeColor: 'rose',
         },
         suggestedPrompts: [
-          `Đề xuất quy trình bảo trì cho ${worst.machineCode}`,
-          'Tổng quan sức khỏe toàn xưởng',
-          'Danh sách phiếu bảo trì cần ưu tiên',
+          tr("Đề xuất quy trình bảo trì cho {0}", worst.machineCode),
+          tr("Tổng quan sức khỏe toàn xưởng"),
+          tr("Danh sách phiếu bảo trì cần ưu tiên"),
         ],
       };
     }
@@ -807,13 +810,13 @@ export function answerAssistantQuery(
     return {
       id: `bot-${Date.now()}`,
       sender: 'assistant',
-      text: `Toàn bộ ${context.healthList.length} thiết bị hiện đang hoạt động ổn định trong vùng an toàn (Điểm sức khỏe trung bình đạt **${Math.round(
+      text: tr("Toàn bộ {0} thiết bị hiện đang hoạt động ổn định trong vùng an toàn (Điểm sức khỏe trung bình đạt **{1}/100**). Không có thiết bị nào rơi vào tình trạng nguy cấp.", context.healthList.length, Math.round(
         context.healthList.reduce((s, m) => s + m.healthScore, 0) / context.healthList.length
-      )}/100**). Không có thiết bị nào rơi vào tình trạng nguy cấp.`,
+      )),
       timestamp: now,
       suggestedPrompts: [
-        'Kế hoạch bảo trì định kỳ tiếp theo',
-        'Phân tích xu hướng thông số 24 giờ qua',
+        tr("Kế hoạch bảo trì định kỳ tiếp theo"),
+        tr("Phân tích xu hướng thông số 24 giờ qua"),
       ],
     };
   }
@@ -823,18 +826,18 @@ export function answerAssistantQuery(
     return {
       id: `bot-${Date.now()}`,
       sender: 'assistant',
-      text: `**Phân tích Kỹ thuật Máy Dập MCH-PRS-01:**\n- **Thông số:** Nhiệt độ dầu thủy lực ghi nhận mức **86.4°C** (vượt ngưỡng Critical 80.0°C).\n- **Độ lệch chuẩn:** Cao hơn định mức vận hành an toàn **+8.0%**.\n- **Nguyên nhân cốt lõi (Root Cause):** Tắc nghẽn van tuần hoàn dầu giải nhiệt hoặc quạt dàn làm mát bị kẹt rác cơ khí.\n- **Hậu quả nếu kéo dài:** Dầu loãng làm tụt áp suất ép chính, có thể gây cháy phốt xy-lanh trong 4 - 6 giờ máy tới.`,
+      text: tr("**Phân tích Kỹ thuật Máy Dập MCH-PRS-01:**\n- **Thông số:** Nhiệt độ dầu thủy lực ghi nhận mức **86.4°C** (vượt ngưỡng Critical 80.0°C).\n- **Độ lệch chuẩn:** Cao hơn định mức vận hành an toàn **+8.0%**.\n- **Nguyên nhân cốt lõi (Root Cause):** Tắc nghẽn van tuần hoàn dầu giải nhiệt hoặc quạt dàn làm mát bị kẹt rác cơ khí.\n- **Hậu quả nếu kéo dài:** Dầu loãng làm tụt áp suất ép chính, có thể gây cháy phốt xy-lanh trong 4 - 6 giờ máy tới."),
       timestamp: now,
       highlightCard: {
-        title: 'Cảnh báo Nhiệt độ Dầu Thủy lực',
-        subtitle: 'MCH-PRS-01 — Vượt ngưỡng Critical 80.0°C',
+        title: tr("Cảnh báo Nhiệt độ Dầu Thủy lực"),
+        subtitle: tr("MCH-PRS-01 — Vượt ngưỡng Critical 80.0°C"),
         score: 52,
         badge: 'CRITICAL',
         badgeColor: 'rose',
       },
       suggestedPrompts: [
-        'Đề xuất công cụ bảo trì cho MCH-PRS-01',
-        'Xem các sự kiện bất thường của MCH-PRS-01',
+        tr("Đề xuất công cụ bảo trì cho MCH-PRS-01"),
+        tr("Xem các sự kiện bất thường của MCH-PRS-01"),
       ],
     };
   }
@@ -844,18 +847,18 @@ export function answerAssistantQuery(
     return {
       id: `bot-${Date.now()}`,
       sender: 'assistant',
-      text: `**Chẩn đoán Rung động Robot Hàn MCH-WLD-01:**\n- **Thông số:** Độ rung RMS trục J2 đạt **8.4 mm/s** (tiêu chuẩn ISO 10816 class III chỉ cho phép tối đa 7.0 mm/s).\n- **Quy tắc AI kích hoạt:** VƯỢT NGƯỠNG ĐỈNH (Threshold Breach, Z-score = 3.8).\n- **Khuyến nghị kỹ thuật:** Bơm mỡ bôi trơn công nghiệp Mobilux EP2 vào ổ bi khớp xoay J2 và siết kiểm tra 4 bu-lông chân đế robot bằng cờ lê lực 120Nm.`,
+      text: tr("**Chẩn đoán Rung động Robot Hàn MCH-WLD-01:**\n- **Thông số:** Độ rung RMS trục J2 đạt **8.4 mm/s** (tiêu chuẩn ISO 10816 class III chỉ cho phép tối đa 7.0 mm/s).\n- **Quy tắc AI kích hoạt:** VƯỢT NGƯỠNG ĐỈNH (Threshold Breach, Z-score = 3.8).\n- **Khuyến nghị kỹ thuật:** Bơm mỡ bôi trơn công nghiệp Mobilux EP2 vào ổ bi khớp xoay J2 và siết kiểm tra 4 bu-lông chân đế robot bằng cờ lê lực 120Nm."),
       timestamp: now,
       highlightCard: {
-        title: 'Bất thường Rung động Khớp Trục J2',
-        subtitle: 'MCH-WLD-01 — Độ rung 8.4 mm/s',
+        title: tr("Bất thường Rung động Khớp Trục J2"),
+        subtitle: tr("MCH-WLD-01 — Độ rung 8.4 mm/s"),
         score: 48,
         badge: 'HIGH',
         badgeColor: 'amber',
       },
       suggestedPrompts: [
-        'Thời gian dự kiến hỏng ổ bi là bao lâu?',
-        'Có cần dừng dây chuyền ngay lập tức không?',
+        tr("Thời gian dự kiến hỏng ổ bi là bao lâu?"),
+        tr("Có cần dừng dây chuyền ngay lập tức không?"),
       ],
     };
   }
@@ -865,18 +868,18 @@ export function answerAssistantQuery(
     const p1Orders = context.orders.filter((o) => o.priority === 'P1_CRITICAL');
     const p2Orders = context.orders.filter((o) => o.priority === 'P2_HIGH');
 
-    let text = `Trong ca làm việc hiện hành, AI đã lập **${context.orders.length} phiếu công tác bảo trì dự đoán**:\n\n`;
+    let text: string = tr("Trong ca làm việc hiện hành, AI đã lập **{0} phiếu công tác bảo trì dự đoán**:\n\n", context.orders.length);
     if (p1Orders.length > 0) {
-      text += `🚨 **Ưu tiên P1 (Khẩn cấp - Can thiệp ngay):**\n`;
+      text += tr("🚨 **Ưu tiên P1 (Khẩn cấp - Can thiệp ngay):**\n");
       p1Orders.forEach((o) => {
-        text += `- **${o.machineCode}**: ${o.component} — Dự kiến suy thoái sau ${o.estimatedTimeToDegrade}.\n`;
+        text += tr("- **{0}**: {1} — Dự kiến suy thoái sau {2}.\n", o.machineCode, o.component, o.estimatedTimeToDegrade);
       });
       text += `\n`;
     }
     if (p2Orders.length > 0) {
-      text += `⚠️ **Ưu tiên P2 (Ưu tiên cao - Xử lý trong ca):**\n`;
+      text += tr("⚠️ **Ưu tiên P2 (Ưu tiên cao - Xử lý trong ca):**\n");
       p2Orders.forEach((o) => {
-        text += `- **${o.machineCode}**: ${o.component} — Thời lượng: ${o.estimatedWorkHours} giờ công.\n`;
+        text += tr("- **{0}**: {1} — Thời lượng: {2} giờ công.\n", o.machineCode, o.component, o.estimatedWorkHours);
       });
     }
 
@@ -886,8 +889,8 @@ export function answerAssistantQuery(
       text,
       timestamp: now,
       suggestedPrompts: [
-        'Xem chi tiết công cụ cần chuẩn bị',
-        'Cách cập nhật trạng thái phiếu bảo trì',
+        tr("Xem chi tiết công cụ cần chuẩn bị"),
+        tr("Cách cập nhật trạng thái phiếu bảo trì"),
       ],
     };
   }
@@ -900,12 +903,12 @@ export function answerAssistantQuery(
   return {
     id: `bot-${Date.now()}`,
     sender: 'assistant',
-    text: `Hệ thống DENSO KaiLink đang giám sát **${context.healthList.length} thiết bị** trên 3 dây chuyền sản xuất.\n\n- **Chỉ số Sức khỏe Trung bình:** ${avgHealth}/100 điểm.\n- **Kịch bản vận hành hiện hành:** ${context.scenario.name}.\n- **Số lượng dị biệt quan trắc:** ${context.anomalies.length} sự kiện.\n- **Số phiếu bảo trì dự đoán:** ${context.orders.length} đầu việc.\n\nBạn có thể hỏi tôi bất kỳ câu hỏi kỹ thuật nào về tình trạng từng thiết bị, nguyên nhân cảnh báo hoặc quy trình khắc phục.`,
+    text: tr("Hệ thống DENSO KaiLink đang giám sát **{0} thiết bị** trên 3 dây chuyền sản xuất.\n\n- **Chỉ số Sức khỏe Trung bình:** {1}/100 điểm.\n- **Kịch bản vận hành hiện hành:** {2}.\n- **Số lượng dị biệt quan trắc:** {3} sự kiện.\n- **Số phiếu bảo trì dự đoán:** {4} đầu việc.\n\nBạn có thể hỏi tôi bất kỳ câu hỏi kỹ thuật nào về tình trạng từng thiết bị, nguyên nhân cảnh báo hoặc quy trình khắc phục.", context.healthList.length, avgHealth, context.scenario.name, context.anomalies.length, context.orders.length),
     timestamp: now,
     suggestedPrompts: [
-      'Máy nào hiện đang có nguy cơ hỏng hóc cao nhất?',
-      'Giải thích nguyên nhân cảnh báo nhiệt độ Máy dập MCH-PRS-01',
-      'Đề xuất kế hoạch bảo dưỡng ca này',
+      tr("Máy nào hiện đang có nguy cơ hỏng hóc cao nhất?"),
+      tr("Giải thích nguyên nhân cảnh báo nhiệt độ Máy dập MCH-PRS-01"),
+      tr("Đề xuất kế hoạch bảo dưỡng ca này"),
     ],
   };
 }

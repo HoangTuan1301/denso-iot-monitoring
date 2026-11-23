@@ -19,6 +19,7 @@ import { CustomSwitch } from '../../components/common/CustomSwitch';
 import { MetricMappingItem } from '../../types/metric';
 import { apiClient } from '../../services/api';
 import { ModalPortal } from '../../components/common/ModalPortal';
+import { tr } from '../../i18n/tr';
 
 interface ScheduleConfigModalProps {
   isOpen: boolean;
@@ -87,7 +88,7 @@ export function ScheduleConfigModal({
         })
         .catch((err: any) => {
           console.warn('[Get Schedule Error]:', err);
-          setError(err.message || 'Lỗi khi tải lịch thu thập từ Backend.');
+          setError(err.message || tr("Lỗi khi tải lịch thu thập từ Backend."));
         })
         .finally(() => {
           setIsLoading(false);
@@ -100,12 +101,12 @@ export function ScheduleConfigModal({
   const currentScheduleDisplay = (() => {
     if (scheduleMode === 'SHIFT') {
       const activeCount = [shift1Active, shift2Active, shift3Active].filter(Boolean).length;
-      return `${activeCount}/3 Ca sản xuất`;
+      return tr("{0}/3 Ca sản xuất", activeCount);
     }
     if (scheduleMode === 'CONTINUOUS') {
-      return `Liên tục ${continuousInterval}s`;
+      return tr("Liên tục {0}s", continuousInterval);
     }
-    return isCron ? `Cron: ${cronExpression}` : `Định kỳ ${customInterval}s`;
+    return isCron ? `Cron: ${cronExpression}` : tr("Định kỳ {0}s", customInterval);
   })();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -137,7 +138,7 @@ export function ScheduleConfigModal({
     } else {
       if (isCron) {
         if (!cronExpression || cronExpression.trim().split(/\s+/).length < 5) {
-          setError('Biểu thức Cron phải có ít nhất 5 trường (VD: */10 * * * *).');
+          setError(tr("Biểu thức Cron phải có ít nhất 5 trường (VD: */10 * * * *)."));
           return;
         }
         payload = {
@@ -148,7 +149,7 @@ export function ScheduleConfigModal({
         };
       } else {
         if (!customInterval || customInterval < 1) {
-          setError('Khoảng thời gian phải từ 1 giây trở lên.');
+          setError(tr("Khoảng thời gian phải từ 1 giây trở lên."));
           return;
         }
         payload = {
@@ -163,7 +164,7 @@ export function ScheduleConfigModal({
     setIsSubmitting(true);
     try {
       const res = await apiClient.setSchedule(mapping.id, payload);
-      setSuccessMessage(res.message || 'Cập nhật lịch thu thập thành công!');
+      setSuccessMessage(res.message || tr("Cập nhật lịch thu thập thành công!"));
 
       setTimeout(() => {
         onSuccess();
@@ -171,7 +172,7 @@ export function ScheduleConfigModal({
       }, 700);
     } catch (err: any) {
       console.error('[Set Schedule Error]:', err);
-      setError(err.message || 'Lỗi khi lưu lịch thu thập vào CSDL.');
+      setError(err.message || tr("Lỗi khi lưu lịch thu thập vào CSDL."));
     } finally {
       setIsSubmitting(false);
     }
@@ -187,7 +188,7 @@ export function ScheduleConfigModal({
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-2">
             <h3 className="text-base font-bold text-slate-900 dark:text-white">
-              Lịch thu thập & chu kỳ lấy mẫu
+              {tr("Lịch thu thập & chu kỳ lấy mẫu")}
             </h3>
             {isLoading && <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />}
           </div>
@@ -202,19 +203,19 @@ export function ScheduleConfigModal({
         {/* Dải thông tin Metadata (Chuẩn Ảnh mẫu 5) */}
         <div className="grid grid-cols-3 divide-x divide-slate-200 dark:divide-slate-800 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-white/[0.02] px-4 py-2.5 text-[11px]">
           <div className="px-3">
-            <span className="text-slate-400 block font-bold text-[10px]">THIẾT BỊ</span>
+            <span className="text-slate-400 block font-bold text-[10px]">{tr("THIẾT BỊ")}</span>
             <span className="font-mono font-bold text-slate-900 dark:text-white truncate block">
               {mapping.machineCode || mapping.machine_id}
             </span>
           </div>
           <div className="px-3">
-            <span className="text-slate-400 block font-bold text-[10px]">THÔNG SỐ</span>
+            <span className="text-slate-400 block font-bold text-[10px]">{tr("THÔNG SỐ")}</span>
             <span className="font-mono font-bold text-slate-900 dark:text-white truncate block">
               {mapping.metricCode || mapping.mapping_code}
             </span>
           </div>
           <div className="px-3">
-            <span className="text-slate-400 block font-bold text-[10px]">ĐANG ÁP DỤNG</span>
+            <span className="text-slate-400 block font-bold text-[10px]">{tr("ĐANG ÁP DỤNG")}</span>
             <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 truncate block">
               {currentScheduleDisplay}
             </span>
@@ -240,7 +241,7 @@ export function ScheduleConfigModal({
           {/* 1. Chọn kiểu áp dụng (3 Tabs - Chuẩn Ảnh mẫu 5) */}
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
-              Kiểu áp dụng *
+              {tr("Kiểu áp dụng *")}
             </label>
 
             <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
@@ -253,7 +254,7 @@ export function ScheduleConfigModal({
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                Theo ca sản xuất
+                {tr("Theo ca sản xuất")}
               </button>
 
               <button
@@ -265,7 +266,7 @@ export function ScheduleConfigModal({
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                Luôn chạy (1s)
+                {tr("Luôn chạy (1s)")}
               </button>
 
               <button
@@ -277,7 +278,7 @@ export function ScheduleConfigModal({
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                Khung giờ tự đặt
+                {tr("Khung giờ tự đặt")}
               </button>
             </div>
           </div>
@@ -288,13 +289,13 @@ export function ScheduleConfigModal({
           {scheduleMode === 'SHIFT' && (
             <div className="space-y-4">
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Chọn 1 hoặc nhiều ca sản xuất bên dưới — mỗi ca vận hành lịch thu thập tự động theo thời gian thực.
+                {tr("Chọn 1 hoặc nhiều ca sản xuất bên dưới — mỗi ca vận hành lịch thu thập tự động theo thời gian thực.")}
               </p>
 
               {/* TRỤC THỜI GIAN TRONG NGÀY (Visual Timeline Bar - Chuẩn Ảnh mẫu 5) */}
               <div className="space-y-1.5">
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block font-mono">
-                  TRỤC THỜI GIAN TRONG NGÀY (24H)
+                  {tr("TRỤC THỜI GIAN TRONG NGÀY (24H)")}
                 </span>
 
                 <div className="h-7 w-full rounded-xl overflow-hidden flex text-[10px] font-bold text-white shadow-xs">
@@ -304,7 +305,7 @@ export function ScheduleConfigModal({
                     }`}
                     style={{ width: '33.33%' }}
                   >
-                    CA 1: SÁNG
+                    {tr("CA 1: SÁNG")}
                   </div>
                   <div
                     className={`flex items-center justify-center transition-colors border-l border-white/20 ${
@@ -312,7 +313,7 @@ export function ScheduleConfigModal({
                     }`}
                     style={{ width: '33.33%' }}
                   >
-                    CA 2: CHIỀU
+                    {tr("CA 2: CHIỀU")}
                   </div>
                   <div
                     className={`flex items-center justify-center transition-colors border-l border-white/20 ${
@@ -320,7 +321,7 @@ export function ScheduleConfigModal({
                     }`}
                     style={{ width: '33.34%' }}
                   >
-                    CA 3: ĐÊM
+                    {tr("CA 3: ĐÊM")}
                   </div>
                 </div>
 
@@ -328,7 +329,7 @@ export function ScheduleConfigModal({
                   <span>06:00</span>
                   <span>14:00</span>
                   <span>22:00</span>
-                  <span>06:00 (Hôm sau)</span>
+                  <span>{tr("06:00 (Hôm sau)")}</span>
                 </div>
               </div>
 
@@ -336,10 +337,10 @@ export function ScheduleConfigModal({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    CHỌN CA ÁP DỤNG
+                    {tr("CHỌN CA ÁP DỤNG")}
                   </span>
                   <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono">
-                    {[shift1Active, shift2Active, shift3Active].filter(Boolean).length} ca đã chọn
+                    {[shift1Active, shift2Active, shift3Active].filter(Boolean).length} {tr("ca đã chọn")}
                   </span>
                 </div>
 
@@ -349,9 +350,9 @@ export function ScheduleConfigModal({
                     <div className="w-2.5 h-2.5 rounded-full bg-sky-500" />
                     <div>
                       <div className="text-xs font-bold text-slate-900 dark:text-white">
-                        CA 1 &bull; Ca Sáng
+                        {tr("CA 1 • Ca Sáng")}
                       </div>
-                      <div className="text-[11px] text-slate-500">Áp dụng thu thập dữ liệu ca ban ngày</div>
+                      <div className="text-[11px] text-slate-500">{tr("Áp dụng thu thập dữ liệu ca ban ngày")}</div>
                     </div>
                   </div>
 
@@ -363,7 +364,7 @@ export function ScheduleConfigModal({
                       isSelected={shift1Active}
                       size="sm"
                       color="success"
-                      aria-label="Bật tắt Ca 1"
+                      aria-label={tr("Bật tắt Ca 1")}
                       onValueChange={setShift1Active}
                     />
                   </div>
@@ -375,9 +376,9 @@ export function ScheduleConfigModal({
                     <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
                     <div>
                       <div className="text-xs font-bold text-slate-900 dark:text-white">
-                        CA 2 &bull; Ca Chiều
+                        {tr("CA 2 • Ca Chiều")}
                       </div>
-                      <div className="text-[11px] text-slate-500">Áp dụng thu thập dữ liệu ca chiều tối</div>
+                      <div className="text-[11px] text-slate-500">{tr("Áp dụng thu thập dữ liệu ca chiều tối")}</div>
                     </div>
                   </div>
 
@@ -389,7 +390,7 @@ export function ScheduleConfigModal({
                       isSelected={shift2Active}
                       size="sm"
                       color="success"
-                      aria-label="Bật tắt Ca 2"
+                      aria-label={tr("Bật tắt Ca 2")}
                       onValueChange={setShift2Active}
                     />
                   </div>
@@ -401,9 +402,9 @@ export function ScheduleConfigModal({
                     <div className="w-2.5 h-2.5 rounded-full bg-purple-500" />
                     <div>
                       <div className="text-xs font-bold text-slate-900 dark:text-white">
-                        CA 3 &bull; Ca Đêm
+                        {tr("CA 3 • Ca Đêm")}
                       </div>
-                      <div className="text-[11px] text-slate-500">Áp dụng thu thập dữ liệu ca làm đêm</div>
+                      <div className="text-[11px] text-slate-500">{tr("Áp dụng thu thập dữ liệu ca làm đêm")}</div>
                     </div>
                   </div>
 
@@ -415,7 +416,7 @@ export function ScheduleConfigModal({
                       isSelected={shift3Active}
                       size="sm"
                       color="success"
-                      aria-label="Bật tắt Ca 3"
+                      aria-label={tr("Bật tắt Ca 3")}
                       onValueChange={setShift3Active}
                     />
                   </div>
@@ -430,12 +431,12 @@ export function ScheduleConfigModal({
           {scheduleMode === 'CONTINUOUS' && (
             <div className="space-y-4">
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Hệ thống thu thập dữ liệu liên tục 24/7 từ trạm PLC hoặc File Ingestion engine mà không phụ thuộc ca làm việc.
+                {tr("Hệ thống thu thập dữ liệu liên tục 24/7 từ trạm PLC hoặc File Ingestion engine mà không phụ thuộc ca làm việc.")}
               </p>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
-                  Chu kỳ lấy mẫu mặc định
+                  {tr("Chu kỳ lấy mẫu mặc định")}
                 </label>
                 <div className="grid grid-cols-4 gap-2">
                   {[1, 2, 5, 10].map((sec) => (
@@ -449,7 +450,7 @@ export function ScheduleConfigModal({
                           : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-400'
                       }`}
                     >
-                      {sec} giây
+                      {sec} {tr("giây")}
                     </button>
                   ))}
                 </div>
@@ -471,7 +472,7 @@ export function ScheduleConfigModal({
                     onChange={() => setIsCron(false)}
                     className="accent-emerald-600"
                   />
-                  <span>Chu kỳ giây (Interval)</span>
+                  <span>{tr("Chu kỳ giây (Interval)")}</span>
                 </label>
 
                 <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
@@ -482,14 +483,14 @@ export function ScheduleConfigModal({
                     onChange={() => setIsCron(true)}
                     className="accent-emerald-600"
                   />
-                  <span>Biểu thức Cron định kỳ</span>
+                  <span>{tr("Biểu thức Cron định kỳ")}</span>
                 </label>
               </div>
 
               {!isCron ? (
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Khoảng thời gian (giây)
+                    {tr("Khoảng thời gian (giây)")}
                   </label>
                   <input
                     type="number"
@@ -503,7 +504,7 @@ export function ScheduleConfigModal({
               ) : (
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Biểu thức Cron 5 trường
+                    {tr("Biểu thức Cron 5 trường")}
                   </label>
                   <input
                     type="text"
@@ -513,7 +514,7 @@ export function ScheduleConfigModal({
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                   <p className="text-[11px] text-slate-400 mt-1 font-mono">
-                    Định dạng: [phút] [giờ] [ngày] [tháng] [thứ]
+                    {tr("Định dạng: [phút] [giờ] [ngày] [tháng] [thứ]")}
                   </p>
                 </div>
               )}
@@ -528,7 +529,7 @@ export function ScheduleConfigModal({
               disabled={isSubmitting}
               className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
-              Hủy
+              {tr("Hủy")}
             </button>
             <button
               type="submit"
@@ -538,10 +539,10 @@ export function ScheduleConfigModal({
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Đang lưu...</span>
+                  <span>{tr("Đang lưu...")}</span>
                 </>
               ) : (
-                <span>Lưu lịch chạy</span>
+                <span>{tr("Lưu lịch chạy")}</span>
               )}
             </button>
           </div>

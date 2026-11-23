@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { ProductionLine } from '../../../types/hierarchy';
 import { AIProcessedMachine } from '../adapters/aiTelemetryAdapter';
+import { tr } from '../../../i18n/tr';
 
 interface FactorySchematic2D3DProps {
   lines: ProductionLine[];
@@ -43,7 +44,7 @@ export const FactorySchematic2D3D: React.FC<FactorySchematic2D3DProps> = ({
     {
       id: 'LINE-01',
       code: 'LN-PRS-01',
-      name: 'Dây chuyền 1: Dập & Hàn Khung Gầm',
+      name: tr("Dây chuyền 1: Dập & Hàn Khung Gầm"),
       desc: 'Pressing, Stamping & Robotic Spot Welding',
       oee: '92.1%',
       expectedCount: 6,
@@ -51,7 +52,7 @@ export const FactorySchematic2D3D: React.FC<FactorySchematic2D3DProps> = ({
     {
       id: 'LINE-02',
       code: 'LN-PNT-02',
-      name: 'Dây chuyền 2: Gia Công Cơ Khí & Sơn',
+      name: tr("Dây chuyền 2: Gia Công Cơ Khí & Sơn"),
       desc: 'Precision CNC Machining & Electrostatic Paint',
       oee: '89.3%',
       expectedCount: 4,
@@ -59,7 +60,7 @@ export const FactorySchematic2D3D: React.FC<FactorySchematic2D3DProps> = ({
     {
       id: 'LINE-03',
       code: 'LN-ASY-03',
-      name: 'Dây chuyền 3: Lắp Ráp & Hoàn Thiện',
+      name: tr("Dây chuyền 3: Lắp Ráp & Hoàn Thiện"),
       desc: 'Final Tightening, Inspection & End-of-Line Testing',
       oee: '81.7%',
       expectedCount: 4,
@@ -82,14 +83,14 @@ export const FactorySchematic2D3D: React.FC<FactorySchematic2D3DProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                Sơ đồ Nhà máy &amp; Trạng thái Thiết bị (Factory Equipment Map)
+                {tr("Sơ đồ Nhà máy & Trạng thái Thiết bị (Factory Equipment Map)")}
               </h3>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
-                {allMachines.length} Thiết bị • 3 Dây chuyền
+                {allMachines.length} {tr("Thiết bị • 3 Dây chuyền")}
               </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Giám sát sơ đồ phân bổ thiết bị, điểm sức khỏe AI và trạng thái vận hành thời gian thực
+              {tr("Giám sát sơ đồ phân bổ thiết bị, điểm sức khỏe AI và trạng thái vận hành thời gian thực")}
             </p>
           </div>
         </div>
@@ -99,12 +100,12 @@ export const FactorySchematic2D3D: React.FC<FactorySchematic2D3DProps> = ({
           {criticalMachine ? (
             <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800 text-xs font-bold animate-pulse">
               <AlertOctagon className="w-3.5 h-3.5 text-rose-600" />
-              <span>Sự cố: {criticalMachine.machineCode}</span>
+              <span>{tr("Sự cố:")} {criticalMachine.machineCode}</span>
             </div>
           ) : (
             <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-xs font-semibold">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Toàn bộ dây chuyền ổn định</span>
+              <span>{tr("Toàn bộ dây chuyền ổn định")}</span>
             </div>
           )}
 
@@ -163,7 +164,7 @@ export const FactorySchematic2D3D: React.FC<FactorySchematic2D3DProps> = ({
               <div
                 onClick={() => onSelectLine && onSelectLine(lineConfig.id)}
                 className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 pb-2 border-b border-slate-200/60 dark:border-slate-700/50 cursor-pointer group"
-                title={`Nhấn để tập trung vào ${lineName}`}
+                title={tr("Nhấn để tập trung vào {0}", lineName)}
               >
                 <div className="flex items-center gap-2.5">
                   <span
@@ -196,11 +197,11 @@ export const FactorySchematic2D3D: React.FC<FactorySchematic2D3DProps> = ({
                     OEE: <strong className="text-emerald-600 dark:text-emerald-400">{lineConfig.oee}</strong>
                   </span>
                   <span className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400">
-                    {lineMachines.length} máy ({safeCount} An toàn • {noDataCount} Chưa kết nối)
+                    {lineMachines.length} {tr("máy (")}{safeCount} {tr("An toàn •")} {noDataCount} {tr("Chưa kết nối)")}
                   </span>
                   {hasCritMachine && (
                     <span className="px-2 py-0.5 rounded-md bg-rose-500 text-white font-bold animate-pulse text-[10px]">
-                      CẢNH BÁO KHẨN
+                      {tr("CẢNH BÁO KHẨN")}
                     </span>
                   )}
                 </div>
@@ -260,9 +261,7 @@ export const FactorySchematic2D3D: React.FC<FactorySchematic2D3DProps> = ({
                       className={`p-2.5 rounded-xl border transition-all duration-200 flex flex-col justify-between cursor-pointer group select-none min-h-[92px] ${cardBorderBg} ${
                         isHovered ? 'scale-[1.02] shadow-md' : 'shadow-2xs'
                       }`}
-                      title={`${machine.machineCode} — ${machine.machineName}\nDây chuyền: ${lineConfig.name}\nĐiểm sức khỏe: ${
-                        machine.healthScore != null ? `${machine.healthScore}/100` : 'Chưa có dữ liệu'
-                      }\nThông số: ${machine.keyMetricName} = ${machine.keyMetricValue} ${machine.keyMetricUnit}\nNhấn để phân tích chi tiết.`}
+                      title={tr("{0} — {1}\nDây chuyền: {2}\nĐiểm sức khỏe: {3}\nThông số: {4} = {5} {6}\nNhấn để phân tích chi tiết.", machine.machineCode, machine.machineName, lineConfig.name, machine.healthScore != null ? `${machine.healthScore}/100` : tr("Chưa có dữ liệu"), machine.keyMetricName, machine.keyMetricValue, machine.keyMetricUnit)}
                     >
                       {/* Dòng 1: Mã máy & Badge trạng thái */}
                       <div className="flex items-center justify-between gap-1">
@@ -290,12 +289,12 @@ export const FactorySchematic2D3D: React.FC<FactorySchematic2D3DProps> = ({
                               : 'text-emerald-600 dark:text-emerald-400'
                           }`}
                         >
-                          {machine.healthScore != null ? `${machine.healthScore}đ` : 'N/A'}
+                          {machine.healthScore != null ? tr("{0}đ", machine.healthScore) : 'N/A'}
                         </span>
 
                         <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono truncate max-w-[90px] text-right">
                           {isNoData ? (
-                            'Chưa nối PLC'
+                            tr("Chưa nối PLC")
                           ) : isCrit ? (
                             <strong className="text-rose-600">{machine.keyMetricValue} {machine.keyMetricUnit}</strong>
                           ) : (
@@ -319,25 +318,25 @@ export const FactorySchematic2D3D: React.FC<FactorySchematic2D3DProps> = ({
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-            <span className="font-medium text-slate-700 dark:text-slate-300">An toàn (SAFE)</span>
+            <span className="font-medium text-slate-700 dark:text-slate-300">{tr("An toàn (SAFE)")}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-            <span className="font-medium text-slate-700 dark:text-slate-300">Cảnh báo (WARNING)</span>
+            <span className="font-medium text-slate-700 dark:text-slate-300">{tr("Cảnh báo (WARNING)")}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-            <span className="font-medium text-slate-700 dark:text-slate-300">Nguy hiểm (CRITICAL)</span>
+            <span className="font-medium text-slate-700 dark:text-slate-300">{tr("Nguy hiểm (CRITICAL)")}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-600" />
-            <span className="font-medium text-slate-700 dark:text-slate-300">Chưa có DL (NO DATA)</span>
+            <span className="font-medium text-slate-700 dark:text-slate-300">{tr("Chưa có DL (NO DATA)")}</span>
           </div>
         </div>
 
         <div className="flex items-center gap-1 text-[10px] text-slate-400">
           <Activity className="w-3.5 h-3.5 text-emerald-500" />
-          <span>Nhấn vào thiết bị để phân tích chi tiết Z-score và mở phiếu bảo trì dự đoán</span>
+          <span>{tr("Nhấn vào thiết bị để phân tích chi tiết Z-score và mở phiếu bảo trì dự đoán")}</span>
         </div>
       </div>
     </div>

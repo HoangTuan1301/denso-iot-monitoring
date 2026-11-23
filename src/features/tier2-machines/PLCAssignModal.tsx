@@ -26,6 +26,7 @@ import {
 import { MachineComponent } from '../../types/hierarchy';
 import { apiClient } from '../../services/api';
 import { useMonitoringStore } from '../../stores/useMonitoringStore';
+import { tr } from '../../i18n/tr';
 
 interface PLCAssignModalProps {
   isOpen: boolean;
@@ -82,7 +83,7 @@ export function PLCAssignModal({
           }
         })
         .catch((err) => {
-          setGeneralError(err.message || 'Không thể tải danh sách trạm PLC');
+          setGeneralError(err.message || tr("Không thể tải danh sách trạm PLC"));
         })
         .finally(() => {
           setIsLoadingStations(false);
@@ -100,7 +101,7 @@ export function PLCAssignModal({
 
   const handleSubmit = async () => {
     if (!selectedPlcId) {
-      setGeneralError('Vui lòng chọn một trạm PLC.');
+      setGeneralError(tr("Vui lòng chọn một trạm PLC."));
       return;
     }
 
@@ -113,7 +114,7 @@ export function PLCAssignModal({
         confirmSourceTransfer,
       });
 
-      setSuccessMessage(res.message || 'Gán trạm PLC thành công!');
+      setSuccessMessage(res.message || tr("Gán trạm PLC thành công!"));
       setTimeout(() => {
         onAssigned?.();
         onClose();
@@ -134,7 +135,7 @@ export function PLCAssignModal({
           sourceMachineName: err.sourceMachineName,
         });
       } else {
-        setGeneralError(err.message || 'Lỗi khi gán trạm PLC.');
+        setGeneralError(err.message || tr("Lỗi khi gán trạm PLC."));
       }
     } finally {
       setIsSubmitting(false);
@@ -163,10 +164,10 @@ export function PLCAssignModal({
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  Gán / Chuyển giao Trạm PLC
+                  {tr("Gán / Chuyển giao Trạm PLC")}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">
-                  Liên kết trạm PLC điều khiển với máy công nghiệp (Tầng 2)
+                  {tr("Liên kết trạm PLC điều khiển với máy công nghiệp (Tầng 2)")}
                 </p>
               </div>
             </ModalHeader>
@@ -176,7 +177,7 @@ export function PLCAssignModal({
               <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    Máy đích
+                    {tr("Máy đích")}
                   </span>
                   <Chip size="sm" variant="flat" color="primary" className="font-mono text-[11px]">
                     {machine.id}
@@ -186,14 +187,14 @@ export function PLCAssignModal({
                   {machine.name}
                 </div>
                 <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
-                  <span>Trạm PLC hiện tại:</span>
+                  <span>{tr("Trạm PLC hiện tại:")}</span>
                   {machine.plc || machine.plcId ? (
                     <Chip size="sm" variant="dot" color="success">
                       {machine.plc?.name || machine.plcName || machine.plcId} ({machine.plc?.protocol || machine.plcProtocol || 'Modbus/TCP'})
                     </Chip>
                   ) : (
                     <Chip size="sm" variant="flat" color="warning">
-                      Chưa gán trạm PLC
+                      {tr("Chưa gán trạm PLC")}
                     </Chip>
                   )}
                 </div>
@@ -202,10 +203,10 @@ export function PLCAssignModal({
               {/* Lựa chọn trạm PLC mục tiêu */}
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
-                  <span>Chọn Trạm PLC mục tiêu:</span>
+                  <span>{tr("Chọn Trạm PLC mục tiêu:")}</span>
                   {isLoadingStations && (
                     <span className="flex items-center gap-1 text-[11px] text-slate-400">
-                      <Loader2 className="w-3 h-3 animate-spin" /> Đang tải trạm...
+                      <Loader2 className="w-3 h-3 animate-spin" /> {tr("Đang tải trạm...")}
                     </span>
                   )}
                 </label>
@@ -220,7 +221,7 @@ export function PLCAssignModal({
                   disabled={isLoadingStations || isSubmitting}
                   className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
-                  <option value="" disabled>-- Chọn Trạm PLC --</option>
+                  <option value="" disabled>{tr("-- Chọn Trạm PLC --")}</option>
                   {stations.map((st) => {
                     const isAssigned = Boolean(st.machine_id);
                     const isThisMachine = st.machine_id === machine.id;
@@ -228,10 +229,10 @@ export function PLCAssignModal({
                     const isDisabled = st.enabled === 0 || st.enabled === false;
 
                     let tag = '';
-                    if (isThisMachine) tag = ' [Đang gán máy này]';
-                    else if (isAssigned) tag = ` [Gán cho: ${st.machine_id}]`;
+                    if (isThisMachine) tag = tr(" [Đang gán máy này]");
+                    else if (isAssigned) tag = tr(" [Gán cho: {0}]", st.machine_id);
                     if (isDemo) tag += ' [DEMO]';
-                    if (isDisabled) tag += ' [VÔ HIỆU HÓA]';
+                    if (isDisabled) tag += tr(" [VÔ HIỆU HÓA]");
 
                     return (
                       <option key={st.id} value={st.id}>
@@ -246,7 +247,7 @@ export function PLCAssignModal({
               {selectedPlc && (
                 <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 text-xs space-y-1.5 font-mono">
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Giao thức:</span>
+                    <span className="text-slate-500">{tr("Giao thức:")}</span>
                     <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedPlc.protocol || 'Modbus/TCP'}</span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -254,18 +255,18 @@ export function PLCAssignModal({
                     <span className="text-slate-800 dark:text-slate-200">{selectedPlc.ipAddress}:{selectedPlc.port}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Trạng thái kỹ thuật:</span>
+                    <span className="text-slate-500">{tr("Trạng thái kỹ thuật:")}</span>
                     <div className="flex gap-1.5">
                       {selectedPlc.enabled ? (
-                        <span className="text-emerald-600 dark:text-emerald-400 font-bold">Kích hoạt</span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-bold">{tr("Kích hoạt")}</span>
                       ) : (
-                        <span className="text-rose-600 dark:text-rose-400 font-bold">Vô hiệu hóa</span>
+                        <span className="text-rose-600 dark:text-rose-400 font-bold">{tr("Vô hiệu hóa")}</span>
                       )}
                       <span>&bull;</span>
                       {selectedPlc.is_demo ? (
-                        <span className="text-amber-600 dark:text-amber-400 font-bold">Demo Mô phỏng</span>
+                        <span className="text-amber-600 dark:text-amber-400 font-bold">{tr("Demo Mô phỏng")}</span>
                       ) : (
-                        <span className="text-blue-600 dark:text-blue-400 font-bold">PLC Vật lý</span>
+                        <span className="text-blue-600 dark:text-blue-400 font-bold">{tr("PLC Vật lý")}</span>
                       )}
                     </div>
                   </div>
@@ -276,14 +277,14 @@ export function PLCAssignModal({
               {isTargetAlreadyHasPlc && !conflictError && (
                 <div className="flex items-center gap-1.5 p-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 text-[11px] text-amber-700 dark:text-amber-400">
                   <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                  <span>Máy đích đang có trạm PLC. Việc gán sẽ yêu cầu xác nhận thay thế trạm hiện tại.</span>
+                  <span>{tr("Máy đích đang có trạm PLC. Việc gán sẽ yêu cầu xác nhận thay thế trạm hiện tại.")}</span>
                 </div>
               )}
 
               {isSelectedPlcBelongsToOther && !conflictError && (
                 <div className="flex items-center gap-1.5 p-2 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/40 text-[11px] text-blue-700 dark:text-blue-400">
                   <ArrowRightLeft className="w-3.5 h-3.5 shrink-0" />
-                  <span>Trạm PLC này đang thuộc máy {selectedPlc?.machine_id}. Việc gán sẽ yêu cầu xác nhận chuyển giao.</span>
+                  <span>{tr("Trạm PLC này đang thuộc máy")} {selectedPlc?.machine_id}{tr(". Việc gán sẽ yêu cầu xác nhận chuyển giao.")}</span>
                 </div>
               )}
 
@@ -291,7 +292,7 @@ export function PLCAssignModal({
                 <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-400 text-xs">
                   <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-bold">Lưu ý an toàn:</span> Trạm PLC này là PLC Demo mô phỏng. Theo quy chuẩn an toàn, Backend sẽ từ chối gán PLC Demo cho máy sản xuất (Mã 422).
+                    <span className="font-bold">{tr("Lưu ý an toàn:")}</span> {tr("Trạm PLC này là PLC Demo mô phỏng. Theo quy chuẩn an toàn, Backend sẽ từ chối gán PLC Demo cho máy sản xuất (Mã 422).")}
                   </div>
                 </div>
               )}
@@ -302,7 +303,7 @@ export function PLCAssignModal({
                   <div className="flex items-start gap-2 text-amber-800 dark:text-amber-300">
                     <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
                     <div>
-                      <div className="font-bold">Xác nhận chuyển giao / thay thế trạm PLC:</div>
+                      <div className="font-bold">{tr("Xác nhận chuyển giao / thay thế trạm PLC:")}</div>
                       <div className="text-[11px] mt-0.5">{conflictError.message}</div>
                     </div>
                   </div>
@@ -318,7 +319,7 @@ export function PLCAssignModal({
                           className="rounded border-amber-400 text-emerald-600 focus:ring-emerald-500 w-4 h-4"
                         />
                         <span>
-                          Tôi xác nhận thay thế trạm PLC hiện tại của máy đích ({conflictError.currentPlcName || machine.plcId})
+                          {tr("Tôi xác nhận thay thế trạm PLC hiện tại của máy đích (")}{conflictError.currentPlcName || machine.plcId})
                         </span>
                       </label>
                     )}
@@ -333,7 +334,7 @@ export function PLCAssignModal({
                           className="rounded border-amber-400 text-emerald-600 focus:ring-emerald-500 w-4 h-4"
                         />
                         <span>
-                          Tôi xác nhận chuyển giao trạm PLC từ máy nguồn ({conflictError.sourceMachineName || selectedPlc?.machine_id}) sang máy đích
+                          {tr("Tôi xác nhận chuyển giao trạm PLC từ máy nguồn (")}{conflictError.sourceMachineName || selectedPlc?.machine_id}{tr(") sang máy đích")}
                         </span>
                       </label>
                     )}
@@ -367,7 +368,7 @@ export function PLCAssignModal({
                 isDisabled={isSubmitting}
                 className="text-xs"
               >
-                Hủy bỏ
+                {tr("Hủy bỏ")}
               </Button>
 
               <Button
@@ -389,7 +390,7 @@ export function PLCAssignModal({
                 }
                 startContent={!isSubmitting && <ArrowRightLeft className="w-3.5 h-3.5" />}
               >
-                {conflictError ? 'Xác nhận Chuyển giao / Thay thế' : 'Xác nhận Gán Trạm PLC'}
+                {conflictError ? tr("Xác nhận Chuyển giao / Thay thế") : tr("Xác nhận Gán Trạm PLC")}
               </Button>
             </ModalFooter>
           </>

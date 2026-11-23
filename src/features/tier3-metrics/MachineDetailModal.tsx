@@ -27,6 +27,7 @@ import { MachineComponent } from '../../types/hierarchy';
 import { MetricHistoryChart } from '../../components/charts/MetricHistoryChart';
 import { useMonitoringStore } from '../../stores/useMonitoringStore';
 import { historyService } from '../../services/historyService';
+import { tr } from '../../i18n/tr';
 
 export type TimeRangeMode = '1h' | '6h' | '24h' | 'csv_preset' | 'custom';
 
@@ -134,12 +135,12 @@ export function MachineDetailModal({
             <ModalHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-                  Chi tiết Thiết bị
+                  {tr("Chi tiết Thiết bị")}
                 </h2>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                   {displayLineCode ? `${displayLineCode} • ` : ''}
                   {displayLineName ? `${displayLineName} • ` : ''}
-                  Giá trị hiện tại và biến động lịch sử của các thông số đo thuộc thiết bị.
+                  {tr("Giá trị hiện tại và biến động lịch sử của các thông số đo thuộc thiết bị.")}
                 </p>
               </div>
 
@@ -160,7 +161,7 @@ export function MachineDetailModal({
                     simulateTick();
                   }}
                 >
-                  Làm mới
+                  {tr("Làm mới")}
                 </Button>
               </div>
             </ModalHeader>
@@ -171,19 +172,19 @@ export function MachineDetailModal({
               {/* ========================================================================= */}
               <div className="bg-slate-50 dark:bg-factory-bg/60 p-4 rounded-xl border border-slate-200 dark:border-factory-border grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 text-xs font-mono">
                 <div>
-                  <p className="text-[10px] text-slate-500 dark:text-gray-400 uppercase font-bold">THIẾT BỊ</p>
+                  <p className="text-[10px] text-slate-500 dark:text-gray-400 uppercase font-bold">{tr("THIẾT BỊ")}</p>
                   <p className="font-bold text-slate-900 dark:text-white mt-0.5 truncate" title={machine.name}>
                     {machine.code || machine.id}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-500 dark:text-gray-400 uppercase font-bold">DÂY CHUYỀN</p>
+                  <p className="text-[10px] text-slate-500 dark:text-gray-400 uppercase font-bold">{tr("DÂY CHUYỀN")}</p>
                   <p className="font-bold text-slate-900 dark:text-white mt-0.5 truncate" title={displayLineName}>
                     {displayLineCode}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-500 dark:text-gray-400 uppercase font-bold">LOẠI</p>
+                  <p className="text-[10px] text-slate-500 dark:text-gray-400 uppercase font-bold">{tr("LOẠI")}</p>
                   <p className="mt-0.5">
                     <span className="px-2 py-0.5 rounded bg-white dark:bg-factory-card border border-slate-200 dark:border-factory-border text-[10px] font-bold text-slate-700 dark:text-gray-300">
                       {machine.dataSourceType === 'FILE_INGEST' ? 'CSV FILE' : 'PLC / ADC'}
@@ -191,7 +192,7 @@ export function MachineDetailModal({
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-500 dark:text-gray-400 uppercase font-bold">NGUỒN</p>
+                  <p className="text-[10px] text-slate-500 dark:text-gray-400 uppercase font-bold">{tr("NGUỒN")}</p>
                   <p className="font-bold text-slate-900 dark:text-white mt-0.5 truncate">
                     {machine.dataSourceType === 'FILE_INGEST' ? 'FILE INGEST (TEST)' : 'MODBUS (DISCONNECTED)'}
                   </p>
@@ -203,7 +204,7 @@ export function MachineDetailModal({
                 <div>
                   <p className="text-[10px] text-slate-500 dark:text-gray-400 uppercase font-bold">METRIC</p>
                   <p className="font-bold text-emerald-600 dark:text-emerald-500 mt-0.5">
-                    {machine.metrics.length} đang thu thập
+                    {machine.metrics.length} {tr("đang thu thập")}
                   </p>
                 </div>
               </div>
@@ -216,10 +217,10 @@ export function MachineDetailModal({
                   </div>
                   <div className="min-w-0">
                     <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
-                      Trạm PLC Dây Chuyền Kế Thừa ({displayLineCode}{displayLineName ? ` — ${displayLineName}` : ''})
+                      {tr("Trạm PLC Dây Chuyền Kế Thừa (")}{displayLineCode}{displayLineName ? ` — ${displayLineName}` : ''})
                     </span>
                     <span className="font-semibold text-slate-900 dark:text-white font-mono truncate block mt-0.5">
-                      {machine.plc?.name || machine.plcName || 'Chưa cấu hình trạm PLC cho dây chuyền này'}
+                      {machine.plc?.name || machine.plcName || tr("Chưa cấu hình trạm PLC cho dây chuyền này")}
                     </span>
                   </div>
                 </div>
@@ -227,14 +228,14 @@ export function MachineDetailModal({
                 <div className="flex items-center gap-2 flex-wrap shrink-0">
                   {machine.plc?.isDemo && (
                     <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300">
-                      MÔ PHỎNG / DEMO
+                      {tr("MÔ PHỎNG / DEMO")}
                     </span>
                   )}
                   <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                    {machine.plc?.status === 'CONNECTED' ? 'CONNECTED' : 'CHƯA KẾT NỐI VẬT LÝ (UNKNOWN)'}
+                    {machine.plc?.status === 'CONNECTED' ? 'CONNECTED' : tr("CHƯA KẾT NỐI VẬT LÝ (UNKNOWN)")}
                   </span>
                   <span className="text-[10px] text-slate-500 dark:text-slate-400 italic">
-                    (Chỉ đọc)
+                    {tr("(Chỉ đọc)")}
                   </span>
                 </div>
               </div>
@@ -245,10 +246,10 @@ export function MachineDetailModal({
               <section className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    Thông số đo hiện tại
+                    {tr("Thông số đo hiện tại")}
                   </h3>
                   <span className="text-[11px] text-slate-500 dark:text-gray-400 font-mono font-medium">
-                    Cập nhật {activeMetric.lastUpdated}
+                    {tr("Cập nhật")} {activeMetric.lastUpdated}
                   </span>
                 </div>
 
@@ -304,19 +305,19 @@ export function MachineDetailModal({
                           {metric.status === 'normal' && (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
                               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                              Bình thường
+                              {tr("Bình thường")}
                             </span>
                           )}
                           {metric.status === 'warning' && (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-400">
                               <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
-                              Cảnh báo
+                              {tr("Cảnh báo")}
                             </span>
                           )}
                           {metric.status === 'critical' && (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/15 text-rose-700 dark:text-rose-400 animate-pulse">
                               <span className="h-1.5 w-1.5 rounded-full bg-rose-500"></span>
-                              Nguy hiểm
+                              {tr("Nguy hiểm")}
                             </span>
                           )}
                         </div>
@@ -333,7 +334,7 @@ export function MachineDetailModal({
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-factory-border pb-3">
                   <div>
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                      Biểu đồ lịch sử &mdash; {activeMetric.id.replace('MTR-', '')}
+                      {tr("Biểu đồ lịch sử —")} {activeMetric.id.replace('MTR-', '')}
                     </h3>
                   </div>
 
@@ -361,7 +362,7 @@ export function MachineDetailModal({
                           ? 'bg-blue-600 text-white shadow-xs'
                           : 'text-blue-600 dark:text-blue-400 hover:bg-blue-500/10'
                       }`}
-                      title="Xem dữ liệu nạp từ file CSV log215 (22/05/2026)"
+                      title={tr("Xem dữ liệu nạp từ file CSV log215 (22/05/2026)")}
                     >
                       <FileSpreadsheet className="w-3.5 h-3.5" />
                       22/05/2026 (CSV)
@@ -377,7 +378,7 @@ export function MachineDetailModal({
                       }`}
                     >
                       <Calendar className="w-3.5 h-3.5" />
-                      Tùy chọn
+                      {tr("Tùy chọn")}
                     </button>
 
                     {timeRange === 'custom' && (
@@ -412,7 +413,7 @@ export function MachineDetailModal({
                 {isLoadingHistory ? (
                   <div className="h-[260px] flex items-center justify-center text-xs text-slate-500 dark:text-gray-400 font-mono">
                     <RefreshCw className="w-4 h-4 animate-spin mr-2 text-emerald-500" />
-                    Đang nạp dữ liệu lịch sử từ CSDL...
+                    {tr("Đang nạp dữ liệu lịch sử từ CSDL...")}
                   </div>
                 ) : customHistory && customHistory.length > 0 ? (
                   <MetricHistoryChart
@@ -425,13 +426,13 @@ export function MachineDetailModal({
                   <div className="h-[260px] flex flex-col items-center justify-center text-center p-6 border border-dashed border-slate-300 dark:border-factory-border rounded-xl bg-slate-50/50 dark:bg-factory-bg/20">
                     <Calendar className="w-8 h-8 text-slate-400 dark:text-gray-500 mb-2" />
                     <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                      Không có dữ liệu đo lường trong khoảng thời gian đã chọn
+                      {tr("Không có dữ liệu đo lường trong khoảng thời gian đã chọn")}
                     </p>
                     <p className="text-xs text-slate-500 dark:text-gray-400 mt-1 max-w-md">
-                      Chưa có bản ghi đo nào khớp bộ lọc. Bấm nút <span className="font-bold text-blue-500">"22/05/2026 (CSV)"</span> để xem 207 điểm đo thực tế nạp từ file log215.
+                      {tr("Chưa có bản ghi đo nào khớp bộ lọc. Bấm nút")} <span className="font-bold text-blue-500">"22/05/2026 (CSV)"</span> {tr("để xem 207 điểm đo thực tế nạp từ file log215.")}
                     </p>
                     <Button size="sm" variant="flat" color="primary" className="mt-3 text-xs" onPress={() => setTimeRange('csv_preset')}>
-                      Xem dữ liệu ngày 22/05/2026 (CSV)
+                      {tr("Xem dữ liệu ngày 22/05/2026 (CSV)")}
                     </Button>
                   </div>
                 )}
@@ -452,7 +453,7 @@ export function MachineDetailModal({
                     startContent={<QrCode className="w-3.5 h-3.5" />}
                     onPress={onOpenQR}
                   >
-                    Mã QR
+                    {tr("Mã QR")}
                   </Button>
                 )}
 
@@ -466,7 +467,7 @@ export function MachineDetailModal({
                     navigateToCheckSheet(machine.id, machine.lineId);
                   }}
                 >
-                  Mở CHECK SHEET
+                  {tr("Mở CHECK SHEET")}
                 </Button>
 
                 <Button
@@ -479,7 +480,7 @@ export function MachineDetailModal({
                     setActiveTab('thresholds');
                   }}
                 >
-                  Cấu hình ngưỡng
+                  {tr("Cấu hình ngưỡng")}
                 </Button>
 
                 <Button
@@ -489,7 +490,7 @@ export function MachineDetailModal({
                   className="text-xs font-semibold"
                   onPress={onClose}
                 >
-                  Đóng
+                  {tr("Đóng")}
                 </Button>
               </div>
             </ModalFooter>

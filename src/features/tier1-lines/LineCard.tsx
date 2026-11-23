@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { ProductionLine } from '../../types/hierarchy';
 import { useMonitoringStore } from '../../stores/useMonitoringStore';
+import { tr } from '../../i18n/tr';
 
 interface LineCardProps {
   line: ProductionLine;
@@ -34,10 +35,10 @@ export function LineCard({ line, onViewDetails }: LineCardProps) {
   const statusColor = isCritical ? 'danger' : isWarning ? 'warning' : 'success';
 
   const statusLabel = isCritical
-    ? 'Nguy hiểm'
+    ? tr("Nguy hiểm")
     : isWarning
-    ? 'Cảnh báo'
-    : 'Bình thường';
+    ? tr("Cảnh báo")
+    : tr("Bình thường");
 
   const StatusIcon = isCritical
     ? AlertOctagon
@@ -122,13 +123,13 @@ export function LineCard({ line, onViewDetails }: LineCardProps) {
       <div className="p-5 pt-1 space-y-4 flex-1 flex flex-col justify-between">
         {/* Mô tả dây chuyền: cố định đúng 2 dòng không xô lệch */}
         <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 h-10 text-ellipsis overflow-hidden leading-relaxed">
-          {line.description || 'Dây chuyền sản xuất tự động tích hợp giám sát PLC.'}
+          {line.description || tr("Dây chuyền sản xuất tự động tích hợp giám sát PLC.")}
         </p>
 
         {/* Thanh % Chỉ số an toàn toàn dây chuyền (Safety Score) */}
         <div className="space-y-1.5 bg-slate-50 dark:bg-factory-bg/70 p-3 rounded-xl border border-slate-200 dark:border-factory-border/60">
           <div className="flex justify-between items-center text-xs">
-            <span className="text-slate-700 dark:text-gray-300 font-semibold">Chỉ số An Toàn Toàn Line</span>
+            <span className="text-slate-700 dark:text-gray-300 font-semibold">{tr("Chỉ số An Toàn Toàn Line")}</span>
             <span
               className={`font-mono font-bold text-sm ${
                 line.safetyScore >= 90
@@ -157,10 +158,10 @@ export function LineCard({ line, onViewDetails }: LineCardProps) {
             <Layers className="w-4 h-4 text-blue-500 dark:text-blue-400 shrink-0" />
             <div className="min-w-0">
               <p className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-bold tracking-wider truncate">
-                Thiết Bị (Tầng 2)
+                {tr("Thiết Bị (Tầng 2)")}
               </p>
               <p className="font-mono font-bold text-slate-900 dark:text-white mt-0.5 truncate">
-                {totalMachines} Máy
+                {totalMachines} {tr("Máy")}
               </p>
             </div>
           </div>
@@ -169,10 +170,10 @@ export function LineCard({ line, onViewDetails }: LineCardProps) {
             <Clock className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0" />
             <div className="min-w-0">
               <p className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-bold tracking-wider truncate">
-                Vận Hành
+                {tr("Vận Hành")}
               </p>
               <p className="font-mono font-bold text-slate-900 dark:text-white mt-0.5 truncate">
-                {line.operatingHours}h liên tục
+                {line.operatingHours}{tr("h liên tục")}
               </p>
             </div>
           </div>
@@ -184,7 +185,7 @@ export function LineCard({ line, onViewDetails }: LineCardProps) {
             <Cpu className="w-4 h-4 text-blue-500 dark:text-blue-400 shrink-0" />
             <div className="min-w-0 flex-1">
               <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider truncate">
-                Trạm PLC Dây Chuyền (Gắn Sẵn)
+                {tr("Trạm PLC Dây Chuyền (Gắn Sẵn)")}
               </p>
               {line.plc ? (
                 <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
@@ -193,16 +194,16 @@ export function LineCard({ line, onViewDetails }: LineCardProps) {
                   </span>
                   {line.plc.isDemo && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 shrink-0">
-                      MÔ PHỎNG / DEMO
+                      {tr("MÔ PHỎNG / DEMO")}
                     </span>
                   )}
                   <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 shrink-0">
-                    {line.plc.status === 'CONNECTED' ? 'CONNECTED' : 'CHƯA KẾT NỐI VẬT LÝ (UNKNOWN)'}
+                    {line.plc.status === 'CONNECTED' ? 'CONNECTED' : tr("CHƯA KẾT NỐI VẬT LÝ (UNKNOWN)")}
                   </span>
                 </div>
               ) : (
                 <p className="text-slate-400 dark:text-slate-500 italic text-[11px] mt-0.5">
-                  Chưa cấu hình trạm PLC
+                  {tr("Chưa cấu hình trạm PLC")}
                 </p>
               )}
             </div>
@@ -212,7 +213,7 @@ export function LineCard({ line, onViewDetails }: LineCardProps) {
         {/* Tình trạng máy móc dạng Badges Pill + Progress Bar liền mạch */}
         <div className="space-y-2 pt-1">
           <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 font-semibold">
-            <span>Tình trạng máy móc:</span>
+            <span>{tr("Tình trạng máy móc:")}</span>
           </div>
 
           {/* Badges dạng Pill */}
@@ -225,14 +226,14 @@ export function LineCard({ line, onViewDetails }: LineCardProps) {
             {warningMachines > 0 && (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300/80 dark:border-amber-800/40">
                 <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-                <span>{warningMachines} Cảnh báo</span>
+                <span>{warningMachines} {tr("Cảnh báo")}</span>
               </span>
             )}
 
             {criticalMachines > 0 && (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-300/80 dark:border-rose-800/40 animate-pulse">
                 <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
-                <span>{criticalMachines} Nguy hiểm</span>
+                <span>{criticalMachines} {tr("Nguy hiểm")}</span>
               </span>
             )}
           </div>
@@ -243,21 +244,21 @@ export function LineCard({ line, onViewDetails }: LineCardProps) {
               <div
                 style={{ width: `${(normalMachines / totalMachines) * 100}%` }}
                 className="h-full bg-emerald-500 transition-all duration-300"
-                title={`${normalMachines} Máy OK`}
+                title={tr("{0} Máy OK", normalMachines)}
               />
             )}
             {warningMachines > 0 && (
               <div
                 style={{ width: `${(warningMachines / totalMachines) * 100}%` }}
                 className="h-full bg-amber-500 transition-all duration-300"
-                title={`${warningMachines} Máy Cảnh báo`}
+                title={tr("{0} Máy Cảnh báo", warningMachines)}
               />
             )}
             {criticalMachines > 0 && (
               <div
                 style={{ width: `${(criticalMachines / totalMachines) * 100}%` }}
                 className="h-full bg-rose-600 animate-pulse transition-all duration-300"
-                title={`${criticalMachines} Máy Nguy hiểm`}
+                title={tr("{0} Máy Nguy hiểm", criticalMachines)}
               />
             )}
           </div>
@@ -274,7 +275,7 @@ export function LineCard({ line, onViewDetails }: LineCardProps) {
           onClick={handleDrillDown}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 hover:bg-emerald-500/25 cursor-pointer transition-colors shrink-0"
         >
-          <span>Chi Tiết Máy & Chỉ Số</span>
+          <span>{tr("Chi Tiết Máy & Chỉ Số")}</span>
           <ArrowRight className="w-4 h-4 shrink-0" />
         </button>
       </div>

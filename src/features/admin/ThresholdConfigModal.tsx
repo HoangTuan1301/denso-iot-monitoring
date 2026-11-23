@@ -22,6 +22,7 @@ import { MetricMappingItem } from '../../types/metric';
 import { apiClient } from '../../services/api';
 import { useMonitoringStore } from '../../stores/useMonitoringStore';
 import { ModalPortal } from '../../components/common/ModalPortal';
+import { tr } from '../../i18n/tr';
 
 interface ThresholdConfigModalProps {
   isOpen: boolean;
@@ -81,7 +82,7 @@ export function ThresholdConfigModal({
       const mCode = mapping.machineCode || mapping.machine_id;
       const metCode = mapping.metricCode || mapping.metric_id;
       setRuleCode(`RULE_${mCode}_${metCode}`.replace(/[^A-Za-z0-9_]/g, '_').toUpperCase());
-      setRuleName(mapping.channel_name || `Cảnh báo ${metCode} cho ${mCode}`);
+      setRuleName(mapping.channel_name || tr("Cảnh báo {0} cho {1}", metCode, mCode));
 
       apiClient
         .getThresholds(mapping.id)
@@ -114,7 +115,7 @@ export function ThresholdConfigModal({
         })
         .catch((err: any) => {
           console.warn('[Get Thresholds Error]:', err);
-          setError(err.message || 'Lỗi khi tải cấu hình ngưỡng từ Backend.');
+          setError(err.message || tr("Lỗi khi tải cấu hình ngưỡng từ Backend."));
         })
         .finally(() => {
           setIsLoading(false);
@@ -137,22 +138,22 @@ export function ThresholdConfigModal({
       wMax = warningMax.trim() !== '' ? Number(warningMax) : null;
       cMax = criticalMax.trim() !== '' ? Number(criticalMax) : null;
       if (wMax === null && cMax === null) {
-        setError('Vui lòng nhập ít nhất một giá trị ngưỡng trên (Warning Max hoặc Critical Max).');
+        setError(tr("Vui lòng nhập ít nhất một giá trị ngưỡng trên (Warning Max hoặc Critical Max)."));
         return;
       }
       if (wMax !== null && cMax !== null && wMax >= cMax) {
-        setError(`Ngưỡng Warning Max (${wMax}) phải nhỏ hơn Critical Max (${cMax}).`);
+        setError(tr("Ngưỡng Warning Max ({0}) phải nhỏ hơn Critical Max ({1}).", wMax, cMax));
         return;
       }
     } else if (ruleType === 'THRESHOLD_LT') {
       wMin = warningMin.trim() !== '' ? Number(warningMin) : null;
       cMin = criticalMin.trim() !== '' ? Number(criticalMin) : null;
       if (wMin === null && cMin === null) {
-        setError('Vui lòng nhập ít nhất một giá trị ngưỡng dưới (Warning Min hoặc Critical Min).');
+        setError(tr("Vui lòng nhập ít nhất một giá trị ngưỡng dưới (Warning Min hoặc Critical Min)."));
         return;
       }
       if (wMin !== null && cMin !== null && cMin >= wMin) {
-        setError(`Ngưỡng Critical Min (${cMin}) phải nhỏ hơn Warning Min (${wMin}).`);
+        setError(tr("Ngưỡng Critical Min ({0}) phải nhỏ hơn Warning Min ({1}).", cMin, wMin));
         return;
       }
     } else {
@@ -163,19 +164,19 @@ export function ThresholdConfigModal({
       cMax = criticalMax.trim() !== '' ? Number(criticalMax) : null;
 
       if (wMin === null && wMax === null && cMin === null && cMax === null) {
-        setError('Vui lòng nhập các giá trị ngưỡng cảnh báo hai phía.');
+        setError(tr("Vui lòng nhập các giá trị ngưỡng cảnh báo hai phía."));
         return;
       }
       if (wMin !== null && wMax !== null && wMin >= wMax) {
-        setError(`Ngưỡng Warning Min (${wMin}) phải nhỏ hơn Warning Max (${wMax}).`);
+        setError(tr("Ngưỡng Warning Min ({0}) phải nhỏ hơn Warning Max ({1}).", wMin, wMax));
         return;
       }
       if (cMin !== null && wMin !== null && cMin >= wMin) {
-        setError(`Ngưỡng Critical Min (${cMin}) phải nhỏ hơn Warning Min (${wMin}).`);
+        setError(tr("Ngưỡng Critical Min ({0}) phải nhỏ hơn Warning Min ({1}).", cMin, wMin));
         return;
       }
       if (wMax !== null && cMax !== null && wMax >= cMax) {
-        setError(`Ngưỡng Warning Max (${wMax}) phải nhỏ hơn Critical Max (${cMax}).`);
+        setError(tr("Ngưỡng Warning Max ({0}) phải nhỏ hơn Critical Max ({1}).", wMax, cMax));
         return;
       }
     }
@@ -191,7 +192,7 @@ export function ThresholdConfigModal({
       };
 
       const res = await apiClient.setThresholds(mapping.id, payload);
-      setSuccessMessage(res.message || 'Cập nhật ngưỡng cảnh báo thành công!');
+      setSuccessMessage(res.message || tr("Cập nhật ngưỡng cảnh báo thành công!"));
 
       setTimeout(() => {
         onSuccess();
@@ -199,7 +200,7 @@ export function ThresholdConfigModal({
       }, 700);
     } catch (err: any) {
       console.error('[Set Thresholds Error]:', err);
-      setError(err.message || 'Lỗi khi lưu ngưỡng cảnh báo vào CSDL.');
+      setError(err.message || tr("Lỗi khi lưu ngưỡng cảnh báo vào CSDL."));
     } finally {
       setIsSubmitting(false);
     }
@@ -215,7 +216,7 @@ export function ThresholdConfigModal({
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-2">
             <h3 className="text-base font-bold text-slate-900 dark:text-white">
-              Cấu hình ngưỡng cảnh báo
+              {tr("Cấu hình ngưỡng cảnh báo")}
             </h3>
             {isLoading && <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />}
           </div>
@@ -230,27 +231,27 @@ export function ThresholdConfigModal({
         {/* Dải thông tin Metadata (Chuẩn Ảnh mẫu 4) */}
         <div className="grid grid-cols-4 divide-x divide-slate-200 dark:divide-slate-800 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-white/[0.02] px-4 py-2.5 text-[11px]">
           <div className="px-3">
-            <span className="text-slate-400 block font-bold text-[10px]">THIẾT BỊ</span>
+            <span className="text-slate-400 block font-bold text-[10px]">{tr("THIẾT BỊ")}</span>
             <span className="font-mono font-bold text-slate-900 dark:text-white truncate block">
               {mapping.machineCode || mapping.machine_id}
             </span>
           </div>
           <div className="px-3">
-            <span className="text-slate-400 block font-bold text-[10px]">THÔNG SỐ</span>
+            <span className="text-slate-400 block font-bold text-[10px]">{tr("THÔNG SỐ")}</span>
             <span className="font-mono font-bold text-slate-900 dark:text-white truncate block">
               {mapping.metricCode || mapping.mapping_code}
             </span>
           </div>
           <div className="px-3">
-            <span className="text-slate-400 block font-bold text-[10px]">ĐƠN VỊ</span>
+            <span className="text-slate-400 block font-bold text-[10px]">{tr("ĐƠN VỊ")}</span>
             <span className="font-mono font-bold text-slate-900 dark:text-white block">
               {mapping.unit || '—'}
             </span>
           </div>
           <div className="px-3">
-            <span className="text-slate-400 block font-bold text-[10px]">HIỆN TẠI</span>
+            <span className="text-slate-400 block font-bold text-[10px]">{tr("HIỆN TẠI")}</span>
             <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 block">
-              {currentMetricValue !== null ? currentMetricValue.toFixed(1) : 'Chưa có dữ liệu'}
+              {currentMetricValue !== null ? currentMetricValue.toFixed(1) : tr("Chưa có dữ liệu")}
             </span>
           </div>
         </div>
@@ -261,11 +262,11 @@ export function ThresholdConfigModal({
           <div className="p-3.5 rounded-xl bg-blue-50/80 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 text-blue-800 dark:text-blue-300 text-xs leading-relaxed">
             {hasExistingThresholds ? (
               <span>
-                Thông số này <strong>đã có ngưỡng cảnh báo</strong> trong CSDL. Bạn có thể điều chỉnh giá trị Warning và Critical bên dưới để cập nhật quy tắc giám sát.
+                {tr("Thông số này")} <strong>{tr("đã có ngưỡng cảnh báo")}</strong> {tr("trong CSDL. Bạn có thể điều chỉnh giá trị Warning và Critical bên dưới để cập nhật quy tắc giám sát.")}
               </span>
             ) : (
               <span>
-                Thông số này <strong>chưa có ngưỡng cảnh báo</strong> — hệ thống vẫn thu thập và lưu lịch sử, nhưng không sinh Alert. Đặt ngưỡng bên dưới để bật cảnh báo tự động.
+                {tr("Thông số này")} <strong>{tr("chưa có ngưỡng cảnh báo")}</strong> {tr("— hệ thống vẫn thu thập và lưu lịch sử, nhưng không sinh Alert. Đặt ngưỡng bên dưới để bật cảnh báo tự động.")}
               </span>
             )}
           </div>
@@ -287,7 +288,7 @@ export function ThresholdConfigModal({
           {/* 1. Mã rule * */}
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-              Mã rule *
+              {tr("Mã rule *")}
             </label>
             <input
               type="text"
@@ -301,13 +302,13 @@ export function ThresholdConfigModal({
           {/* 2. Tên gợi nhớ * */}
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-              Tên gợi nhớ *
+              {tr("Tên gợi nhớ *")}
             </label>
             <input
               type="text"
               value={ruleName}
               onChange={(e) => setRuleName(e.target.value)}
-              placeholder="VD: Áp suất dầu xi lanh thủy lực vượt định mức"
+              placeholder={tr("VD: Áp suất dầu xi lanh thủy lực vượt định mức")}
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
@@ -315,16 +316,16 @@ export function ThresholdConfigModal({
           {/* 3. Loại rule */}
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-              Loại rule
+              {tr("Loại rule")}
             </label>
             <select
               value={ruleType}
               onChange={(e) => setRuleType(e.target.value as any)}
               className="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
-              <option value="THRESHOLD_GT">THRESHOLD_GT (Vượt ngưỡng trên — High Alarm: quá áp, quá nhiệt)</option>
-              <option value="THRESHOLD_LT">THRESHOLD_LT (Tụt ngưỡng dưới — Low Alarm: mất áp, tụt mức dầu)</option>
-              <option value="THRESHOLD_RANGE">THRESHOLD_RANGE (Giới hạn khoảng hai phía — Min & Max)</option>
+              <option value="THRESHOLD_GT">{tr("THRESHOLD_GT (Vượt ngưỡng trên — High Alarm: quá áp, quá nhiệt)")}</option>
+              <option value="THRESHOLD_LT">{tr("THRESHOLD_LT (Tụt ngưỡng dưới — Low Alarm: mất áp, tụt mức dầu)")}</option>
+              <option value="THRESHOLD_RANGE">{tr("THRESHOLD_RANGE (Giới hạn khoảng hai phía — Min & Max)")}</option>
             </select>
           </div>
 
@@ -336,14 +337,14 @@ export function ThresholdConfigModal({
             <div className="rounded-2xl border border-amber-300 dark:border-amber-800/80 bg-amber-50/60 dark:bg-amber-950/20 p-4 space-y-3">
               <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold text-xs">
                 <AlertCircle className="w-4 h-4" />
-                <span>NGƯỠNG WARNING</span>
+                <span>{tr("NGƯỠNG WARNING")}</span>
               </div>
 
               {ruleType === 'THRESHOLD_GT' && (
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">
-                      Toán tử
+                      {tr("Toán tử")}
                     </label>
                     <div className="px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-900 text-xs font-mono font-bold text-amber-700 dark:text-amber-400 text-center">
                       GT (&gt;)
@@ -351,7 +352,7 @@ export function ThresholdConfigModal({
                   </div>
                   <div>
                     <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">
-                      Giá trị ({mapping.unit || 'đv'})
+                      {tr("Giá trị (")}{mapping.unit || tr("đv")})
                     </label>
                     <input
                       type="number"
@@ -369,7 +370,7 @@ export function ThresholdConfigModal({
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">
-                      Toán tử
+                      {tr("Toán tử")}
                     </label>
                     <div className="px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-900 text-xs font-mono font-bold text-amber-700 dark:text-amber-400 text-center">
                       LT (&lt;)
@@ -377,7 +378,7 @@ export function ThresholdConfigModal({
                   </div>
                   <div>
                     <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">
-                      Giá trị ({mapping.unit || 'đv'})
+                      {tr("Giá trị (")}{mapping.unit || tr("đv")})
                     </label>
                     <input
                       type="number"
@@ -425,14 +426,14 @@ export function ThresholdConfigModal({
             <div className="rounded-2xl border border-rose-300 dark:border-rose-800/80 bg-rose-50/60 dark:bg-rose-950/20 p-4 space-y-3">
               <div className="flex items-center gap-2 text-rose-700 dark:text-rose-400 font-bold text-xs">
                 <AlertTriangle className="w-4 h-4" />
-                <span>NGƯỠNG CRITICAL</span>
+                <span>{tr("NGƯỠNG CRITICAL")}</span>
               </div>
 
               {ruleType === 'THRESHOLD_GT' && (
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">
-                      Toán tử
+                      {tr("Toán tử")}
                     </label>
                     <div className="px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-900 text-xs font-mono font-bold text-rose-700 dark:text-rose-400 text-center">
                       GT (&gt;)
@@ -440,7 +441,7 @@ export function ThresholdConfigModal({
                   </div>
                   <div>
                     <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">
-                      Giá trị ({mapping.unit || 'đv'})
+                      {tr("Giá trị (")}{mapping.unit || tr("đv")})
                     </label>
                     <input
                       type="number"
@@ -458,7 +459,7 @@ export function ThresholdConfigModal({
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">
-                      Toán tử
+                      {tr("Toán tử")}
                     </label>
                     <div className="px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-900 text-xs font-mono font-bold text-rose-700 dark:text-rose-400 text-center">
                       LT (&lt;)
@@ -466,7 +467,7 @@ export function ThresholdConfigModal({
                   </div>
                   <div>
                     <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">
-                      Giá trị ({mapping.unit || 'đv'})
+                      {tr("Giá trị (")}{mapping.unit || tr("đv")})
                     </label>
                     <input
                       type="number"
@@ -519,7 +520,7 @@ export function ThresholdConfigModal({
               disabled={isSubmitting}
               className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
-              Đóng
+              {tr("Đóng")}
             </button>
             <button
               type="submit"
@@ -529,10 +530,10 @@ export function ThresholdConfigModal({
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Đang lưu...</span>
+                  <span>{tr("Đang lưu...")}</span>
                 </>
               ) : (
-                <span>{hasExistingThresholds ? 'Cập nhật ngưỡng' : 'Tạo ngưỡng cảnh báo'}</span>
+                <span>{hasExistingThresholds ? tr("Cập nhật ngưỡng") : tr("Tạo ngưỡng cảnh báo")}</span>
               )}
             </button>
           </div>

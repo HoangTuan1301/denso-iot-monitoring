@@ -50,6 +50,7 @@ import { FACTORY_ZONES, FactoryZone } from '../dashboard/factoryMapConfig';
 import { LineDetailView } from './LineDetailView';
 import { MachineDetailView } from '../tier2-machines/MachineDetailView';
 import { CheckSheetView } from '../checksheet/CheckSheetView';
+import { tr } from '../../i18n/tr';
 
 /**
  * Component hiển thị giao diện Màn hình 1: Factory Layout Map & Analytics
@@ -241,9 +242,9 @@ function FactoryLayoutMainView() {
 
   const deviceDonutData = useMemo(() => {
     return [
-      { name: 'Hoạt động', value: Math.max(1, deviceClassification.operating), color: '#10b981' },
-      { name: 'Cần theo dõi', value: Math.max(1, deviceClassification.warning), color: '#f59e0b' },
-      { name: 'Dừng / Sự cố', value: deviceClassification.critical, color: '#ef4444' },
+      { name: tr("Hoạt động"), value: Math.max(1, deviceClassification.operating), color: '#10b981' },
+      { name: tr("Cần theo dõi"), value: Math.max(1, deviceClassification.warning), color: '#f59e0b' },
+      { name: tr("Dừng / Sự cố"), value: deviceClassification.critical, color: '#ef4444' },
     ];
   }, [deviceClassification]);
 
@@ -274,7 +275,7 @@ function FactoryLayoutMainView() {
             }`}
           >
             <Map className="w-3.5 h-3.5" />
-            <span>Sơ đồ mặt bằng nhà máy (Factory Layout)</span>
+            <span>{tr("Sơ đồ mặt bằng nhà máy (Factory Layout)")}</span>
           </button>
 
           <button
@@ -287,7 +288,7 @@ function FactoryLayoutMainView() {
             }`}
           >
             <BarChart3 className="w-3.5 h-3.5" />
-            <span>Chỉ số phân tích 24h & Dây chuyền</span>
+            <span>{tr("Chỉ số phân tích 24h & Dây chuyền")}</span>
           </button>
         </div>
 
@@ -341,7 +342,7 @@ function FactoryLayoutMainView() {
             <div className="bg-white dark:bg-factory-card p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-slate-900 dark:text-white">
-                  Xu hướng an toàn xưởng (24h)
+                  {tr("Xu hướng an toàn xưởng (24h)")}
                 </span>
                 <span className="text-[11px] font-mono text-emerald-600 font-bold">96.8%</span>
               </div>
@@ -368,9 +369,9 @@ function FactoryLayoutMainView() {
             <div className="bg-white dark:bg-factory-card p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-slate-900 dark:text-white">
-                  Phân loại trạng thái thiết bị
+                  {tr("Phân loại trạng thái thiết bị")}
                 </span>
-                <span className="text-[11px] font-mono text-slate-500 font-bold">{deviceClassification.total} máy</span>
+                <span className="text-[11px] font-mono text-slate-500 font-bold">{deviceClassification.total} {tr("máy")}</span>
               </div>
               <div className="h-[160px] w-full flex items-center justify-center relative">
                 <ResponsiveContainer width="100%" height="100%">
@@ -393,7 +394,7 @@ function FactoryLayoutMainView() {
                   <span className="text-lg font-mono font-extrabold text-slate-900 dark:text-white leading-none">
                     {deviceClassification.total}
                   </span>
-                  <span className="text-[10px] text-slate-400">Thiết bị</span>
+                  <span className="text-[10px] text-slate-400">{tr("Thiết bị")}</span>
                 </div>
               </div>
             </div>
@@ -402,9 +403,9 @@ function FactoryLayoutMainView() {
             <div className="bg-white dark:bg-factory-card p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-slate-900 dark:text-white">
-                  Cảnh báo theo thời gian
+                  {tr("Cảnh báo theo thời gian")}
                 </span>
-                <span className="text-[11px] font-mono text-rose-600 font-bold">{activeAlarmsCount} mở</span>
+                <span className="text-[11px] font-mono text-rose-600 font-bold">{activeAlarmsCount} {tr("mở")}</span>
               </div>
               <div className="h-[160px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -432,9 +433,9 @@ function FactoryLayoutMainView() {
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Factory className="w-4 h-4 text-emerald-600" />
-                <span>3 Dây chuyền sản xuất công nghiệp</span>
+                <span>{tr("3 Dây chuyền sản xuất công nghiệp")}</span>
               </h3>
-              <span className="text-xs text-slate-500">Nhấn vào dây chuyền để mở Line Overview</span>
+              <span className="text-xs text-slate-500">{tr("Nhấn vào dây chuyền để mở Line Overview")}</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
@@ -465,19 +466,19 @@ function FactoryLayoutMainView() {
 
                     <div className="mt-3 pt-3 border-t border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between text-xs">
                       <div>
-                        <div className="text-[10px] text-slate-400">Mức an toàn</div>
+                        <div className="text-[10px] text-slate-400">{tr("Mức an toàn")}</div>
                         <div className="text-base font-extrabold font-mono text-slate-900 dark:text-white">
                           {safeScore}%
                         </div>
                       </div>
                       <div>
-                        <div className="text-[10px] text-slate-400">Thiết bị</div>
+                        <div className="text-[10px] text-slate-400">{tr("Thiết bị")}</div>
                         <div className="text-base font-extrabold font-mono text-slate-900 dark:text-white">
                           {machineCount}
                         </div>
                       </div>
                       <div>
-                        <div className="text-[10px] text-slate-400">Sự cố</div>
+                        <div className="text-[10px] text-slate-400">{tr("Sự cố")}</div>
                         <div className={`text-base font-extrabold font-mono ${lineAlarms.length > 0 ? 'text-rose-600' : 'text-slate-900 dark:text-white'}`}>
                           {lineAlarms.length}
                         </div>
@@ -499,6 +500,10 @@ function FactoryLayoutMainView() {
  * Root LineOverviewDashboard: Điều phối hiển thị 4 màn hình theo dashboardViewLevel
  * Không chứa hooks có điều kiện (Conditional Hooks), giải quyết dứt điểm lỗi White Screen
  */
+/**
+ * Root LineOverviewDashboard: Điều phối hiển thị 4 màn hình theo dashboardViewLevel
+ * Không chứa hooks có điều kiện (Conditional Hooks), giải quyết dứt điểm lỗi White Screen
+ */
 export function LineOverviewDashboard() {
   const {
     dashboardViewLevel,
@@ -511,7 +516,7 @@ export function LineOverviewDashboard() {
 
   return (
     <ErrorBoundary
-      fallbackTitle="Sự cố điều hướng màn hình giám sát"
+      fallbackTitle={tr("Sự cố điều hướng màn hình giám sát")}
       onReset={() => {
         useMonitoringStore.getState().setDashboardViewLevel('factory_layout');
         useMonitoringStore.getState().setSelectedLineId(null);

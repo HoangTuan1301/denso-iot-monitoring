@@ -32,6 +32,7 @@ import { useMonitoringStore } from '../../stores/useMonitoringStore';
 import { TelemetryFilterParams } from '../../types/hierarchy';
 import { exportEngine } from '../../utils/exportEngine';
 import { historyService } from '../../services/historyService';
+import { tr } from '../../i18n/tr';
 
 export function MachineHistoryView() {
   const { lines } = useMonitoringStore();
@@ -103,9 +104,9 @@ export function MachineHistoryView() {
       if (response.metadata?.exportAllowed === false || response.metadata?.isTruncated) {
         setExportWarning(
           response.metadata?.warning ||
-            `Số lượng bản ghi (${response.metadata?.totalRecords?.toLocaleString(
+            tr("Số lượng bản ghi ({0}) vượt quá giới hạn xuất an toàn 10.000 dòng. Vui lòng thu hẹp bộ lọc ngày/giờ hoặc chọn dây chuyền/máy cụ thể để xuất báo cáo chính xác.", response.metadata?.totalRecords?.toLocaleString(
               'vi-VN'
-            )}) vượt quá giới hạn xuất an toàn 10.000 dòng. Vui lòng thu hẹp bộ lọc ngày/giờ hoặc chọn dây chuyền/máy cụ thể để xuất báo cáo chính xác.`
+            ))
         );
         setIsExporting(false);
         return;
@@ -114,20 +115,20 @@ export function MachineHistoryView() {
       const exportData = response.data || [];
 
       if (exportData.length === 0) {
-        setExportWarning('Không tìm thấy bản ghi nào khớp với bộ lọc hiện tại để xuất.');
+        setExportWarning(tr("Không tìm thấy bản ghi nào khớp với bộ lọc hiện tại để xuất."));
         setIsExporting(false);
         return;
       }
 
       if (format === 'xlsx') {
         exportEngine.exportToExcel(exportData);
-        setExportSuccessMsg(`Đã xuất thành công ${exportData.length} bản ghi sang file Excel (.xlsx)!`);
+        setExportSuccessMsg(tr("Đã xuất thành công {0} bản ghi sang file Excel (.xlsx)!", exportData.length));
       } else if (format === 'csv') {
         exportEngine.exportToCSV(exportData);
-        setExportSuccessMsg(`Đã xuất thành công ${exportData.length} bản ghi sang file CSV (UTF-8 BOM)!`);
+        setExportSuccessMsg(tr("Đã xuất thành công {0} bản ghi sang file CSV (UTF-8 BOM)!", exportData.length));
       } else if (format === 'json') {
         exportEngine.exportToJSON(exportData, response.metadata);
-        setExportSuccessMsg(`Đã xuất thành công ${exportData.length} bản ghi sang file JSON (AI/ML Dataset)!`);
+        setExportSuccessMsg(tr("Đã xuất thành công {0} bản ghi sang file JSON (AI/ML Dataset)!", exportData.length));
       }
 
       // Tự động ẩn thông báo thành công sau 5 giây
@@ -135,7 +136,7 @@ export function MachineHistoryView() {
         setExportSuccessMsg(null);
       }, 5000);
     } catch (err: any) {
-      setExportWarning(err.message || 'Lỗi trong quá trình xuất dữ liệu. Vui lòng thử lại.');
+      setExportWarning(err.message || tr("Lỗi trong quá trình xuất dữ liệu. Vui lòng thử lại."));
     } finally {
       setIsExporting(false);
     }
@@ -304,10 +305,10 @@ export function MachineHistoryView() {
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-                Lịch Sử Hoạt Động Máy & Telemetry
+                {tr("Lịch Sử Hoạt Động Máy & Telemetry")}
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                Truy vấn dữ liệu cảm biến thời gian thực, đánh giá ngưỡng an toàn và trạng thái thiết bị theo ca sản xuất.
+                {tr("Truy vấn dữ liệu cảm biến thời gian thực, đánh giá ngưỡng an toàn và trạng thái thiết bị theo ca sản xuất.")}
               </p>
             </div>
           </div>
@@ -319,10 +320,10 @@ export function MachineHistoryView() {
             onClick={() => fetchLogs()}
             disabled={isLoading}
             className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-xs cursor-pointer disabled:opacity-60"
-            title="Tải lại dữ liệu mới nhất"
+            title={tr("Tải lại dữ liệu mới nhất")}
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-emerald-500' : ''}`} />
-            <span>{isLoading ? 'Đang tải...' : 'Làm mới'}</span>
+            <span>{isLoading ? tr("Đang tải...") : tr("Làm mới")}</span>
           </button>
 
           {/* Menu Xuất Báo Cáo 3 Định Dạng */}
@@ -332,21 +333,21 @@ export function MachineHistoryView() {
               onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
               disabled={isExporting}
               className="flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-xs hover:shadow-md transition-all cursor-pointer disabled:opacity-60"
-              title="Xuất dữ liệu theo 3 định dạng Excel, CSV, JSON"
+              title={tr("Xuất dữ liệu theo 3 định dạng Excel, CSV, JSON")}
             >
               {isExporting ? (
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
               ) : (
                 <Download className="w-3.5 h-3.5" />
               )}
-              <span>{isExporting ? 'Đang chuẩn bị...' : 'Xuất dữ liệu'}</span>
+              <span>{isExporting ? tr("Đang chuẩn bị...") : tr("Xuất dữ liệu")}</span>
             </button>
 
             {/* Dropdown Menu 3 Định dạng */}
             {isExportMenuOpen && (
               <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-50 p-2 space-y-1 animate-in fade-in zoom-in-95 duration-100">
                 <div className="px-3 py-1.5 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
-                  Chọn định dạng xuất ({totalRecords} bản ghi)
+                  {tr("Chọn định dạng xuất (")}{totalRecords} {tr("bản ghi)")}
                 </div>
 
                 {/* 1. Excel (.xlsx) */}
@@ -363,7 +364,7 @@ export function MachineHistoryView() {
                       Excel Workbook (.xlsx)
                     </div>
                     <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                      Bảng tính chuẩn có style màu sắc DENSO
+                      {tr("Bảng tính chuẩn có style màu sắc DENSO")}
                     </div>
                   </div>
                 </button>
@@ -382,7 +383,7 @@ export function MachineHistoryView() {
                       CSV UTF-8 BOM (.csv)
                     </div>
                     <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                      Tương thích Excel tiếng Việt & chống injection
+                      {tr("Tương thích Excel tiếng Việt & chống injection")}
                     </div>
                   </div>
                 </button>
@@ -401,7 +402,7 @@ export function MachineHistoryView() {
                       JSON Dataset (.json)
                     </div>
                     <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                      Chuẩn hóa cho AI/ML Anomaly Training
+                      {tr("Chuẩn hóa cho AI/ML Anomaly Training")}
                     </div>
                   </div>
                 </button>
@@ -435,7 +436,7 @@ export function MachineHistoryView() {
             <AlertOctagon className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
             <div>
               <p className="font-bold text-rose-900 dark:text-rose-200 text-sm">
-                Thông Báo Xuất Báo Cáo
+                {tr("Thông Báo Xuất Báo Cáo")}
               </p>
               <p className="mt-1">{exportWarning}</p>
             </div>
@@ -458,11 +459,11 @@ export function MachineHistoryView() {
           <AlertTriangle className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
           <div className="flex-1 text-xs leading-relaxed">
             <p className="font-bold text-amber-900 dark:text-amber-200 text-sm">
-              Hệ thống đang hoạt động ở chế độ Dự phòng (Memory Fallback)
+              {tr("Hệ thống đang hoạt động ở chế độ Dự phòng (Memory Fallback)")}
             </p>
             <p className="mt-1">
-              Cơ sở dữ liệu lịch sử trung tâm (MySQL) hiện chưa sẵn sàng hoặc đang khởi động. Dữ liệu lịch sử lưu trữ dài hạn chưa khả dụng.
-              {degradedMessage && <span className="block mt-0.5 font-mono text-[11px] opacity-90">Chi tiết: {degradedMessage}</span>}
+              {tr("Cơ sở dữ liệu lịch sử trung tâm (MySQL) hiện chưa sẵn sàng hoặc đang khởi động. Dữ liệu lịch sử lưu trữ dài hạn chưa khả dụng.")}
+              {degradedMessage && <span className="block mt-0.5 font-mono text-[11px] opacity-90">{tr("Chi tiết:")} {degradedMessage}</span>}
             </p>
           </div>
         </div>
@@ -475,13 +476,13 @@ export function MachineHistoryView() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
             <Filter className="w-4 h-4 text-emerald-500" />
-            <span>Bộ Lọc Tra Cứu Telemetry</span>
+            <span>{tr("Bộ Lọc Tra Cứu Telemetry")}</span>
           </div>
 
           {/* Preset ca làm việc nhanh */}
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mr-1 hidden sm:inline">
-              Ca làm việc:
+              {tr("Ca làm việc:")}
             </span>
             <button
               type="button"
@@ -513,9 +514,9 @@ export function MachineHistoryView() {
                   ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30 font-bold'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
-              title="Ca đêm qua nửa đêm (22:00 hôm nay - 06:00 hôm sau)"
+              title={tr("Ca đêm qua nửa đêm (22:00 hôm nay - 06:00 hôm sau)")}
             >
-              Ca 3 (Đêm: 22:00-06:00)
+              {tr("Ca 3 (Đêm: 22:00-06:00)")}
             </button>
             <button
               type="button"
@@ -526,7 +527,7 @@ export function MachineHistoryView() {
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
-              Cả ngày (24h)
+              {tr("Cả ngày (24h)")}
             </button>
           </div>
         </div>
@@ -536,14 +537,14 @@ export function MachineHistoryView() {
           {/* Lọc Dây chuyền */}
           <div>
             <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
-              Dây chuyền sản xuất
+              {tr("Dây chuyền sản xuất")}
             </label>
             <select
               value={formFilters.lineId || 'all'}
               onChange={(e) => handleLineChange(e.target.value)}
               className="w-full text-xs h-9.5 px-3 rounded-xl border border-slate-200 dark:border-factory-border bg-white dark:bg-factory-bg text-slate-800 dark:text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 cursor-pointer"
             >
-              <option value="all">Tất cả dây chuyền</option>
+              <option value="all">{tr("Tất cả dây chuyền")}</option>
               {lines.map((line) => (
                 <option key={line.id} value={line.id}>
                   {line.name} ({line.code})
@@ -555,14 +556,14 @@ export function MachineHistoryView() {
           {/* Lọc Thiết bị / Máy (Cascade) */}
           <div>
             <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
-              Thiết bị / Máy
+              {tr("Thiết bị / Máy")}
             </label>
             <select
               value={formFilters.machineId || 'all'}
               onChange={(e) => handleMachineChange(e.target.value)}
               className="w-full text-xs h-9.5 px-3 rounded-xl border border-slate-200 dark:border-factory-border bg-white dark:bg-factory-bg text-slate-800 dark:text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 cursor-pointer"
             >
-              <option value="all">Tất cả thiết bị</option>
+              <option value="all">{tr("Tất cả thiết bị")}</option>
               {availableMachines.map((machine) => (
                 <option key={machine.id} value={machine.id}>
                   {machine.name} ({machine.model || machine.id})
@@ -574,14 +575,14 @@ export function MachineHistoryView() {
           {/* Lọc Chỉ số đo lường (Metric) */}
           <div>
             <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
-              Chỉ số đo lường
+              {tr("Chỉ số đo lường")}
             </label>
             <select
               value={formFilters.metricId || 'all'}
               onChange={(e) => setFormFilters((prev) => ({ ...prev, metricId: e.target.value }))}
               className="w-full text-xs h-9.5 px-3 rounded-xl border border-slate-200 dark:border-factory-border bg-white dark:bg-factory-bg text-slate-800 dark:text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 cursor-pointer"
             >
-              <option value="all">Tất cả chỉ số</option>
+              <option value="all">{tr("Tất cả chỉ số")}</option>
               {availableMetrics.map((metric) => (
                 <option key={metric.id} value={metric.id}>
                   {metric.name}
@@ -593,24 +594,24 @@ export function MachineHistoryView() {
           {/* Lọc Trạng thái */}
           <div>
             <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
-              Trạng thái cảnh báo
+              {tr("Trạng thái cảnh báo")}
             </label>
             <select
               value={formFilters.status || 'all'}
               onChange={(e) => setFormFilters((prev) => ({ ...prev, status: e.target.value as any }))}
               className="w-full text-xs h-9.5 px-3 rounded-xl border border-slate-200 dark:border-factory-border bg-white dark:bg-factory-bg text-slate-800 dark:text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 cursor-pointer"
             >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="normal">Bình thường (Normal)</option>
-              <option value="warning">Cảnh báo (Warning)</option>
-              <option value="critical">Nguy hiểm (Critical)</option>
+              <option value="all">{tr("Tất cả trạng thái")}</option>
+              <option value="normal">{tr("Bình thường (Normal)")}</option>
+              <option value="warning">{tr("Cảnh báo (Warning)")}</option>
+              <option value="critical">{tr("Nguy hiểm (Critical)")}</option>
             </select>
           </div>
 
           {/* Ngày bắt đầu */}
           <div>
             <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
-              Từ ngày (YYYY-MM-DD)
+              {tr("Từ ngày (YYYY-MM-DD)")}
             </label>
             <input
               type="date"
@@ -623,7 +624,7 @@ export function MachineHistoryView() {
           {/* Đến ngày */}
           <div>
             <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
-              Đến ngày (YYYY-MM-DD)
+              {tr("Đến ngày (YYYY-MM-DD)")}
             </label>
             <input
               type="date"
@@ -636,7 +637,7 @@ export function MachineHistoryView() {
           {/* Giờ bắt đầu */}
           <div>
             <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
-              Từ giờ (HH:mm)
+              {tr("Từ giờ (HH:mm)")}
             </label>
             <input
               type="time"
@@ -649,7 +650,7 @@ export function MachineHistoryView() {
           {/* Giờ kết thúc */}
           <div>
             <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
-              Đến giờ (HH:mm)
+              {tr("Đến giờ (HH:mm)")}
             </label>
             <input
               type="time"
@@ -668,7 +669,7 @@ export function MachineHistoryView() {
             className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>Xóa bộ lọc</span>
+            <span>{tr("Xóa bộ lọc")}</span>
           </button>
           <button
             type="button"
@@ -677,7 +678,7 @@ export function MachineHistoryView() {
             className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-all cursor-pointer disabled:opacity-60"
           >
             <Search className="w-3.5 h-3.5" />
-            <span>Áp dụng bộ lọc</span>
+            <span>{tr("Áp dụng bộ lọc")}</span>
           </button>
         </div>
       </div>
@@ -690,24 +691,24 @@ export function MachineHistoryView() {
         <div className="px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-              Nhật ký Telemetry
+              {tr("Nhật ký Telemetry")}
             </span>
             <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-              {totalRecords > 0 ? `Hiển thị ${startRecord} - ${endRecord} / ${totalRecords} bản ghi` : '0 bản ghi'}
+              {totalRecords > 0 ? tr("Hiển thị {0} - {1} / {2} bản ghi", startRecord, endRecord, totalRecords) : tr("0 bản ghi")}
             </span>
           </div>
 
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-            <span>Hiển thị mỗi trang:</span>
+            <span>{tr("Hiển thị mỗi trang:")}</span>
             <select
               value={pageSize}
               onChange={(e) => setLimit(Number(e.target.value))}
               className="text-xs py-1 px-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 cursor-pointer"
             >
-              <option value="10">10 dòng</option>
-              <option value="20">20 dòng</option>
-              <option value="50">50 dòng</option>
-              <option value="100">100 dòng</option>
+              <option value="10">{tr("10 dòng")}</option>
+              <option value="20">{tr("20 dòng")}</option>
+              <option value="50">{tr("50 dòng")}</option>
+              <option value="100">{tr("100 dòng")}</option>
             </select>
           </div>
         </div>
@@ -723,7 +724,7 @@ export function MachineHistoryView() {
               onClick={() => fetchLogs()}
               className="mt-3 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
             >
-              Thử lại
+              {tr("Thử lại")}
             </button>
           </div>
         )}
@@ -733,7 +734,7 @@ export function MachineHistoryView() {
           <div className="p-12 text-center">
             <RefreshCw className="w-8 h-8 animate-spin text-emerald-500 mx-auto mb-3" />
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              Đang truy vấn lịch sử hoạt động máy từ máy chủ...
+              {tr("Đang truy vấn lịch sử hoạt động máy từ máy chủ...")}
             </p>
           </div>
         )}
@@ -746,11 +747,11 @@ export function MachineHistoryView() {
             </div>
             <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
               {isDegraded
-                ? 'CSDL trung tâm chưa kết nối. Chưa có bản ghi lịch sử nào được lưu trữ.'
-                : 'Chưa có dữ liệu trong khoảng thời gian đã chọn.'}
+                ? tr("CSDL trung tâm chưa kết nối. Chưa có bản ghi lịch sử nào được lưu trữ.")
+                : tr("Chưa có dữ liệu trong khoảng thời gian đã chọn.")}
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
-              Vui lòng thử mở rộng bộ lọc ngày/giờ, chọn dây chuyền khác hoặc bấm "Làm mới" sau khi thiết bị gửi dữ liệu.
+              {tr("Vui lòng thử mở rộng bộ lọc ngày/giờ, chọn dây chuyền khác hoặc bấm \"Làm mới\" sau khi thiết bị gửi dữ liệu.")}
             </p>
           </div>
         )}
@@ -761,14 +762,14 @@ export function MachineHistoryView() {
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold uppercase text-[11px] tracking-wider py-3 border-b border-slate-200 dark:border-slate-700">
-                  <th className="py-3 px-3.5 w-[15%]">THỜI GIAN (VN)</th>
-                  <th className="py-3 px-2 w-[14%]">DÂY CHUYỀN</th>
-                  <th className="py-3 px-2 w-[16%]">THIẾT BỊ / MÁY</th>
-                  <th className="py-3 px-2 w-[16%]">CHỈ SỐ ĐO</th>
-                  <th className="py-3 px-2 w-[12%]">GIÁ TRỊ ĐO</th>
-                  <th className="py-3 px-2 w-[8%]">ĐƠN VỊ</th>
-                  <th className="py-3 px-2 w-[10%]">TRẠNG THÁI</th>
-                  <th className="py-3 px-3.5 w-[9%] text-right">NGUỒN DỮ LIỆU</th>
+                  <th className="py-3 px-3.5 w-[15%]">{tr("THỜI GIAN (VN)")}</th>
+                  <th className="py-3 px-2 w-[14%]">{tr("DÂY CHUYỀN")}</th>
+                  <th className="py-3 px-2 w-[16%]">{tr("THIẾT BỊ / MÁY")}</th>
+                  <th className="py-3 px-2 w-[16%]">{tr("CHỈ SỐ ĐO")}</th>
+                  <th className="py-3 px-2 w-[12%]">{tr("GIÁ TRỊ ĐO")}</th>
+                  <th className="py-3 px-2 w-[8%]">{tr("ĐƠN VỊ")}</th>
+                  <th className="py-3 px-2 w-[10%]">{tr("TRẠNG THÁI")}</th>
+                  <th className="py-3 px-3.5 w-[9%] text-right">{tr("NGUỒN DỮ LIỆU")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
@@ -894,7 +895,7 @@ export function MachineHistoryView() {
                 className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
-                <span>Trước</span>
+                <span>{tr("Trước")}</span>
               </button>
 
               {/* Các nút số trang rút gọn */}

@@ -33,6 +33,7 @@ import { Tooltip } from '../../components/common/Tooltip';
 import { MachineDetailView } from './MachineDetailView';
 import { CheckSheetView } from '../checksheet/CheckSheetView';
 import { MachineImage } from '../../config/machineImages';
+import { tr } from '../../i18n/tr';
 
 export function DeviceMonitoringView() {
   const {
@@ -255,10 +256,10 @@ export function DeviceMonitoringView() {
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-                Giám sát Thiết bị
+                {tr("Giám sát Thiết bị")}
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                Theo dõi tình trạng vận hành, chỉ số đo lường thực tế và cảnh báo theo thời gian thực cho từng thiết bị.
+                {tr("Theo dõi tình trạng vận hành, chỉ số đo lường thực tế và cảnh báo theo thời gian thực cho từng thiết bị.")}
               </p>
             </div>
           </div>
@@ -290,10 +291,10 @@ export function DeviceMonitoringView() {
               simulateTick();
             }}
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-xs transition-colors cursor-pointer"
-            title="Làm mới dữ liệu từ CSDL"
+            title={tr("Làm mới dữ liệu từ CSDL")}
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            <span>Làm mới</span>
+            <span>{tr("Làm mới")}</span>
           </button>
         </div>
       </div>
@@ -306,13 +307,13 @@ export function DeviceMonitoringView() {
         <div className="bg-white dark:bg-factory-card p-5 rounded-2xl border border-factory-border shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
-              Tổng số thiết bị
+              {tr("Tổng số thiết bị")}
             </span>
             <div className="text-3xl font-extrabold text-slate-900 dark:text-white mt-1 font-mono">
               {stats.total}
             </div>
             <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1 font-medium">
-              <span className="font-semibold text-emerald-600 dark:text-emerald-400">{stats.activeMonitoring}</span> máy đang kích hoạt giám sát
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400">{stats.activeMonitoring}</span> {tr("máy đang kích hoạt giám sát")}
             </div>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center shrink-0">
@@ -324,13 +325,13 @@ export function DeviceMonitoringView() {
         <div className="bg-white dark:bg-factory-card p-5 rounded-2xl border border-factory-border shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
-              Hoạt động bình thường
+              {tr("Hoạt động bình thường")}
             </span>
             <div className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1 font-mono">
               {stats.normalCount}
             </div>
             <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">
-              Chỉ số kỹ thuật đạt chuẩn an toàn
+              {tr("Chỉ số kỹ thuật đạt chuẩn an toàn")}
             </div>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
@@ -342,13 +343,13 @@ export function DeviceMonitoringView() {
         <div className="bg-white dark:bg-factory-card p-5 rounded-2xl border border-factory-border shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
-              Cảnh báo thông số
+              {tr("Cảnh báo thông số")}
             </span>
             <div className="text-3xl font-extrabold text-amber-600 dark:text-amber-400 mt-1 font-mono">
               {stats.warningCount}
             </div>
             <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">
-              Vượt ngưỡng Warning cần theo dõi
+              {tr("Vượt ngưỡng Warning cần theo dõi")}
             </div>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
@@ -360,13 +361,13 @@ export function DeviceMonitoringView() {
         <div className="bg-white dark:bg-factory-card p-5 rounded-2xl border border-factory-border shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
-              Nguy hiểm / Sự cố
+              {tr("Nguy hiểm / Sự cố")}
             </span>
             <div className="text-3xl font-extrabold text-rose-600 dark:text-rose-400 mt-1 font-mono">
               {stats.criticalCount}
             </div>
             <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">
-              Vượt ngưỡng Critical hoặc có sự cố
+              {tr("Vượt ngưỡng Critical hoặc có sự cố")}
             </div>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 flex items-center justify-center shrink-0">
@@ -383,17 +384,17 @@ export function DeviceMonitoringView() {
           {/* 1. Lọc theo Dây chuyền (Hiển thị LN-PRS-01, LN-ASM-03 chuẩn hóa) */}
           <div className="md:col-span-4">
             <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
-              Dây chuyền sản xuất
+              {tr("Dây chuyền sản xuất")}
             </label>
             <select
               value={lineFilter}
               onChange={(e) => setLineFilter(e.target.value)}
               className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
-              <option value="all">Tất cả dây chuyền ({allMachines.length} máy)</option>
+              <option value="all">{tr("Tất cả dây chuyền (")}{allMachines.length} {tr("máy)")}</option>
               {lines.map((l) => (
                 <option key={l.id} value={l.id}>
-                  {l.code} — {l.name} ({l.machines?.length || 0} máy)
+                  {l.code} — {l.name} ({l.machines?.length || 0} {tr("máy)")}
                 </option>
               ))}
             </select>
@@ -402,32 +403,32 @@ export function DeviceMonitoringView() {
           {/* 2. Lọc theo Trạng thái vận hành */}
           <div className="md:col-span-3">
             <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
-              Trạng thái giám sát
+              {tr("Trạng thái giám sát")}
             </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="normal">Bình thường (NORMAL)</option>
-              <option value="warning">Cảnh báo (WARNING)</option>
-              <option value="critical">Nguy hiểm (CRITICAL)</option>
-              <option value="no_data">Chưa có dữ liệu / Offline</option>
+              <option value="all">{tr("Tất cả trạng thái")}</option>
+              <option value="normal">{tr("Bình thường (NORMAL)")}</option>
+              <option value="warning">{tr("Cảnh báo (WARNING)")}</option>
+              <option value="critical">{tr("Nguy hiểm (CRITICAL)")}</option>
+              <option value="no_data">{tr("Chưa có dữ liệu / Offline")}</option>
             </select>
           </div>
 
           {/* 3. Lọc theo Nguồn dữ liệu (CSV vs PLC) */}
           <div className="md:col-span-2">
             <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
-              Nguồn dữ liệu
+              {tr("Nguồn dữ liệu")}
             </label>
             <select
               value={sourceFilter}
               onChange={(e) => setSourceFilter(e.target.value)}
               className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900 text-slate-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
-              <option value="all">Tất cả nguồn</option>
+              <option value="all">{tr("Tất cả nguồn")}</option>
               <option value="FILE_INGEST">FILE CSV (TEST)</option>
               <option value="PLC_DIRECT">PLC / MODBUS</option>
             </select>
@@ -436,13 +437,13 @@ export function DeviceMonitoringView() {
           {/* 4. Ô tìm kiếm thiết bị */}
           <div className="md:col-span-3">
             <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
-              Tìm kiếm thiết bị
+              {tr("Tìm kiếm thiết bị")}
             </label>
             <div className="relative">
               <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Mã máy (MC-CYL-01), tên..."
+                placeholder={tr("Mã máy (MC-CYL-01), tên...")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -454,7 +455,7 @@ export function DeviceMonitoringView() {
         {/* Thanh trạng thái phụ: Số lượng kết quả & Nút chuyển chế độ Grid / Table */}
         <div className="flex items-center justify-between pt-2 border-t border-factory-border text-xs">
           <div className="text-slate-500 dark:text-slate-400">
-            Hiển thị <strong className="text-slate-900 dark:text-white font-mono">{filteredMachines.length}</strong> / {allMachines.length} thiết bị
+            {tr("Hiển thị")} <strong className="text-slate-900 dark:text-white font-mono">{filteredMachines.length}</strong> / {allMachines.length} {tr("thiết bị")}
           </div>
 
           <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
@@ -467,7 +468,7 @@ export function DeviceMonitoringView() {
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
-              <span>Lưới thẻ</span>
+              <span>{tr("Lưới thẻ")}</span>
             </button>
             <button
               onClick={() => setViewMode('table')}
@@ -478,7 +479,7 @@ export function DeviceMonitoringView() {
               }`}
             >
               <List className="w-3.5 h-3.5" />
-              <span>Bảng danh sách</span>
+              <span>{tr("Bảng danh sách")}</span>
             </button>
           </div>
         </div>
@@ -491,10 +492,10 @@ export function DeviceMonitoringView() {
         <div className="bg-white dark:bg-factory-card rounded-2xl border border-factory-border p-12 text-center">
           <Cpu className="w-12 h-12 mx-auto text-slate-400 mb-3 opacity-60" />
           <h3 className="text-base font-bold text-slate-900 dark:text-white">
-            Không tìm thấy thiết bị phù hợp
+            {tr("Không tìm thấy thiết bị phù hợp")}
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
-            Không có thiết bị nào thỏa mãn bộ lọc hiện tại. Vui lòng chọn lại dây chuyền hoặc xóa từ khóa tìm kiếm.
+            {tr("Không có thiết bị nào thỏa mãn bộ lọc hiện tại. Vui lòng chọn lại dây chuyền hoặc xóa từ khóa tìm kiếm.")}
           </p>
         </div>
       ) : viewMode === 'grid' ? (
@@ -541,28 +542,28 @@ export function DeviceMonitoringView() {
                       {pendingAlarms > 0 && (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white animate-pulse shadow-xs">
                           <AlertOctagon className="w-3 h-3" />
-                          {pendingAlarms} sự cố
+                          {pendingAlarms} {tr("sự cố")}
                         </span>
                       )}
 
                       {isNormal ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          Bình thường
+                          {tr("Bình thường")}
                         </span>
                       ) : isWarning ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-400">
                           <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                          Cảnh báo
+                          {tr("Cảnh báo")}
                         </span>
                       ) : isCritical ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-700 dark:text-rose-400 animate-alarm-blink">
                           <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                          Nguy hiểm
+                          {tr("Nguy hiểm")}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500">
-                          Chưa có dữ liệu
+                          {tr("Chưa có dữ liệu")}
                         </span>
                       )}
                     </div>
@@ -573,7 +574,7 @@ export function DeviceMonitoringView() {
                     <div
                       onClick={() => handleOpenDetails(machine)}
                       className="w-14 h-14 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-center shrink-0 p-1 overflow-hidden cursor-pointer hover:border-emerald-500 transition-colors"
-                      title={`Xem chi tiết ${machine.name}`}
+                      title={tr("Xem chi tiết {0}", machine.name)}
                     >
                       <MachineImage
                         machineId={machine.id}
@@ -614,7 +615,7 @@ export function DeviceMonitoringView() {
                       <Cpu className="w-3.5 h-3.5 text-blue-500 shrink-0" />
                       <span className="text-slate-500">PLC:</span>
                       <span className="font-mono font-bold text-slate-800 dark:text-slate-200 truncate">
-                        {machine.plc?.name || machine.plcName || 'Chưa liên kết PLC'}
+                        {machine.plc?.name || machine.plcName || tr("Chưa liên kết PLC")}
                       </span>
                     </div>
 
@@ -634,13 +635,13 @@ export function DeviceMonitoringView() {
                   {/* Dòng 4: Các Metric tiêu biểu đang thu thập */}
                   <div className="space-y-2 pt-1">
                     <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      <span>Thông số đo lường ({machine.metrics?.length || 0})</span>
-                      <span>Giá trị thực tế</span>
+                      <span>{tr("Thông số đo lường (")}{machine.metrics?.length || 0})</span>
+                      <span>{tr("Giá trị thực tế")}</span>
                     </div>
 
                     {!machine.metrics || machine.metrics.length === 0 ? (
                       <div className="p-3 text-center rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-dashed border-slate-200 dark:border-slate-800 text-xs text-slate-400">
-                        Chưa cấu hình thông số đo lường cho thiết bị này.
+                        {tr("Chưa cấu hình thông số đo lường cho thiết bị này.")}
                       </div>
                     ) : (
                       <div className="space-y-1.5">
@@ -710,10 +711,10 @@ export function DeviceMonitoringView() {
                   <button
                     onClick={() => handleOpenQR(machine)}
                     className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold cursor-pointer transition-colors"
-                    title="Xem mã QR của thiết bị"
+                    title={tr("Xem mã QR của thiết bị")}
                   >
                     <QrCode className="w-3.5 h-3.5" />
-                    <span>Mã QR</span>
+                    <span>{tr("Mã QR")}</span>
                   </button>
 
                   <button
@@ -721,7 +722,7 @@ export function DeviceMonitoringView() {
                     className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
                   >
                     <LineChart className="w-3.5 h-3.5" />
-                    <span>Xem chi tiết</span>
+                    <span>{tr("Xem chi tiết")}</span>
                   </button>
                 </div>
               </div>
@@ -737,13 +738,13 @@ export function DeviceMonitoringView() {
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="border-b border-factory-border text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-50/50 dark:bg-white/[0.01]">
-                  <th className="py-3.5 px-4 w-[12%]">MÃ THIẾT BỊ</th>
-                  <th className="py-3.5 px-4 w-[20%]">TÊN THIẾT BỊ</th>
-                  <th className="py-3.5 px-4 w-[16%]">DÂY CHUYỀN</th>
-                  <th className="py-3.5 px-4 w-[12%]">TRẠM PLC</th>
-                  <th className="py-3.5 px-4 w-[12%]">TRẠNG THÁI</th>
-                  <th className="py-3.5 px-4 w-[18%]">THÔNG SỐ ĐO CHÍNH</th>
-                  <th className="py-3.5 px-4 w-[10%] text-right">HÀNH ĐỘNG</th>
+                  <th className="py-3.5 px-4 w-[12%]">{tr("MÃ THIẾT BỊ")}</th>
+                  <th className="py-3.5 px-4 w-[20%]">{tr("TÊN THIẾT BỊ")}</th>
+                  <th className="py-3.5 px-4 w-[16%]">{tr("DÂY CHUYỀN")}</th>
+                  <th className="py-3.5 px-4 w-[12%]">{tr("TRẠM PLC")}</th>
+                  <th className="py-3.5 px-4 w-[12%]">{tr("TRẠNG THÁI")}</th>
+                  <th className="py-3.5 px-4 w-[18%]">{tr("THÔNG SỐ ĐO CHÍNH")}</th>
+                  <th className="py-3.5 px-4 w-[10%] text-right">{tr("HÀNH ĐỘNG")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-factory-border">
@@ -765,7 +766,7 @@ export function DeviceMonitoringView() {
                           <div
                             onClick={() => handleOpenDetails(machine)}
                             className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 p-0.5 overflow-hidden cursor-pointer hover:border-emerald-500 transition-colors"
-                            title={`Xem chi tiết ${machine.name}`}
+                            title={tr("Xem chi tiết {0}", machine.name)}
                           >
                             <MachineImage
                               machineId={machine.id}
@@ -811,7 +812,7 @@ export function DeviceMonitoringView() {
                       {/* Cột 4: Trạm PLC */}
                       <td className="py-3.5 px-4 font-mono text-[11px]">
                         <span className="font-semibold text-slate-800 dark:text-slate-200 block truncate max-w-[130px]">
-                          {machine.plc?.name || machine.plcName || 'Chưa liên kết'}
+                          {machine.plc?.name || machine.plcName || tr("Chưa liên kết")}
                         </span>
                       </td>
 
@@ -821,28 +822,28 @@ export function DeviceMonitoringView() {
                           {isNormal ? (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                              Bình thường
+                              {tr("Bình thường")}
                             </span>
                           ) : isWarning ? (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-400">
                               <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                              Cảnh báo
+                              {tr("Cảnh báo")}
                             </span>
                           ) : isCritical ? (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-700 dark:text-rose-400 animate-alarm-blink">
                               <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                              Nguy hiểm
+                              {tr("Nguy hiểm")}
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500">
-                              Chưa có dữ liệu
+                              {tr("Chưa có dữ liệu")}
                             </span>
                           )}
 
                           {pendingAlarms > 0 && (
                             <span className="text-[10px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1">
                               <AlertOctagon className="w-3 h-3" />
-                              {pendingAlarms} sự cố
+                              {pendingAlarms} {tr("sự cố")}
                             </span>
                           )}
                         </div>
@@ -863,7 +864,7 @@ export function DeviceMonitoringView() {
                               </span>
                             ))
                           ) : (
-                            <span className="text-slate-400 text-[11px]">Chưa có metric</span>
+                            <span className="text-slate-400 text-[11px]">{tr("Chưa có metric")}</span>
                           )}
                         </div>
                       </td>
@@ -871,7 +872,7 @@ export function DeviceMonitoringView() {
                       {/* Cột 7: Hành động */}
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          <Tooltip content="Tra cứu mã QR">
+                          <Tooltip content={tr("Tra cứu mã QR")}>
                             <button
                               onClick={() => handleOpenQR(machine)}
                               className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
@@ -880,13 +881,13 @@ export function DeviceMonitoringView() {
                             </button>
                           </Tooltip>
 
-                          <Tooltip content="Mở chi tiết & biểu đồ lịch sử">
+                          <Tooltip content={tr("Mở chi tiết & biểu đồ lịch sử")}>
                             <button
                               onClick={() => handleOpenDetails(machine)}
                               className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
                             >
                               <LineChart className="w-3.5 h-3.5" />
-                              <span>Chi tiết</span>
+                              <span>{tr("Chi tiết")}</span>
                             </button>
                           </Tooltip>
                         </div>

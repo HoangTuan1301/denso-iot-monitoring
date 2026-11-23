@@ -7,6 +7,7 @@
  */
 
 import React, { useState } from 'react';
+import { tr } from '../../i18n/tr';
 
 export interface CustomSwitchProps {
   /**
@@ -148,7 +149,7 @@ export const CustomSwitch: React.FC<CustomSwitchProps> = ({
       type="button"
       role="switch"
       aria-checked={activeValue}
-      aria-label={ariaLabel || label || 'Công tắc gạt'}
+      aria-label={ariaLabel || label || tr("Công tắc gạt")}
       disabled={isBlocked}
       onClick={handleToggle}
       className={[

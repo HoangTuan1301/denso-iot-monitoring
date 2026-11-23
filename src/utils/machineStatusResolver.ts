@@ -13,6 +13,7 @@
 
 import { MachineComponent, ProductionLine, MetricIndicator } from '../types/hierarchy';
 import { getHealthScoreColor } from '../features/dashboard/factoryMapConfig';
+import { tr } from '../i18n/tr';
 
 export type OperationalStatus = 'RUNNING' | 'STOPPED' | 'IDLE' | 'OFFLINE' | 'UNKNOWN';
 export type AlarmSeverity = 'NORMAL' | 'WARNING' | 'CRITICAL' | 'UNKNOWN';
@@ -81,6 +82,9 @@ export interface ResolvedLineState {
 /**
  * Chuẩn hóa trạng thái máy duy nhất cho toàn hệ thống
  */
+/**
+ * Chuẩn hóa trạng thái máy duy nhất cho toàn hệ thống
+ */
 export function resolveMachineMonitoringState(
   machine: MachineComponent | null | undefined,
   line?: ProductionLine | null
@@ -90,11 +94,11 @@ export function resolveMachineMonitoringState(
     return {
       machineId: 'UNKNOWN',
       machineCode: 'N/A',
-      machineName: 'Thiết bị chưa liên kết',
+      machineName: tr("Thiết bị chưa liên kết"),
       lineId: line?.id || 'UNKNOWN',
       lineName: line?.name || 'N/A',
       operatingStatus: 'UNKNOWN',
-      operatingStatusLabel: 'Chưa liên kết / N/A',
+      operatingStatusLabel: tr("Chưa liên kết / N/A"),
       operatingStatusColor: 'text-slate-400',
       operatingDotColor: '#94A3B8',
       alarmSeverity: 'UNKNOWN',
@@ -147,12 +151,12 @@ export function resolveMachineMonitoringState(
 
   const alarmSeverityLabel =
     alarmSeverity === 'CRITICAL'
-      ? 'Nguy hiểm'
+      ? tr("Nguy hiểm")
       : alarmSeverity === 'WARNING'
-      ? 'Cần theo dõi'
+      ? tr("Cần theo dõi")
       : alarmSeverity === 'NORMAL'
-      ? 'Bình thường'
-      : 'Chưa có dữ liệu';
+      ? tr("Bình thường")
+      : tr("Chưa có dữ liệu");
 
   const alarmSeverityColor =
     alarmSeverity === 'CRITICAL'
@@ -176,7 +180,7 @@ export function resolveMachineMonitoringState(
   // BƯỚC 2: XÁC ĐỊNH TRẠNG THÁI VẬN HÀNH (OPERATING STATUS)
   // =========================================================================
   let operatingStatus: OperationalStatus = 'RUNNING';
-  let operatingStatusLabel = 'Đang chạy';
+  let operatingStatusLabel: string = tr("Đang chạy");
   let operatingStatusColor = 'text-emerald-600 dark:text-emerald-400';
   let operatingDotColor = '#16A34A';
 
@@ -185,23 +189,23 @@ export function resolveMachineMonitoringState(
     operatingStatus = (machine as any).operationalStatus;
   } else if (machine.managementStatus === 'inactive') {
     operatingStatus = 'STOPPED';
-    operatingStatusLabel = 'Ngừng sử dụng';
+    operatingStatusLabel = tr("Ngừng sử dụng");
     operatingStatusColor = 'text-slate-500';
     operatingDotColor = '#64748B';
   } else if (machine.status === 'offline') {
     operatingStatus = 'OFFLINE';
-    operatingStatusLabel = 'Mất kết nối';
+    operatingStatusLabel = tr("Mất kết nối");
     operatingStatusColor = 'text-slate-500';
     operatingDotColor = '#94A3B8';
   } else if (machine.status === 'no_data' && !hasMetrics) {
     operatingStatus = 'UNKNOWN';
-    operatingStatusLabel = 'Chưa kết nối PLC';
+    operatingStatusLabel = tr("Chưa kết nối PLC");
     operatingStatusColor = 'text-slate-400';
     operatingDotColor = '#94A3B8';
   } else {
     // Máy đang vận hành
     operatingStatus = 'RUNNING';
-    operatingStatusLabel = 'Đang chạy';
+    operatingStatusLabel = tr("Đang chạy");
     operatingStatusColor = 'text-emerald-600 dark:text-emerald-400';
     operatingDotColor = '#16A34A';
   }
@@ -261,12 +265,15 @@ export function resolveMachineMonitoringState(
 /**
  * Chuẩn hóa trạng thái Dây chuyền duy nhất cho toàn hệ thống
  */
+/**
+ * Chuẩn hóa trạng thái Dây chuyền duy nhất cho toàn hệ thống
+ */
 export function resolveLineMonitoringState(line: ProductionLine | null | undefined): ResolvedLineState {
   if (!line) {
     return {
       lineId: 'UNKNOWN',
       lineCode: 'N/A',
-      lineName: 'Chưa xác định',
+      lineName: tr("Chưa xác định"),
       operatingStatus: 'UNKNOWN',
       operatingStatusLabel: 'N/A',
       alarmSeverity: 'UNKNOWN',
@@ -313,12 +320,12 @@ export function resolveLineMonitoringState(line: ProductionLine | null | undefin
 
   const alarmSeverityLabel =
     alarmSeverity === 'CRITICAL'
-      ? 'Nguy hiểm'
+      ? tr("Nguy hiểm")
       : alarmSeverity === 'WARNING'
-      ? 'Cần theo dõi'
+      ? tr("Cần theo dõi")
       : alarmSeverity === 'NORMAL'
-      ? 'Bình thường'
-      : 'Mất kết nối';
+      ? tr("Bình thường")
+      : tr("Mất kết nối");
 
   const alarmSeverityColor =
     alarmSeverity === 'CRITICAL'
@@ -331,17 +338,17 @@ export function resolveLineMonitoringState(line: ProductionLine | null | undefin
 
   // Trạng thái vận hành của Dây chuyền
   let operatingStatus: ResolvedLineState['operatingStatus'] = 'RUNNING';
-  let operatingStatusLabel = 'Đang hoạt động';
+  let operatingStatusLabel: string = tr("Đang hoạt động");
 
   if (rawStatus === 'stopped' || (stoppedCount > 0 && runningCount === 0)) {
     operatingStatus = 'STOPPED';
-    operatingStatusLabel = 'Tạm dừng';
+    operatingStatusLabel = tr("Tạm dừng");
   } else if (rawStatus === 'offline' || (offlineCount === machines.length && machines.length > 0)) {
     operatingStatus = 'OFFLINE';
-    operatingStatusLabel = 'Mất kết nối';
+    operatingStatusLabel = tr("Mất kết nối");
   } else {
     operatingStatus = 'RUNNING';
-    operatingStatusLabel = 'Đang hoạt động';
+    operatingStatusLabel = tr("Đang hoạt động");
   }
 
   const safetyScore = line.safetyScore != null && !isNaN(Number(line.safetyScore))

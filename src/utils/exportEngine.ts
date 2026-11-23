@@ -8,6 +8,7 @@
  */
 
 import { MachineActivityLog, TelemetryLogsMetadata } from '../types/hierarchy';
+import { tr } from '../i18n/tr';
 
 /**
  * Format thời gian UTC sang giờ chuẩn Việt Nam (Asia/Ho_Chi_Minh)
@@ -220,23 +221,26 @@ export const exportEngine = {
   /**
    * Xuất danh sách telemetry ra file CSV với UTF-8 BOM và chống Formula Injection
    */
+  /**
+   * Xuất danh sách telemetry ra file CSV với UTF-8 BOM và chống Formula Injection
+   */
   exportToCSV(logs: MachineActivityLog[], customFilename?: string): void {
     const filename = customFilename || `DENSO_Telemetry_Export_${getExportTimestamp()}.csv`;
 
     const headers = [
-      'Mã Bản Ghi',
-      'Thời Gian (VN)',
-      'Thời Gian (UTC)',
-      'Mã Dây Chuyền',
-      'Tên Dây Chuyền',
-      'Mã Thiết Bị',
-      'Tên Thiết Bị',
-      'Mã Chỉ Số',
-      'Tên Chỉ Số',
-      'Giá Trị Đo',
-      'Đơn Vị',
-      'Trạng Thái',
-      'Nguồn Dữ Liệu',
+      tr("Mã Bản Ghi"),
+      tr("Thời Gian (VN)"),
+      tr("Thời Gian (UTC)"),
+      tr("Mã Dây Chuyền"),
+      tr("Tên Dây Chuyền"),
+      tr("Mã Thiết Bị"),
+      tr("Tên Thiết Bị"),
+      tr("Mã Chỉ Số"),
+      tr("Tên Chỉ Số"),
+      tr("Giá Trị Đo"),
+      tr("Đơn Vị"),
+      tr("Trạng Thái"),
+      tr("Nguồn Dữ Liệu"),
     ];
 
     const rows = logs.map((log) => [
@@ -252,7 +256,7 @@ export const exportEngine = {
       sanitizeCSVCell(Number(log.value).toFixed(2)),
       sanitizeCSVCell(log.unit),
       sanitizeCSVCell(log.status.toUpperCase()),
-      sanitizeCSVCell(log.source === 'simulation' ? 'Mô phỏng (Simulation)' : 'Thiết bị (Device)'),
+      sanitizeCSVCell(log.source === 'simulation' ? tr("Mô phỏng (Simulation)") : tr("Thiết bị (Device)")),
     ]);
 
     // Thêm UTF-8 Byte Order Mark (\uFEFF) ở đầu file để Excel mở font tiếng Việt không bị lỗi
@@ -321,6 +325,10 @@ export const exportEngine = {
    * Xuất dữ liệu ra file Microsoft Excel (.xlsx) chuẩn OpenXML có style tiêu đề
    * Hoàn toàn Zero-dependency, định dạng ô số cho tính toán/vẽ biểu đồ.
    */
+  /**
+   * Xuất dữ liệu ra file Microsoft Excel (.xlsx) chuẩn OpenXML có style tiêu đề
+   * Hoàn toàn Zero-dependency, định dạng ô số cho tính toán/vẽ biểu đồ.
+   */
   exportToExcel(logs: MachineActivityLog[], customFilename?: string): void {
     const filename = customFilename || `DENSO_Telemetry_Report_${getExportTimestamp()}.xlsx`;
 
@@ -379,19 +387,19 @@ export const exportEngine = {
 
     // 6. xl/worksheets/sheet1.xml
     const headers = [
-      'Mã Bản Ghi',
-      'Thời Gian (VN)',
-      'Thời Gian (UTC)',
-      'Mã Dây Chuyền',
-      'Tên Dây Chuyền',
-      'Mã Thiết Bị',
-      'Tên Thiết Bị',
-      'Mã Chỉ Số',
-      'Tên Chỉ Số',
-      'Giá Trị Đo',
-      'Đơn Vị',
-      'Trạng Thái',
-      'Nguồn Dữ Liệu',
+      tr("Mã Bản Ghi"),
+      tr("Thời Gian (VN)"),
+      tr("Thời Gian (UTC)"),
+      tr("Mã Dây Chuyền"),
+      tr("Tên Dây Chuyền"),
+      tr("Mã Thiết Bị"),
+      tr("Tên Thiết Bị"),
+      tr("Mã Chỉ Số"),
+      tr("Tên Chỉ Số"),
+      tr("Giá Trị Đo"),
+      tr("Đơn Vị"),
+      tr("Trạng Thái"),
+      tr("Nguồn Dữ Liệu"),
     ];
 
     const colLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
@@ -408,7 +416,7 @@ export const exportEngine = {
     const dataRows = logs.map((log, index) => {
       const rowNum = index + 2;
       const timeVN = formatDateTimeVN(log.timestamp);
-      const isSim = log.source === 'simulation' ? 'Mô phỏng (Simulation)' : 'Thiết bị (Device)';
+      const isSim = log.source === 'simulation' ? tr("Mô phỏng (Simulation)") : tr("Thiết bị (Device)");
 
       return `<row r="${rowNum}">
   <c r="A${rowNum}" t="inlineStr"><is><t>${escapeXml(log.id)}</t></is></c>

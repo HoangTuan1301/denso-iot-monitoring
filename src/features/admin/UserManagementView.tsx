@@ -40,6 +40,7 @@ import { apiClient } from '../../services/api';
 import { socketClient } from '../../services/socket';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { UserProfile, UserRole } from '../../types/auth';
+import { tr } from '../../i18n/tr';
 
 /**
  * Trích xuất 2 chữ cái đầu từ họ tên nhân viên
@@ -110,8 +111,8 @@ export function UserManagementView() {
           id: 'usr-admin-01',
           employeeId: 'DNS-1001',
           email: 'admin@denso.com',
-          name: 'Hoàng Minh Hải',
-          fullName: 'Hoàng Minh Hải',
+          name: tr("Hoàng Minh Hải"),
+          fullName: tr("Hoàng Minh Hải"),
           role: 'ADMIN',
           assignedLineId: 'ALL',
           status: 'active',
@@ -121,8 +122,8 @@ export function UserManagementView() {
           id: 'usr-operator-01',
           employeeId: 'DNS-1024',
           email: 'user@denso.com',
-          name: 'Trần Quang Huy',
-          fullName: 'Trần Quang Huy',
+          name: tr("Trần Quang Huy"),
+          fullName: tr("Trần Quang Huy"),
           role: 'OPERATOR',
           assignedLineId: 'LINE-01',
           status: 'active',
@@ -132,8 +133,8 @@ export function UserManagementView() {
           id: 'usr-maint-01',
           employeeId: 'DNS-1088',
           email: 'tech@denso.com',
-          name: 'Lê Văn Tiến',
-          fullName: 'Lê Văn Tiến',
+          name: tr("Lê Văn Tiến"),
+          fullName: tr("Lê Văn Tiến"),
           role: 'OPERATOR',
           assignedLineId: 'LINE-02',
           status: 'active',
@@ -188,9 +189,9 @@ export function UserManagementView() {
       setUsers((prev) =>
         prev.map((u) => (u.id === userId ? { ...u, avatarUrl: res.avatarUrl } : u))
       );
-      showFeedback('success', 'Đã cập nhật ảnh đại diện thành công.');
+      showFeedback('success', tr("Đã cập nhật ảnh đại diện thành công."));
     } catch (err: any) {
-      showFeedback('error', err.message || 'Lỗi khi tải ảnh đại diện.');
+      showFeedback('error', err.message || tr("Lỗi khi tải ảnh đại diện."));
     } finally {
       setUploadingUserId(null);
     }
@@ -200,7 +201,7 @@ export function UserManagementView() {
   const handleRoleChange = async (user: UserProfile, newRole: UserRole) => {
     const isCurrent = user.id === currentUser?.id || user.email === currentUser?.email;
     if (isCurrent && newRole !== 'ADMIN') {
-      showFeedback('error', 'Bạn không thể tự hạ quyền Admin của chính mình!');
+      showFeedback('error', tr("Bạn không thể tự hạ quyền Admin của chính mình!"));
       return;
     }
 
@@ -212,12 +213,10 @@ export function UserManagementView() {
       await apiClient.updateUser(user.id, { role: newRole });
       showFeedback(
         'success',
-        `Đã chuyển quyền của nhân viên "${user.fullName || user.name}" thành ${
-          newRole === 'ADMIN' ? 'SỬA (Quản trị)' : 'XEM (Vận hành)'
-        }.`
+        tr("Đã chuyển quyền của nhân viên \"{0}\" thành {1}.", user.fullName || user.name, newRole === 'ADMIN' ? tr("SỬA (Quản trị)") : tr("XEM (Vận hành)"))
       );
     } catch (err: any) {
-      showFeedback('error', err.message || 'Lỗi khi cập nhật quyền tài khoản.');
+      showFeedback('error', err.message || tr("Lỗi khi cập nhật quyền tài khoản."));
       loadUsers();
     }
   };
@@ -226,7 +225,7 @@ export function UserManagementView() {
   const handleToggleStatus = async (user: UserProfile, currentActive: boolean) => {
     const isCurrent = user.id === currentUser?.id || user.email === currentUser?.email;
     if (isCurrent) {
-      showFeedback('error', 'Không thể tự khóa tài khoản của chính mình!');
+      showFeedback('error', tr("Không thể tự khóa tài khoản của chính mình!"));
       return;
     }
 
@@ -238,12 +237,10 @@ export function UserManagementView() {
       await apiClient.updateUser(user.id, { status: nextStatus as any });
       showFeedback(
         'success',
-        `Tài khoản "${user.fullName || user.name}" đã được ${
-          nextStatus === 'ACTIVE' ? 'KÍCH HOẠT hoạt động' : 'TẠM KHÓA thành công'
-        }.`
+        tr("Tài khoản \"{0}\" đã được {1}.", user.fullName || user.name, nextStatus === 'ACTIVE' ? tr("KÍCH HOẠT hoạt động") : tr("TẠM KHÓA thành công"))
       );
     } catch (err: any) {
-      showFeedback('error', err.message || 'Lỗi khi thay đổi trạng thái tài khoản.');
+      showFeedback('error', err.message || tr("Lỗi khi thay đổi trạng thái tài khoản."));
       loadUsers();
     }
   };
@@ -257,11 +254,11 @@ export function UserManagementView() {
       setIsResetModalOpen(false);
       showFeedback(
         'success',
-        res.message || `Đã đặt lại mật khẩu của ${resettingUser.fullName || resettingUser.name} về: 123456`
+        res.message || tr("Đã đặt lại mật khẩu của {0} về: 123456", resettingUser.fullName || resettingUser.name)
       );
       setResettingUser(null);
     } catch (err: any) {
-      showFeedback('error', err.message || 'Lỗi khi đặt lại mật khẩu.');
+      showFeedback('error', err.message || tr("Lỗi khi đặt lại mật khẩu."));
     } finally {
       setIsResetting(false);
     }
@@ -271,7 +268,7 @@ export function UserManagementView() {
   const confirmDeleteUser = async () => {
     if (!deletingUser) return;
     if (deletingUser.id === currentUser?.id || deletingUser.email === currentUser?.email) {
-      showFeedback('error', 'Không thể tự xóa tài khoản của chính bạn!');
+      showFeedback('error', tr("Không thể tự xóa tài khoản của chính bạn!"));
       setIsDeleteModalOpen(false);
       return;
     }
@@ -281,10 +278,10 @@ export function UserManagementView() {
       await apiClient.deleteUser(deletingUser.id);
       setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
       setIsDeleteModalOpen(false);
-      showFeedback('success', `Đã xóa tài khoản "${deletingUser.fullName || deletingUser.name}" khỏi CSDL MySQL.`);
+      showFeedback('success', tr("Đã xóa tài khoản \"{0}\" khỏi CSDL MySQL.", deletingUser.fullName || deletingUser.name));
       setDeletingUser(null);
     } catch (err: any) {
-      showFeedback('error', err.message || 'Lỗi khi xóa tài khoản.');
+      showFeedback('error', err.message || tr("Lỗi khi xóa tài khoản."));
     } finally {
       setIsDeleting(false);
     }
@@ -320,7 +317,7 @@ export function UserManagementView() {
     const cleanFullName = fullName.trim();
 
     if (!cleanUsername || !cleanFullName) {
-      setFormError('Vui lòng điền đầy đủ thông tin bắt buộc (Username, Họ tên).');
+      setFormError(tr("Vui lòng điền đầy đủ thông tin bắt buộc (Username, Họ tên)."));
       return;
     }
 
@@ -332,7 +329,7 @@ export function UserManagementView() {
           name: cleanFullName,
           role,
         });
-        showFeedback('success', `Đã cập nhật thông tin người dùng "${cleanFullName}".`);
+        showFeedback('success', tr("Đã cập nhật thông tin người dùng \"{0}\".", cleanFullName));
       } else {
         const payload = {
           username: cleanUsername,
@@ -341,13 +338,13 @@ export function UserManagementView() {
           status: 'ACTIVE',
         };
         const res = await apiClient.createUser(payload);
-        showFeedback('success', res.message || `Đã thêm người dùng "${cleanFullName}" thành công.`);
+        showFeedback('success', res.message || tr("Đã thêm người dùng \"{0}\" thành công.", cleanFullName));
       }
 
       setIsModalOpen(false);
       await loadUsers();
     } catch (err: any) {
-      const errorMsg = err.message || 'Lỗi khi lưu thông tin người dùng.';
+      const errorMsg = err.message || tr("Lỗi khi lưu thông tin người dùng.");
       setFormError(errorMsg);
       showFeedback('error', errorMsg);
     } finally {
@@ -395,10 +392,10 @@ export function UserManagementView() {
           <AlertTriangle className="w-6 h-6" />
         </div>
         <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-          Truy Cập Bị Giới Hạn (403 Forbidden)
+          {tr("Truy Cập Bị Giới Hạn (403 Forbidden)")}
         </h2>
         <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
-          Phân hệ Quản Lý Người Dùng & Phân Quyền chỉ dành riêng cho tài khoản có vai trò <strong>Quản Trị Viên (ADMIN)</strong>. Tài khoản của bạn hiện là <strong>{currentUser?.role || 'OPERATOR'}</strong> và không có quyền thực hiện hoặc sửa đổi thông tin người dùng.
+          {tr("Phân hệ Quản Lý Người Dùng & Phân Quyền chỉ dành riêng cho tài khoản có vai trò")} <strong>{tr("Quản Trị Viên (ADMIN)")}</strong>{tr(". Tài khoản của bạn hiện là")} <strong>{currentUser?.role || 'OPERATOR'}</strong> {tr("và không có quyền thực hiện hoặc sửa đổi thông tin người dùng.")}
         </p>
       </div>
     );
@@ -437,14 +434,14 @@ export function UserManagementView() {
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30">
-              PHÂN HỆ QUẢN TRỊ & PHÂN QUYỀN
+              {tr("PHÂN HỆ QUẢN TRỊ & PHÂN QUYỀN")}
             </span>
             <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-              Quản Lý Người Dùng & Phân Quyền
+              {tr("Quản Lý Người Dùng & Phân Quyền")}
             </h1>
           </div>
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-            Quản trị tài khoản MySQL, cấu hình vai trò SỬA/XEM và phân bổ phạm vi giám sát nhà máy Denso.
+            {tr("Quản trị tài khoản MySQL, cấu hình vai trò SỬA/XEM và phân bổ phạm vi giám sát nhà máy Denso.")}
           </p>
         </div>
 
@@ -453,7 +450,7 @@ export function UserManagementView() {
           className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium shadow-sm transition-all cursor-pointer text-xs sm:text-sm"
         >
           <UserPlus className="w-4 h-4 shrink-0" />
-          <span>+ Thêm người dùng</span>
+          <span>{tr("+ Thêm người dùng")}</span>
         </button>
       </div>
 
@@ -465,15 +462,15 @@ export function UserManagementView() {
         <div className="flex items-center justify-between p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm transition-colors">
           <div className="flex-1 min-w-0 pr-3">
             <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Tổng tài khoản
+              {tr("Tổng tài khoản")}
             </p>
             <p className="font-mono text-3xl font-extrabold text-slate-900 dark:text-white mt-1 leading-none">
               {totalCount}
             </p>
             <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-2 truncate">
-              <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{activeCount} đang hoạt động</span>
+              <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{activeCount} {tr("đang hoạt động")}</span>
               {' · '}
-              <span className="text-slate-500 dark:text-slate-400">{inactiveCount} bị khóa</span>
+              <span className="text-slate-500 dark:text-slate-400">{inactiveCount} {tr("bị khóa")}</span>
             </p>
           </div>
           <div className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-600">
@@ -485,13 +482,13 @@ export function UserManagementView() {
         <div className="flex items-center justify-between p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm transition-colors">
           <div className="flex-1 min-w-0 pr-3">
             <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-              Quyền SỬA (Admin)
+              {tr("Quyền SỬA (Admin)")}
             </p>
             <p className="font-mono text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1 leading-none">
               {adminCount}
             </p>
             <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-2 truncate">
-              Quản trị & cấu hình hệ thống
+              {tr("Quản trị & cấu hình hệ thống")}
             </p>
           </div>
           <div className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
@@ -503,13 +500,13 @@ export function UserManagementView() {
         <div className="flex items-center justify-between p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm transition-colors">
           <div className="flex-1 min-w-0 pr-3">
             <p className="text-[11px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
-              Quyền XEM (Operator)
+              {tr("Quyền XEM (Operator)")}
             </p>
             <p className="font-mono text-3xl font-extrabold text-blue-600 dark:text-blue-400 mt-1 leading-none">
               {operatorCount}
             </p>
             <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-2 truncate">
-              Đội vận hành theo dõi
+              {tr("Đội vận hành theo dõi")}
             </p>
           </div>
           <div className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
@@ -527,7 +524,7 @@ export function UserManagementView() {
           <div className="flex items-center gap-2 flex-1 max-w-sm">
             <Input
               size="sm"
-              placeholder="Tìm theo Mã NV, họ tên, email..."
+              placeholder={tr("Tìm theo Mã NV, họ tên, email...")}
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
               startContent={<Search className="w-4 h-4 text-slate-400" />}
@@ -549,7 +546,7 @@ export function UserManagementView() {
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              Tất cả ({totalCount})
+              {tr("Tất cả (")}{totalCount})
             </button>
             <button
               onClick={() => setSelectedRoleFilter('ADMIN')}
@@ -559,7 +556,7 @@ export function UserManagementView() {
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              Quyền SỬA ({adminCount})
+              {tr("Quyền SỬA (")}{adminCount})
             </button>
             <button
               onClick={() => setSelectedRoleFilter('OPERATOR')}
@@ -569,7 +566,7 @@ export function UserManagementView() {
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              Quyền XEM ({operatorCount})
+              {tr("Quyền XEM (")}{operatorCount})
             </button>
           </div>
         </div>
@@ -579,24 +576,24 @@ export function UserManagementView() {
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-factory-border text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-                <th className="py-3.5 px-3">TÀI KHOẢN</th>
-                <th className="py-3.5 px-3">HỌ TÊN</th>
-                <th className="py-3.5 px-3">QUYỀN TRUY CẬP</th>
-                <th className="py-3.5 px-3 text-center">KÍCH HOẠT</th>
-                <th className="py-3.5 px-3 text-right">THAO TÁC</th>
+                <th className="py-3.5 px-3">{tr("TÀI KHOẢN")}</th>
+                <th className="py-3.5 px-3">{tr("HỌ TÊN")}</th>
+                <th className="py-3.5 px-3">{tr("QUYỀN TRUY CẬP")}</th>
+                <th className="py-3.5 px-3 text-center">{tr("KÍCH HOẠT")}</th>
+                <th className="py-3.5 px-3 text-right">{tr("THAO TÁC")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-factory-border">
               {isLoading ? (
                 <tr>
                   <td colSpan={5} className="py-12 text-center text-slate-400 text-xs">
-                    Đang tải danh sách tài khoản từ CSDL MySQL...
+                    {tr("Đang tải danh sách tài khoản từ CSDL MySQL...")}
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-12 text-center text-slate-400 text-xs">
-                    Không tìm thấy tài khoản nào phù hợp với điều kiện tìm kiếm.
+                    {tr("Không tìm thấy tài khoản nào phù hợp với điều kiện tìm kiếm.")}
                   </td>
                 </tr>
               ) : (
@@ -644,7 +641,7 @@ export function UserManagementView() {
                             {isCurrent && (
                               <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
                                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                Bạn đang đăng nhập
+                                {tr("Bạn đang đăng nhập")}
                               </span>
                             )}
                           </div>
@@ -681,8 +678,8 @@ export function UserManagementView() {
                               : 'cursor-pointer hover:border-emerald-500/50 focus:border-emerald-500'
                           }`}
                         >
-                          <option value="ADMIN">SỬA (Quản trị)</option>
-                          <option value="OPERATOR">XEM (Vận hành)</option>
+                          <option value="ADMIN">{tr("SỬA (Quản trị)")}</option>
+                          <option value="OPERATOR">{tr("XEM (Vận hành)")}</option>
                         </select>
                       </td>
 
@@ -711,7 +708,7 @@ export function UserManagementView() {
                               setIsResetModalOpen(true);
                             }}
                             className="p-1.5 rounded-lg bg-slate-100 dark:bg-factory-bg border border-slate-200 dark:border-factory-border text-slate-600 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-500/10 transition-colors cursor-pointer"
-                            aria-label="Đặt lại mật khẩu"
+                            aria-label={tr("Đặt lại mật khẩu")}
                           >
                             <RotateCcw className="w-3.5 h-3.5" />
                           </button>
@@ -721,7 +718,7 @@ export function UserManagementView() {
                             type="button"
                             onClick={() => openEditModal(user)}
                             className="p-1.5 rounded-lg bg-slate-100 dark:bg-factory-bg border border-slate-200 dark:border-factory-border text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors cursor-pointer"
-                            aria-label="Chỉnh sửa"
+                            aria-label={tr("Chỉnh sửa")}
                           >
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
@@ -730,7 +727,7 @@ export function UserManagementView() {
                           {isCurrent ? (
                             <span
                               className="p-1.5 rounded-lg bg-slate-100/50 dark:bg-factory-bg/50 border border-slate-200/50 dark:border-factory-border/50 text-slate-300 dark:text-slate-600 cursor-not-allowed"
-                              aria-label="Không thể xóa"
+                              aria-label={tr("Không thể xóa")}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </span>
@@ -742,7 +739,7 @@ export function UserManagementView() {
                                 setIsDeleteModalOpen(true);
                               }}
                               className="p-1.5 rounded-lg bg-slate-100 dark:bg-factory-bg border border-slate-200 dark:border-factory-border text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                              aria-label="Xóa tài khoản"
+                              aria-label={tr("Xóa tài khoản")}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -778,28 +775,28 @@ export function UserManagementView() {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    Đặt Lại Mật Khẩu Mặc Định
+                    {tr("Đặt Lại Mật Khẩu Mặc Định")}
                   </h3>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">
-                    Xác nhận gửi yêu cầu cập nhật CSDL MySQL
+                    {tr("Xác nhận gửi yêu cầu cập nhật CSDL MySQL")}
                   </p>
                 </div>
               </ModalHeader>
 
               <ModalBody className="py-4 text-xs space-y-3">
                 <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                  Bạn có chắc chắn muốn đặt lại mật khẩu của nhân viên{' '}
+                  {tr("Bạn có chắc chắn muốn đặt lại mật khẩu của nhân viên")}{' '}
                   <strong className="text-slate-900 dark:text-white font-bold">
                     {resettingUser?.fullName || resettingUser?.name}
                   </strong>{' '}
-                  ({resettingUser?.email}) về mật khẩu mặc định không?
+                  ({resettingUser?.email}{tr(") về mật khẩu mặc định không?")}
                 </p>
 
                 <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-500/30 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Info className="w-4 h-4 text-amber-600 shrink-0" />
                     <span className="text-amber-800 dark:text-amber-300 font-medium text-[11px]">
-                      Mật khẩu mặc định sau khi đặt lại:
+                      {tr("Mật khẩu mặc định sau khi đặt lại:")}
                     </span>
                   </div>
                   <span className="font-mono font-bold text-xs px-2.5 py-0.5 rounded bg-amber-500/20 text-amber-800 dark:text-amber-200 border border-amber-500/30">
@@ -815,7 +812,7 @@ export function UserManagementView() {
                   onPress={() => setIsResetModalOpen(false)}
                   disabled={isResetting}
                 >
-                  Hủy Bỏ
+                  {tr("Hủy Bỏ")}
                 </Button>
                 <Button
                   size="sm"
@@ -825,7 +822,7 @@ export function UserManagementView() {
                   className="bg-amber-600 hover:bg-amber-700 text-white font-semibold shadow-xs"
                   startContent={!isResetting && <RotateCcw className="w-3.5 h-3.5" />}
                 >
-                  Xác Nhận Đặt Lại
+                  {tr("Xác Nhận Đặt Lại")}
                 </Button>
               </ModalFooter>
             </div>
@@ -853,25 +850,25 @@ export function UserManagementView() {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    Xác Nhận Xóa Tài Khoản
+                    {tr("Xác Nhận Xóa Tài Khoản")}
                   </h3>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">
-                    Thao tác xóa vĩnh viễn khỏi CSDL MySQL
+                    {tr("Thao tác xóa vĩnh viễn khỏi CSDL MySQL")}
                   </p>
                 </div>
               </ModalHeader>
 
               <ModalBody className="py-4 text-xs space-y-3">
                 <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                  Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản của nhân viên{' '}
+                  {tr("Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản của nhân viên")}{' '}
                   <strong className="text-slate-900 dark:text-white font-bold">
                     {deletingUser?.fullName || deletingUser?.name}
                   </strong>{' '}
-                  ({deletingUser?.email}) không?
+                  ({deletingUser?.email}{tr(") không?")}
                 </p>
 
                 <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/20 border border-rose-500/30 text-rose-800 dark:text-rose-300 text-[11px] font-medium leading-relaxed">
-                  ⚠️ Hành động này sẽ xóa toàn bộ dữ liệu nhân viên, hủy phân quyền và không thể phục hồi lại.
+                  {tr("⚠️ Hành động này sẽ xóa toàn bộ dữ liệu nhân viên, hủy phân quyền và không thể phục hồi lại.")}
                 </div>
               </ModalBody>
 
@@ -882,7 +879,7 @@ export function UserManagementView() {
                   onPress={() => setIsDeleteModalOpen(false)}
                   disabled={isDeleting}
                 >
-                  Hủy Bỏ
+                  {tr("Hủy Bỏ")}
                 </Button>
                 <Button
                   size="sm"
@@ -892,7 +889,7 @@ export function UserManagementView() {
                   className="bg-rose-600 hover:bg-rose-700 text-white font-semibold shadow-xs"
                   startContent={!isDeleting && <Trash2 className="w-3.5 h-3.5" />}
                 >
-                  Xóa Vĩnh Viễn
+                  {tr("Xóa Vĩnh Viễn")}
                 </Button>
               </ModalFooter>
             </div>
@@ -912,13 +909,13 @@ export function UserManagementView() {
             {/* Header: Tiêu đề "Thêm người dùng" và nút icon đóng ✕ ở góc trên bên phải */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700/60">
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                {editingUser ? 'Chỉnh sửa người dùng' : 'Thêm người dùng'}
+                {editingUser ? tr("Chỉnh sửa người dùng") : tr("Thêm người dùng")}
               </h2>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700/50 cursor-pointer"
-                aria-label="Đóng modal"
+                aria-label={tr("Đóng modal")}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -952,14 +949,14 @@ export function UserManagementView() {
               {/* Ô 2: Họ tên * */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Họ tên <span className="text-rose-500">*</span>
+                  {tr("Họ tên")} <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="VD: Nguyễn Văn A"
+                  placeholder={tr("VD: Nguyễn Văn A")}
                   className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
                 />
               </div>
@@ -967,15 +964,15 @@ export function UserManagementView() {
               {/* Ô 3: Quyền */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Quyền
+                  {tr("Quyền")}
                 </label>
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as UserRole)}
                   className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all cursor-pointer"
                 >
-                  <option value="OPERATOR">XEM — chỉ theo dõi giám sát</option>
-                  <option value="ADMIN">SỬA — quản trị & cấu hình hệ thống</option>
+                  <option value="OPERATOR">{tr("XEM — chỉ theo dõi giám sát")}</option>
+                  <option value="ADMIN">{tr("SỬA — quản trị & cấu hình hệ thống")}</option>
                 </select>
               </div>
 
@@ -983,7 +980,7 @@ export function UserManagementView() {
               {editingUser && isCurrentUserAdmin && (
                 <div className="pt-2 border-t border-slate-100 dark:border-slate-700/60">
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                    Ảnh đại diện (Avatar)
+                    {tr("Ảnh đại diện (Avatar)")}
                   </label>
                   <div className="flex items-center gap-3">
                     <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl overflow-hidden bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-bold text-sm border border-emerald-500/30 shadow-xs">
@@ -1003,7 +1000,7 @@ export function UserManagementView() {
                     <div className="flex-1">
                       <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 cursor-pointer transition-colors shadow-xs">
                         <Camera className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
-                        <span>{uploadingUserId === editingUser.id ? 'Đang tải ảnh...' : 'Chọn ảnh mới...'}</span>
+                        <span>{uploadingUserId === editingUser.id ? tr("Đang tải ảnh...") : tr("Chọn ảnh mới...")}</span>
                         <input
                           type="file"
                           accept="image/png,image/jpeg,image/webp,image/svg+xml"
@@ -1022,7 +1019,7 @@ export function UserManagementView() {
                         />
                       </label>
                       <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
-                        Hỗ trợ PNG, JPG, WebP. Tối đa 5MB.
+                        {tr("Hỗ trợ PNG, JPG, WebP. Tối đa 5MB.")}
                       </p>
                     </div>
                   </div>
@@ -1037,7 +1034,7 @@ export function UserManagementView() {
                   disabled={isSubmitting}
                   className="border border-slate-300 text-slate-700 hover:bg-slate-50 px-5 py-2 rounded-xl font-medium text-xs sm:text-sm cursor-pointer transition-colors"
                 >
-                  Hủy
+                  {tr("Hủy")}
                 </button>
                 <button
                   type="submit"
@@ -1047,9 +1044,9 @@ export function UserManagementView() {
                   {isSubmitting ? (
                     <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : editingUser ? (
-                    'Lưu'
+                    tr("Lưu")
                   ) : (
-                    'Thêm'
+                    tr("Thêm")
                   )}
                 </button>
               </div>

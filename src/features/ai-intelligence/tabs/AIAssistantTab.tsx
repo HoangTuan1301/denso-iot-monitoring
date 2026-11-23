@@ -39,6 +39,7 @@ import {
 } from 'lucide-react';
 import { AIProcessedMachine } from '../adapters/aiTelemetryAdapter';
 import { useAIStore } from '../stores/useAIStore';
+import { tr } from '../../../i18n/tr';
 
 interface AIAssistantTabProps {
   allMachines: AIProcessedMachine[];
@@ -91,7 +92,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
       id: 'msg-user-1',
       sender: 'user',
       timestamp: '09:35',
-      text: 'Máy MCH-PRS-01 hiện có nguy cơ cao không? Hãy phân tích và đề xuất xử lý.',
+      text: tr("Máy MCH-PRS-01 hiện có nguy cơ cao không? Hãy phân tích và đề xuất xử lý."),
     },
     {
       id: 'msg-ai-1',
@@ -99,25 +100,25 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
       timestamp: '09:35',
       structured: {
         machineCode: 'MCH-PRS-01',
-        machineName: 'Máy Dập Thủy Lực 500T Komatsu',
+        machineName: tr("Máy Dập Thủy Lực 500T Komatsu"),
         statusBadge: 'WARNING',
-        finding: 'Máy MCH-PRS-01 đang có dấu hiệu bất thường mức nhẹ (mức cảnh báo).',
+        finding: tr("Máy MCH-PRS-01 đang có dấu hiệu bất thường mức nhẹ (mức cảnh báo)."),
         supportingData: {
           metrics: [
-            'Nhiệt độ dầu thủy lực: 52.4 °C (ngưỡng cảnh báo: 45.0 °C, ngưỡng nguy hiểm: 60.0 °C)',
-            'Độ rung RMS: 2.2 mm/s (bình thường: < 4.5 mm/s)',
-            'Điểm sức khỏe AI: 97 / 100 (giảm 1 điểm so với 24h trước)',
+            tr("Nhiệt độ dầu thủy lực: 52.4 °C (ngưỡng cảnh báo: 45.0 °C, ngưỡng nguy hiểm: 60.0 °C)"),
+            tr("Độ rung RMS: 2.2 mm/s (bình thường: < 4.5 mm/s)"),
+            tr("Điểm sức khỏe AI: 97 / 100 (giảm 1 điểm so với 24h trước)"),
           ],
           sparklineValues: [48, 49, 49.5, 50, 50.8, 51.5, 52.4],
         },
         possibleCauses: [
-          'Nhiệt độ dầu tăng nhẹ so với mức vận hành thông thường.',
-          'Có thể do tải công việc tăng, hiệu quả tản nhiệt giảm hoặc lọc dầu bắt đầu bẩn.',
+          tr("Nhiệt độ dầu tăng nhẹ so với mức vận hành thông thường."),
+          tr("Có thể do tải công việc tăng, hiệu quả tản nhiệt giảm hoặc lọc dầu bắt đầu bẩn."),
         ],
         recommendedActions: [
-          'Kiểm tra tình trạng lọc dầu thủy lực và vệ sinh nếu cần.',
-          'Đảm bảo hệ thống làm mát hoạt động bình thường.',
-          'Theo dõi thêm trong 24–48 giờ; nếu nhiệt độ tiếp tục tăng > 55 °C, lập phiếu bảo trì P2.',
+          tr("Kiểm tra tình trạng lọc dầu thủy lực và vệ sinh nếu cần."),
+          tr("Đảm bảo hệ thống làm mát hoạt động bình thường."),
+          tr("Theo dõi thêm trong 24–48 giờ; nếu nhiệt độ tiếp tục tăng > 55 °C, lập phiếu bảo trì P2."),
         ],
       },
     },
@@ -146,25 +147,25 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
         sender: 'assistant',
         timestamp: timeStr,
         structured: {
-          machineCode: target ? target.machineCode : 'THIẾT BỊ',
-          machineName: target ? target.machineName : 'Chưa xác định',
+          machineCode: target ? target.machineCode : tr("THIẾT BỊ"),
+          machineName: target ? target.machineName : tr("Chưa xác định"),
           statusBadge: 'NO_DATA',
-          finding: `Thiết bị ${target?.machineCode} hiện đang ở trạng thái NO_DATA (Chưa có bản ghi PLC).`,
+          finding: tr("Thiết bị {0} hiện đang ở trạng thái NO_DATA (Chưa có bản ghi PLC).", target?.machineCode),
           supportingData: {
             metrics: [
-              'Trạng thái kết nối PLC: Chưa cấu hình trạm PLC',
-              'Điểm sức khỏe AI: N/A (Không gán điểm số ảo)',
-              'Dữ liệu cảm biến: 0 bản ghi đo lường',
+              tr("Trạng thái kết nối PLC: Chưa cấu hình trạm PLC"),
+              tr("Điểm sức khỏe AI: N/A (Không gán điểm số ảo)"),
+              tr("Dữ liệu cảm biến: 0 bản ghi đo lường"),
             ],
             sparklineValues: [0, 0, 0, 0, 0, 0, 0],
           },
           possibleCauses: [
-            'Máy mới được đồng bộ từ Migration 005 và đang chờ tích hợp giao tiếp PLC vật lý.',
-            'Cần cấu hình địa chỉ IP hoặc Modbus / OPC-UA trạm trong Cấu hình Dây chuyền.',
+            tr("Máy mới được đồng bộ từ Migration 005 và đang chờ tích hợp giao tiếp PLC vật lý."),
+            tr("Cần cấu hình địa chỉ IP hoặc Modbus / OPC-UA trạm trong Cấu hình Dây chuyền."),
           ],
           recommendedActions: [
-            'Vào menu "Cấu hình → Dây chuyền & Thiết bị" để ánh xạ trạm PLC.',
-            'Sau khi có dữ liệu đo lường, phân hệ AI sẽ tự động kích hoạt Z-score đánh giá.',
+            tr("Vào menu \"Cấu hình → Dây chuyền & Thiết bị\" để ánh xạ trạm PLC."),
+            tr("Sau khi có dữ liệu đo lường, phân hệ AI sẽ tự động kích hoạt Z-score đánh giá."),
           ],
         },
       };
@@ -179,23 +180,23 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
           machineCode: target.machineCode,
           machineName: target.machineName,
           statusBadge: 'CRITICAL',
-          finding: `CẢNH BÁO KHẨN CẤP: Thiết bị ${target.machineCode} đang xuất hiện đột biến chỉ số nguy hiểm (Mô phỏng diễn tập).`,
+          finding: tr("CẢNH BÁO KHẨN CẤP: Thiết bị {0} đang xuất hiện đột biến chỉ số nguy hiểm (Mô phỏng diễn tập).", target.machineCode),
           supportingData: {
             metrics: [
-              `${target.keyMetricName}: ${target.keyMetricValue} ${target.keyMetricUnit} (Vượt ngưỡng nguy hiểm)`,
-              'Thuật toán Z-score: +4.2σ (Đột biến tức thời cấp độ khẩn cấp)',
-              `Điểm sức khỏe AI: ${target.healthScore} / 100 (Sụt giảm nghiêm trọng)`,
+              tr("{0}: {1} {2} (Vượt ngưỡng nguy hiểm)", target.keyMetricName, target.keyMetricValue, target.keyMetricUnit),
+              tr("Thuật toán Z-score: +4.2σ (Đột biến tức thời cấp độ khẩn cấp)"),
+              tr("Điểm sức khỏe AI: {0} / 100 (Sụt giảm nghiêm trọng)", target.healthScore),
             ],
             sparklineValues: [50, 52, 51, 53, 52, 75, 95],
           },
           possibleCauses: [
-            'Kịch bản sự cố khẩn cấp đang được kích hoạt từ Header điều hành (Diễn tập ứng phó).',
-            'Nguy cơ quá áp hoặc nghẽn mạch dầu thủy lực trong điều kiện vận hành cực đoan.',
+            tr("Kịch bản sự cố khẩn cấp đang được kích hoạt từ Header điều hành (Diễn tập ứng phó)."),
+            tr("Nguy cơ quá áp hoặc nghẽn mạch dầu thủy lực trong điều kiện vận hành cực đoan."),
           ],
           recommendedActions: [
-            'Kích hoạt quy trình E-Stop dừng khẩn cấp thiết bị kiểm tra an toàn.',
-            'Hạ áp và kiểm tra đường xả khẩn cấp của van tỉ lệ.',
-            'Sau khi diễn tập xong, nhấn nút "Khôi phục ngay" trên Header để đưa hệ thống về chuẩn.',
+            tr("Kích hoạt quy trình E-Stop dừng khẩn cấp thiết bị kiểm tra an toàn."),
+            tr("Hạ áp và kiểm tra đường xả khẩn cấp của van tỉ lệ."),
+            tr("Sau khi diễn tập xong, nhấn nút \"Khôi phục ngay\" trên Header để đưa hệ thống về chuẩn."),
           ],
         },
       };
@@ -210,22 +211,22 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
           machineCode: target.machineCode,
           machineName: target.machineName,
           statusBadge: 'WARNING',
-          finding: `Thiết bị ${target.machineCode} đang tiệm cận ngưỡng cảnh báo vận hành.`,
+          finding: tr("Thiết bị {0} đang tiệm cận ngưỡng cảnh báo vận hành.", target.machineCode),
           supportingData: {
             metrics: [
               `${target.keyMetricName}: ${target.keyMetricValue} ${target.keyMetricUnit}`,
-              'Thuật toán Z-score: +2.6σ (Dấu hiệu trôi dạt thông số)',
-              `Điểm sức khỏe AI: ${target.healthScore} / 100`,
+              tr("Thuật toán Z-score: +2.6σ (Dấu hiệu trôi dạt thông số)"),
+              tr("Điểm sức khỏe AI: {0} / 100", target.healthScore),
             ],
             sparklineValues: [48, 50, 51, 52, 53, 54, 55],
           },
           possibleCauses: [
-            'Hiệu suất làm mát hoặc bôi trơn bắt đầu suy giảm sau ca làm việc kéo dài.',
-            'Bộ lọc có dấu hiệu tích tụ cặn bẩn làm tăng trở lực.',
+            tr("Hiệu suất làm mát hoặc bôi trơn bắt đầu suy giảm sau ca làm việc kéo dài."),
+            tr("Bộ lọc có dấu hiệu tích tụ cặn bẩn làm tăng trở lực."),
           ],
           recommendedActions: [
-            'Kiểm tra và vệ sinh bộ lọc trong thời gian giao ca.',
-            'Lập phiếu bảo trì P2 nếu thông số tiếp tục tăng trong 24 giờ tới.',
+            tr("Kiểm tra và vệ sinh bộ lọc trong thời gian giao ca."),
+            tr("Lập phiếu bảo trì P2 nếu thông số tiếp tục tăng trong 24 giờ tới."),
           ],
         },
       };
@@ -240,20 +241,20 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
         machineCode: target.machineCode,
         machineName: target.machineName,
         statusBadge: 'NORMAL',
-        finding: `Thiết bị ${target.machineCode} đang vận hành hoàn toàn ổn định và an toàn.`,
+        finding: tr("Thiết bị {0} đang vận hành hoàn toàn ổn định và an toàn.", target.machineCode),
         supportingData: {
           metrics: [
-            `${target.keyMetricName}: ${target.keyMetricValue} ${target.keyMetricUnit} (Trong giới hạn chuẩn)`,
-            'Thuật toán Z-score: +0.4σ (Biến thiên tự nhiên)',
-            `Điểm sức khỏe AI: ${target.healthScore} / 100 (Tối ưu)`,
+            tr("{0}: {1} {2} (Trong giới hạn chuẩn)", target.keyMetricName, target.keyMetricValue, target.keyMetricUnit),
+            tr("Thuật toán Z-score: +0.4σ (Biến thiên tự nhiên)"),
+            tr("Điểm sức khỏe AI: {0} / 100 (Tối ưu)", target.healthScore),
           ],
           sparklineValues: [96, 97, 98, 97, 98, 98, 98],
         },
         possibleCauses: [
-          'Chế độ bôi trơn và tản nhiệt đang hoạt động đạt hiệu suất thiết kế tiêu chuẩn DENSO.',
+          tr("Chế độ bôi trơn và tản nhiệt đang hoạt động đạt hiệu suất thiết kế tiêu chuẩn DENSO."),
         ],
         recommendedActions: [
-          'Duy trì chế độ quan trắc tự động và thực hiện kiểm tra định kỳ theo kế hoạch.',
+          tr("Duy trì chế độ quan trắc tự động và thực hiện kiểm tra định kỳ theo kế hoạch."),
         ],
       },
     };
@@ -340,10 +341,10 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                    Xin chào! Tôi là KaiLink, trợ lý AI của DENSO Smart Factory. 👋
+                    {tr("Xin chào! Tôi là KaiLink, trợ lý AI của DENSO Smart Factory. 👋")}
                   </h3>
                   <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
-                    Tôi có thể giúp bạn phân tích tình trạng thiết bị, giải thích bất thường, đánh giá rủi ro và đề xuất kế hoạch bảo trì dựa trên dữ liệu thời gian thực từ nhà máy.
+                    {tr("Tôi có thể giúp bạn phân tích tình trạng thiết bị, giải thích bất thường, đánh giá rủi ro và đề xuất kế hoạch bảo trì dựa trên dữ liệu thời gian thực từ nhà máy.")}
                   </p>
                 </div>
               </div>
@@ -351,16 +352,16 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
               {/* 4 Năng lực cốt lõi */}
               <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-200/60 dark:border-slate-800">
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800/60">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Dữ liệu thời gian thực
+                  <CheckCircle2 className="w-3.5 h-3.5" /> {tr("Dữ liệu thời gian thực")}
                 </span>
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border border-sky-200/70 dark:border-sky-800/60">
-                  <BarChart3 className="w-3.5 h-3.5" /> Phân tích & Giải thích
+                  <BarChart3 className="w-3.5 h-3.5" /> {tr("Phân tích & Giải thích")}
                 </span>
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200/70 dark:border-purple-800/60">
-                  <TrendingUp className="w-3.5 h-3.5" /> Dự đoán & Khuyến nghị
+                  <TrendingUp className="w-3.5 h-3.5" /> {tr("Dự đoán & Khuyến nghị")}
                 </span>
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                  <FileText className="w-3.5 h-3.5" /> Hỗ trợ kỹ thuật
+                  <FileText className="w-3.5 h-3.5" /> {tr("Hỗ trợ kỹ thuật")}
                 </span>
               </div>
             </div>
@@ -369,26 +370,26 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
             <div className="space-y-2">
               <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                Bạn có thể thử hỏi:
+                {tr("Bạn có thể thử hỏi:")}
               </span>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {[
                   {
-                    q: 'Máy ROB-01 hiện có nguy cơ cao không?',
-                    sub: 'Độ rung & mòn ổ bi trục J6',
+                    q: tr("Máy ROB-01 hiện có nguy cơ cao không?"),
+                    sub: tr("Độ rung & mòn ổ bi trục J6"),
                   },
                   {
-                    q: 'Giải thích cảnh báo nhiệt độ máy MCH-PRS-01',
-                    sub: 'Dầu thủy lực tiệm cận 54.2 °C',
+                    q: tr("Giải thích cảnh báo nhiệt độ máy MCH-PRS-01"),
+                    sub: tr("Dầu thủy lực tiệm cận 54.2 °C"),
                   },
                   {
-                    q: 'Đề xuất kế hoạch bảo trì cho 14 máy',
-                    sub: 'Phân loại P1 đến P4 theo độ suy giảm',
+                    q: tr("Đề xuất kế hoạch bảo trì cho 14 máy"),
+                    sub: tr("Phân loại P1 đến P4 theo độ suy giảm"),
                   },
                   {
-                    q: 'Tổng quan sức khỏe thiết bị hiện tại',
-                    sub: '7 máy có dữ liệu, 7 máy chưa kết nối',
+                    q: tr("Tổng quan sức khỏe thiết bị hiện tại"),
+                    sub: tr("7 máy có dữ liệu, 7 máy chưa kết nối"),
                   },
                 ].map((item, idx) => (
                   <button
@@ -447,7 +448,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                         <div className="flex items-center gap-2">
                           <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                           <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                            Phân tích tình trạng máy {s.machineCode}
+                            {tr("Phân tích tình trạng máy")} {s.machineCode}
                           </h4>
                         </div>
                         <span className="text-[11px] text-slate-400">{msg.timestamp}</span>
@@ -460,7 +461,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                             <Search className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                             <div>
                               <span className="font-bold text-amber-900 dark:text-amber-200 block">
-                                Kết luận (Finding)
+                                {tr("Kết luận (Finding)")}
                               </span>
                               <p className="text-slate-800 dark:text-slate-200 mt-0.5 leading-snug">
                                 {s.finding}
@@ -487,12 +488,12 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                           <div className="flex items-center justify-between pb-2 mb-2 border-b border-sky-100 dark:border-sky-900/40">
                             <div className="flex items-center gap-2 font-bold text-sky-900 dark:text-sky-200">
                               <BarChart3 className="w-4 h-4 text-sky-600" />
-                              <span>Dữ liệu xác thực (Supporting Data)</span>
+                              <span>{tr("Dữ liệu xác thực (Supporting Data)")}</span>
                             </div>
 
                             {/* Mini Sparkline 24h */}
                             <div className="flex items-center gap-2">
-                              <span className="text-[10px] text-slate-400 font-medium">Xu hướng 24h</span>
+                              <span className="text-[10px] text-slate-400 font-medium">{tr("Xu hướng 24h")}</span>
                               {renderMiniSparkline(s.supportingData.sparklineValues, isCritical ? '#f43f5e' : isWarning ? '#f59e0b' : '#10b981')}
                             </div>
                           </div>
@@ -511,7 +512,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                         <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/70 dark:border-slate-800">
                           <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 mb-1.5">
                             <TrendingUp className="w-4 h-4 text-slate-500" />
-                            <span>Nguyên nhân khả dĩ (Possible Cause)</span>
+                            <span>{tr("Nguyên nhân khả dĩ (Possible Cause)")}</span>
                           </div>
                           <ul className="space-y-1 text-slate-600 dark:text-slate-300">
                             {s.possibleCauses.map((cause, cIdx) => (
@@ -528,7 +529,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                           <div className="flex items-center justify-between pb-2 mb-2 border-b border-emerald-100 dark:border-emerald-900/40">
                             <div className="flex items-center gap-2 font-bold text-emerald-900 dark:text-emerald-200">
                               <Activity className="w-4 h-4 text-emerald-600" />
-                              <span>Đề xuất hành động (Recommended Action)</span>
+                              <span>{tr("Đề xuất hành động (Recommended Action)")}</span>
                             </div>
 
                             {/* Nút Tạo phiếu bảo trì */}
@@ -539,7 +540,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-2xs"
                             >
                               <Calendar className="w-3.5 h-3.5" />
-                              Tạo phiếu bảo trì
+                              {tr("Tạo phiếu bảo trì")}
                             </button>
                           </div>
 
@@ -555,18 +556,18 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                         {/* Footer tin nhắn: Phản hồi + Quick Action Pills */}
                         <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
                           <div className="flex items-center gap-2">
-                            <span>Câu trả lời có hữu ích không?</span>
+                            <span>{tr("Câu trả lời có hữu ích không?")}</span>
                             <button
                               onClick={() => setFeedbackGiven({ ...feedbackGiven, [msg.id]: 'up' })}
                               className={`p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 ${feedbackGiven[msg.id] === 'up' ? 'text-emerald-600' : ''}`}
-                              title="Hữu ích"
+                              title={tr("Hữu ích")}
                             >
                               <ThumbsUp className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => setFeedbackGiven({ ...feedbackGiven, [msg.id]: 'down' })}
                               className={`p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 ${feedbackGiven[msg.id] === 'down' ? 'text-rose-500' : ''}`}
-                              title="Chưa hữu ích"
+                              title={tr("Chưa hữu ích")}
                             >
                               <ThumbsDown className="w-3.5 h-3.5" />
                             </button>
@@ -579,7 +580,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                               }}
                               className="px-2 py-0.5 rounded text-[11px] bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition-colors flex items-center gap-1"
                             >
-                              <Eye className="w-3 h-3" /> Xem dữ liệu chi tiết
+                              <Eye className="w-3 h-3" /> {tr("Xem dữ liệu chi tiết")}
                             </button>
                             <button
                               onClick={() => {
@@ -587,7 +588,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                               }}
                               className="px-2 py-0.5 rounded text-[11px] bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition-colors flex items-center gap-1"
                             >
-                              <TrendingUp className="w-3 h-3" /> Phân tích sâu hơn
+                              <TrendingUp className="w-3 h-3" /> {tr("Phân tích sâu hơn")}
                             </button>
                           </div>
                         </div>
@@ -605,7 +606,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                   </div>
                   <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-500 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                    <span>KaiLink đang phân tích dữ liệu cảm biến & mô hình nội tại...</span>
+                    <span>{tr("KaiLink đang phân tích dữ liệu cảm biến & mô hình nội tại...")}</span>
                   </div>
                 </div>
               )}
@@ -620,14 +621,14 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
               <button
                 type="button"
                 className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shrink-0"
-                title="Đính kèm tệp dữ liệu hoặc ảnh cảm biến"
+                title={tr("Đính kèm tệp dữ liệu hoặc ảnh cảm biến")}
               >
                 <Paperclip className="w-4 h-4" />
               </button>
 
               <input
                 type="text"
-                placeholder="Nhập câu hỏi hoặc yêu cầu phân tích thiết bị..."
+                placeholder={tr("Nhập câu hỏi hoặc yêu cầu phân tích thiết bị...")}
                 value={inputQuery}
                 onChange={(e) => setInputQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -639,7 +640,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                 onClick={() => handleSend()}
                 disabled={!inputQuery.trim() || isTyping}
                 className="w-9 h-9 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0 shadow-2xs"
-                title="Gửi câu hỏi"
+                title={tr("Gửi câu hỏi")}
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -652,16 +653,16 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-700/70">
             <Cpu className="w-5 h-5 text-emerald-600" />
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-              Ngữ cảnh Thiết bị
+              {tr("Ngữ cảnh Thiết bị")}
             </h3>
           </div>
 
           {/* Bộ chọn thiết bị đang xem */}
           <div className="space-y-1.5">
-            <label className="text-[11px] font-medium text-slate-400">Chọn thiết bị phân tích:</label>
+            <label className="text-[11px] font-medium text-slate-400">{tr("Chọn thiết bị phân tích:")}</label>
             <div className="relative">
               <select
-                aria-label="Chọn thiết bị để xem ngữ cảnh"
+                aria-label={tr("Chọn thiết bị để xem ngữ cảnh")}
                 value={currentMachine?.machineId}
                 onChange={(e) => handleMachineChange(e.target.value)}
                 className="w-full text-xs font-bold pl-3 pr-8 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer appearance-none"
@@ -680,15 +681,15 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
           <div className="grid grid-cols-2 gap-2">
             {/* Kết nối PLC */}
             <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
-              <span className="text-[10px] text-slate-400 font-medium block">Kết nối PLC</span>
+              <span className="text-[10px] text-slate-400 font-medium block">{tr("Kết nối PLC")}</span>
               <div className="mt-1 flex items-center gap-1.5 text-xs font-bold">
                 {currentMachine?.isNoData ? (
                   <span className="text-slate-400 flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-slate-400" /> Chưa kết nối
+                    <span className="w-2 h-2 rounded-full bg-slate-400" /> {tr("Chưa kết nối")}
                   </span>
                 ) : (
                   <span className="text-emerald-600 flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Đã kết nối
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> {tr("Đã kết nối")}
                   </span>
                 )}
               </div>
@@ -696,31 +697,31 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
 
             {/* Nguồn dữ liệu */}
             <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
-              <span className="text-[10px] text-slate-400 font-medium block">Nguồn dữ liệu</span>
+              <span className="text-[10px] text-slate-400 font-medium block">{tr("Nguồn dữ liệu")}</span>
               <div className="mt-1 text-xs font-bold truncate">
                 {currentMachine?.dataSource === 'SIMULATION' ? (
-                  <span className="text-amber-600">Giả lập (Simulation)</span>
+                  <span className="text-amber-600">{tr("Giả lập (Simulation)")}</span>
                 ) : currentMachine?.dataSource === 'PRODUCTION' ? (
-                  <span className="text-sky-600">Dữ liệu thực (Production)</span>
+                  <span className="text-sky-600">{tr("Dữ liệu thực (Production)")}</span>
                 ) : (
-                  <span className="text-slate-400">Chưa có (NO_DATA)</span>
+                  <span className="text-slate-400">{tr("Chưa có (NO_DATA)")}</span>
                 )}
               </div>
             </div>
 
             {/* Cập nhật lần cuối */}
             <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
-              <span className="text-[10px] text-slate-400 font-medium block">Cập nhật lần cuối</span>
+              <span className="text-[10px] text-slate-400 font-medium block">{tr("Cập nhật lần cuối")}</span>
               <div className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">
-                {currentMachine?.isNoData ? 'Chưa có' : 'Vừa xong (Live)'}
+                {currentMachine?.isNoData ? tr("Chưa có") : tr("Vừa xong (Live)")}
               </div>
             </div>
 
             {/* Trạng thái vận hành */}
             <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
-              <span className="text-[10px] text-slate-400 font-medium block">Trạng thái</span>
+              <span className="text-[10px] text-slate-400 font-medium block">{tr("Trạng thái")}</span>
               <div className="mt-1 text-xs font-bold text-emerald-600">
-                {currentMachine?.isNoData ? 'NO_DATA' : currentMachine?.hasActiveSpike ? 'CRITICAL' : 'Hoạt động (RUN)'}
+                {currentMachine?.isNoData ? 'NO_DATA' : currentMachine?.hasActiveSpike ? 'CRITICAL' : tr("Hoạt động (RUN)")}
               </div>
             </div>
           </div>
@@ -728,25 +729,25 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
           {/* Bảng Thông tin thiết bị */}
           <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 space-y-2 text-xs">
             <h4 className="font-bold text-slate-900 dark:text-slate-100 text-[11px] uppercase tracking-wider text-slate-400">
-              Thông tin thiết bị
+              {tr("Thông tin thiết bị")}
             </h4>
 
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Dây chuyền:</span>
+              <span className="text-slate-400">{tr("Dây chuyền:")}</span>
               <span className="font-medium text-slate-700 dark:text-slate-300">
                 {currentMachine?.lineName}
               </span>
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Cụm thiết bị:</span>
+              <span className="text-slate-400">{tr("Cụm thiết bị:")}</span>
               <span className="font-medium text-slate-700 dark:text-slate-300">
-                {currentMachine?.rawMetrics[0]?.name || 'Bộ truyền động chính'}
+                {currentMachine?.rawMetrics[0]?.name || tr("Bộ truyền động chính")}
               </span>
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Điểm sức khỏe AI:</span>
+              <span className="text-slate-400">{tr("Điểm sức khỏe AI:")}</span>
               <span
                 className={`font-black ${
                   currentMachine?.isNoData
@@ -761,7 +762,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Mức rủi ro hiện tại:</span>
+              <span className="text-slate-400">{tr("Mức rủi ro hiện tại:")}</span>
               <span
                 className={`font-bold ${
                   currentMachine?.isNoData
@@ -774,12 +775,12 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                 }`}
               >
                 {currentMachine?.isNoData
-                  ? 'Chưa đánh giá'
+                  ? tr("Chưa đánh giá")
                   : currentMachine?.riskLevel === 'CRITICAL'
-                  ? '• Khẩn cấp (Critical)'
+                  ? tr("• Khẩn cấp (Critical)")
                   : currentMachine?.riskLevel === 'HIGH'
-                  ? '• Trung bình (Warning)'
-                  : '• An toàn (Low)'}
+                  ? tr("• Trung bình (Warning)")
+                  : tr("• An toàn (Low)")}
               </span>
             </div>
           </div>
@@ -787,7 +788,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
           {/* Bảng Thông số giám sát Realtime kèm Sparkline */}
           <div className="space-y-2">
             <h4 className="font-bold text-[11px] uppercase tracking-wider text-slate-400">
-              Thông số giám sát (Realtime)
+              {tr("Thông số giám sát (Realtime)")}
             </h4>
 
             <div className="space-y-1.5">
@@ -836,7 +837,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                 })
               ) : (
                 <div className="p-4 text-center text-xs text-slate-400 bg-slate-50 dark:bg-slate-900/30 rounded-xl border border-slate-100 dark:border-slate-800">
-                  Chưa có thông số đo lường từ PLC.
+                  {tr("Chưa có thông số đo lường từ PLC.")}
                 </div>
               )}
             </div>
@@ -846,7 +847,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
           <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-800 text-[11px] text-slate-400 leading-relaxed flex items-start gap-1.5">
             <Info className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
             <span>
-              Lưu ý: Thiết bị sử dụng dữ liệu thực từ PLC. Các phân tích được tạo bởi mô hình AI nội bộ của DENSO.
+              {tr("Lưu ý: Thiết bị sử dụng dữ liệu thực từ PLC. Các phân tích được tạo bởi mô hình AI nội bộ của DENSO.")}
             </span>
           </div>
         </div>

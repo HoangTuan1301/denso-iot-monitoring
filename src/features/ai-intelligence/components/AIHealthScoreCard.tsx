@@ -13,6 +13,7 @@ import {
   HelpCircle,
 } from 'lucide-react';
 import { EquipmentHealthItem } from '../types/ai';
+import { tr } from '../../../i18n/tr';
 
 interface AIHealthScoreCardProps {
   equipment: EquipmentHealthItem;
@@ -30,7 +31,7 @@ export const AIHealthScoreCard: React.FC<AIHealthScoreCardProps> = ({
         bg: 'bg-emerald-50 dark:bg-emerald-950/40',
         border: 'border-emerald-200 dark:border-emerald-800',
         ring: '#10B981',
-        label: 'TỐT / ỔN ĐỊNH',
+        label: tr("TỐT / ỔN ĐỊNH"),
       };
     }
     if (score >= 70) {
@@ -39,7 +40,7 @@ export const AIHealthScoreCard: React.FC<AIHealthScoreCardProps> = ({
         bg: 'bg-amber-50 dark:bg-amber-950/40',
         border: 'border-amber-200 dark:border-amber-800',
         ring: '#F59E0B',
-        label: 'CẢNH BÁO',
+        label: tr("CẢNH BÁO"),
       };
     }
     return {
@@ -47,7 +48,7 @@ export const AIHealthScoreCard: React.FC<AIHealthScoreCardProps> = ({
       bg: 'bg-rose-50 dark:bg-rose-950/40',
       border: 'border-rose-200 dark:border-rose-800',
       ring: '#EF4444',
-      label: 'NGUY HIỂM',
+      label: tr("NGUY HIỂM"),
     };
   };
 
@@ -65,7 +66,7 @@ export const AIHealthScoreCard: React.FC<AIHealthScoreCardProps> = ({
         <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700/60">
           <div>
             <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-              Chi tiết Sức khỏe AI
+              {tr("Chi tiết Sức khỏe AI")}
             </h4>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate max-w-[200px]" title={machineName}>
               {machineCode} — {machineName}
@@ -111,19 +112,19 @@ export const AIHealthScoreCard: React.FC<AIHealthScoreCardProps> = ({
                   {healthScore}
                 </span>
                 <span className="text-[9px] text-slate-400 font-semibold uppercase">
-                  Điểm / 100
+                  {tr("Điểm / 100")}
                 </span>
               </div>
             </div>
             <div className="mt-1 text-center text-xs text-slate-500 dark:text-slate-400">
-              Mức rủi ro: <strong className="text-slate-800 dark:text-slate-200">{riskLevel}</strong>
+              {tr("Mức rủi ro:")} <strong className="text-slate-800 dark:text-slate-200">{riskLevel}</strong>
             </div>
           </div>
 
           {/* Deductions Breakdown (7 cols) */}
           <div className="sm:col-span-7 space-y-1.5 text-xs">
             <div className="flex items-center justify-between text-slate-500 font-medium">
-              <span>Điểm gốc tiêu chuẩn:</span>
+              <span>{tr("Điểm gốc tiêu chuẩn:")}</span>
               <span className="font-bold text-slate-800 dark:text-slate-200">
                 +{factors.base}
               </span>
@@ -133,7 +134,7 @@ export const AIHealthScoreCard: React.FC<AIHealthScoreCardProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
                 <Flame className="w-3.5 h-3.5 text-rose-500" />
-                <span>Trừ quá nhiệt:</span>
+                <span>{tr("Trừ quá nhiệt:")}</span>
               </div>
               <span
                 className={`font-bold ${
@@ -150,7 +151,7 @@ export const AIHealthScoreCard: React.FC<AIHealthScoreCardProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
                 <Activity className="w-3.5 h-3.5 text-amber-500" />
-                <span>Trừ rung lắc cơ khí:</span>
+                <span>{tr("Trừ rung lắc cơ khí:")}</span>
               </div>
               <span
                 className={`font-bold ${
@@ -167,7 +168,7 @@ export const AIHealthScoreCard: React.FC<AIHealthScoreCardProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
                 <Gauge className="w-3.5 h-3.5 text-blue-500" />
-                <span>Trừ tụt áp / dòng tải:</span>
+                <span>{tr("Trừ tụt áp / dòng tải:")}</span>
               </div>
               <span
                 className={`font-bold ${
@@ -186,7 +187,7 @@ export const AIHealthScoreCard: React.FC<AIHealthScoreCardProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
                 <Clock className="w-3.5 h-3.5 text-slate-400" />
-                <span>Khấu hao chu kỳ máy:</span>
+                <span>{tr("Khấu hao chu kỳ máy:")}</span>
               </div>
               <span className="font-bold text-slate-500">
                 -{factors.agePenalty}
@@ -202,7 +203,7 @@ export const AIHealthScoreCard: React.FC<AIHealthScoreCardProps> = ({
           <HelpCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
           <p className="text-slate-600 dark:text-slate-300 leading-snug">
             <strong className="text-slate-800 dark:text-slate-100 font-semibold">
-              Đánh giá AI:
+              {tr("Đánh giá AI:")}
             </strong>{' '}
             {factors.explanation}
           </p>

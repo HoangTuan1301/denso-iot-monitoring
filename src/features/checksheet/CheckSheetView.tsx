@@ -39,6 +39,7 @@ import {
 } from 'recharts';
 import { useMonitoringStore } from '../../stores/useMonitoringStore';
 import { CheckSheetMetricItem } from './types';
+import { tr } from '../../i18n/tr';
 
 interface CheckSheetViewProps {
   machineId: string;
@@ -55,7 +56,7 @@ export function CheckSheetView({
   const [activeLineId, setActiveLineId] = useState<string>(selectedLineId || lines[0]?.id || 'LN-PRS-01');
   const [activeMachineId, setActiveMachineId] = useState<string>(machineId);
   const [shift, setShift] = useState<string>('Ca 1 (08:00 – 16:00)');
-  const [timeRange, setTimeRange] = useState<string>('1 giờ');
+  const [timeRange, setTimeRange] = useState<string>(tr("1 giờ"));
   const [isStreaming, setIsStreaming] = useState<boolean>(true);
   const [lastCheckNotice, setLastCheckNotice] = useState<string | null>(null);
 
@@ -129,7 +130,7 @@ export function CheckSheetView({
         {
           stt: 1,
           metricCode: 'CURRENT_PHASE',
-          metricName: 'Dòng điện tải động cơ',
+          metricName: tr("Dòng điện tải động cơ"),
           currentValue: 42.6,
           unit: 'A',
           warningMin: 35,
@@ -151,7 +152,7 @@ export function CheckSheetView({
         {
           stt: 2,
           metricCode: 'FLOW_COOLANT',
-          metricName: 'Lưu lượng dung dịch làm mát',
+          metricName: tr("Lưu lượng dung dịch làm mát"),
           currentValue: 48.2,
           unit: 'L/min',
           warningMin: 20,
@@ -191,16 +192,14 @@ export function CheckSheetView({
   const handlePerformCheck = () => {
     const isAllOk = metricItems.every((i) => i.status === 'OK');
     setLastCheckNotice(
-      `Đã chụp kết quả kiểm tra lúc ${new Date().toLocaleTimeString('vi-VN')}: ${
-        isAllOk ? '100% Thông số ĐẠT chuẩn (OK)' : 'Phát hiện thông số CẢNH BÁO / KHÔNG ĐẠT (NG)'
-      }`
+      tr("Đã chụp kết quả kiểm tra lúc {0}: {1}", new Date().toLocaleTimeString('vi-VN'), isAllOk ? tr("100% Thông số ĐẠT chuẩn (OK)") : tr("Phát hiện thông số CẢNH BÁO / KHÔNG ĐẠT (NG)"))
     );
     setTimeout(() => setLastCheckNotice(null), 4000);
   };
 
   // Xử lý Xuất CSV
   const handleExportCSV = () => {
-    const headers = ['STT', 'Mã thông số', 'Tên thông số', 'Giá trị', 'Đơn vị', 'Ngưỡng Min', 'Ngưỡng Max', 'Trạng thái', 'Thời gian'];
+    const headers = ['STT', tr("Mã thông số"), tr("Tên thông số"), tr("Giá trị"), tr("Đơn vị"), tr("Ngưỡng Min"), tr("Ngưỡng Max"), tr("Trạng thái"), tr("Thời gian")];
     const rows = metricItems.map((m) => [
       m.stt,
       m.metricCode,
@@ -236,7 +235,7 @@ export function CheckSheetView({
             type="button"
             onClick={onBackToMachineDetail}
             className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 dark:border-factory-border bg-slate-50 dark:bg-factory-surface text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 transition-colors cursor-pointer"
-            title="Quay lại Chi tiết Máy"
+            title={tr("Quay lại Chi tiết Máy")}
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -248,7 +247,7 @@ export function CheckSheetView({
               </h1>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Giám sát và kiểm tra thông số vận hành theo thời gian thực (Live Inspection Sheet)
+              {tr("Giám sát và kiểm tra thông số vận hành theo thời gian thực (Live Inspection Sheet)")}
             </p>
           </div>
         </div>
@@ -266,7 +265,7 @@ export function CheckSheetView({
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-factory-border bg-white dark:bg-factory-card text-xs font-semibold hover:bg-slate-50 cursor-pointer shadow-2xs"
           >
             {isStreaming ? <Square className="w-3.5 h-3.5 text-rose-500" /> : <Play className="w-3.5 h-3.5 text-emerald-600" />}
-            <span>{isStreaming ? 'Tạm dừng' : 'Tiếp tục'}</span>
+            <span>{isStreaming ? tr("Tạm dừng") : tr("Tiếp tục")}</span>
           </button>
         </div>
       </div>
@@ -284,7 +283,7 @@ export function CheckSheetView({
         {/* Chọn Dây chuyền */}
         <div>
           <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-            Dây chuyền
+            {tr("Dây chuyền")}
           </label>
           <select
             value={activeLineId}
@@ -302,7 +301,7 @@ export function CheckSheetView({
         {/* Chọn Thiết bị */}
         <div>
           <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-            Thiết bị
+            {tr("Thiết bị")}
           </label>
           <select
             value={activeMachineId}
@@ -315,7 +314,7 @@ export function CheckSheetView({
               </option>
             ))}
             {(!currentLine?.machines || currentLine.machines.length === 0) && (
-              <option value={machineId}>OP50 – Máy kiểm tra</option>
+              <option value={machineId}>{tr("OP50 – Máy kiểm tra")}</option>
             )}
           </select>
         </div>
@@ -323,7 +322,7 @@ export function CheckSheetView({
         {/* Chọn Ca sản xuất */}
         <div>
           <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-            Ca sản xuất
+            {tr("Ca sản xuất")}
           </label>
           <select
             value={shift}
@@ -339,16 +338,16 @@ export function CheckSheetView({
         {/* Khoảng thời gian hiển thị */}
         <div>
           <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-            Thời gian hiển thị
+            {tr("Thời gian hiển thị")}
           </label>
           <select
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value)}
             className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-factory-border bg-slate-50 dark:bg-factory-surface text-slate-900 dark:text-white font-semibold cursor-pointer outline-none"
           >
-            <option value="1 giờ">1 giờ gần nhất</option>
-            <option value="8 giờ">8 giờ (Cả ca)</option>
-            <option value="24 giờ">24 giờ (1 ngày)</option>
+            <option value={tr("1 giờ")}>{tr("1 giờ gần nhất")}</option>
+            <option value={tr("8 giờ")}>{tr("8 giờ (Cả ca)")}</option>
+            <option value={tr("24 giờ")}>{tr("24 giờ (1 ngày)")}</option>
           </select>
         </div>
 
@@ -364,7 +363,7 @@ export function CheckSheetView({
             className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-2xs transition-all cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            <span>Cập nhật</span>
+            <span>{tr("Cập nhật")}</span>
           </button>
         </div>
       </div>
@@ -373,10 +372,10 @@ export function CheckSheetView({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-            Biểu đồ giám sát theo thông số Mapping ({metricItems.length} thông số)
+            {tr("Biểu đồ giám sát theo thông số Mapping (")}{metricItems.length} {tr("thông số)")}
           </h3>
           <span className="text-[11px] text-slate-400">
-            Tự động hiển thị các đường ngưỡng Warning/Critical theo CSDL
+            {tr("Tự động hiển thị các đường ngưỡng Warning/Critical theo CSDL")}
           </span>
         </div>
 
@@ -396,13 +395,13 @@ export function CheckSheetView({
                         {metric.metricName} {metric.unit ? `(${metric.unit})` : ''}
                       </h4>
                       <p className="text-[10px] font-mono text-slate-400 mt-0.5">
-                        Mã: {metric.metricCode}
+                        {tr("Mã:")} {metric.metricCode}
                       </p>
                     </div>
                   </div>
 
                   <div className="text-right shrink-0">
-                    <p className="text-[10px] text-slate-400 font-medium">Giá trị hiện tại</p>
+                    <p className="text-[10px] text-slate-400 font-medium">{tr("Giá trị hiện tại")}</p>
                     <div className="flex items-center justify-end gap-1.5 mt-0.5">
                       <span className="text-lg font-mono font-black text-slate-900 dark:text-white leading-none">
                         {metric.currentValue}
@@ -501,10 +500,10 @@ export function CheckSheetView({
           <div className="p-10 rounded-2xl border border-dashed border-slate-300 dark:border-factory-border bg-slate-50/50 dark:bg-factory-surface text-center">
             <Cpu className="w-10 h-10 text-slate-400 mx-auto mb-2" />
             <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
-              Thiết bị chưa được cấu hình Metric Mapping
+              {tr("Thiết bị chưa được cấu hình Metric Mapping")}
             </h4>
             <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-              Vui lòng chuyển sang phân hệ <strong>Cấu hình &gt; Mapping &amp; Ngưỡng cảnh báo</strong> để liên kết thông số đo lường cho thiết bị này.
+              {tr("Vui lòng chuyển sang phân hệ")} <strong>{tr("Cấu hình > Mapping & Ngưỡng cảnh báo")}</strong> {tr("để liên kết thông số đo lường cho thiết bị này.")}
             </p>
           </div>
         )}
@@ -515,22 +514,22 @@ export function CheckSheetView({
         {/* Nhóm Pills thống kê */}
         <div className="flex items-center gap-2">
           <div className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-factory-surface text-center">
-            <span className="block text-[9px] text-slate-400 font-bold uppercase">Tổng thông số</span>
+            <span className="block text-[9px] text-slate-400 font-bold uppercase">{tr("Tổng thông số")}</span>
             <span className="text-sm font-mono font-black text-slate-900 dark:text-white">{stats.total}</span>
           </div>
 
           <div className="px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 text-center">
-            <span className="block text-[9px] text-emerald-600 font-bold uppercase">Bình thường</span>
+            <span className="block text-[9px] text-emerald-600 font-bold uppercase">{tr("Bình thường")}</span>
             <span className="text-sm font-mono font-black text-emerald-700 dark:text-emerald-400">{stats.normal}</span>
           </div>
 
           <div className="px-3 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 text-center">
-            <span className="block text-[9px] text-amber-600 font-bold uppercase">Cảnh báo</span>
+            <span className="block text-[9px] text-amber-600 font-bold uppercase">{tr("Cảnh báo")}</span>
             <span className="text-sm font-mono font-black text-amber-700 dark:text-amber-400">{stats.warning}</span>
           </div>
 
           <div className="px-3 py-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 text-center">
-            <span className="block text-[9px] text-rose-600 font-bold uppercase">Nguy hiểm</span>
+            <span className="block text-[9px] text-rose-600 font-bold uppercase">{tr("Nguy hiểm")}</span>
             <span className="text-sm font-mono font-black text-rose-700 dark:text-rose-400">{stats.critical}</span>
           </div>
         </div>
@@ -548,7 +547,7 @@ export function CheckSheetView({
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white shadow-2xs transition-colors cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            <span>Làm mới</span>
+            <span>{tr("Làm mới")}</span>
           </button>
 
           {/* Nút Check (Đánh giá ngay) */}
@@ -568,7 +567,7 @@ export function CheckSheetView({
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-colors cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Xuất dữ liệu</span>
+            <span>{tr("Xuất dữ liệu")}</span>
           </button>
 
           {/* Nút In Check Sheet */}
@@ -622,7 +621,7 @@ export function CheckSheetView({
       {/* 5. BẢNG KẾT QUẢ KIỂM TRA PHÍA DƯỚI (DETAILED INSPECTION RESULTS TABLE) */}
       <div className="p-5 rounded-2xl border border-slate-200/90 dark:border-factory-border bg-white dark:bg-factory-card shadow-xs">
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
-          Bảng kết quả kiểm tra chi tiết thông số vận hành
+          {tr("Bảng kết quả kiểm tra chi tiết thông số vận hành")}
         </h3>
 
         <div className="overflow-x-auto">
@@ -630,13 +629,13 @@ export function CheckSheetView({
             <thead>
               <tr className="border-b border-slate-100 dark:border-factory-border text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/70 dark:bg-factory-surface">
                 <th className="py-2.5 px-3 w-12 text-center">STT</th>
-                <th className="py-2.5 px-3">THÔNG SỐ</th>
-                <th className="py-2.5 px-3">TÊN HIỂN THỊ</th>
-                <th className="py-2.5 px-3 text-right">GIÁ TRỊ HIỆN TẠI</th>
-                <th className="py-2.5 px-3 text-center">ĐƠN VỊ</th>
-                <th className="py-2.5 px-3 text-center">NGƯỠNG (MIN – MAX)</th>
-                <th className="py-2.5 px-3 text-center">TRẠNG THÁI</th>
-                <th className="py-2.5 px-3 text-right">THỜI GIAN CẬP NHẬT</th>
+                <th className="py-2.5 px-3">{tr("THÔNG SỐ")}</th>
+                <th className="py-2.5 px-3">{tr("TÊN HIỂN THỊ")}</th>
+                <th className="py-2.5 px-3 text-right">{tr("GIÁ TRỊ HIỆN TẠI")}</th>
+                <th className="py-2.5 px-3 text-center">{tr("ĐƠN VỊ")}</th>
+                <th className="py-2.5 px-3 text-center">{tr("NGƯỠNG (MIN – MAX)")}</th>
+                <th className="py-2.5 px-3 text-center">{tr("TRẠNG THÁI")}</th>
+                <th className="py-2.5 px-3 text-right">{tr("THỜI GIAN CẬP NHẬT")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-factory-border">

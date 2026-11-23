@@ -28,6 +28,7 @@ import {
 } from './factoryMapConfig';
 import { useMonitoringStore } from '../../stores/useMonitoringStore';
 import { resolveLineMonitoringState } from '../../utils/machineStatusResolver';
+import { tr } from '../../i18n/tr';
 
 /** Trạng thái sản xuất (mô phỏng) gắn lên một khu vực của sơ đồ */
 export interface ZoneProductionState {
@@ -165,10 +166,10 @@ export function FactoryLayoutMap({
           </div>
           <div>
             <h3 className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
-              Sơ đồ tổng thể nhà máy (Factory Layout)
+              {tr("Sơ đồ tổng thể nhà máy (Factory Layout)")}
             </h3>
             <p className="text-[10px] text-slate-500 dark:text-slate-400">
-              Giám sát trạng thái 87 khu vực. Nhấn vào dây chuyền (viền xanh lá) để xem chi tiết.
+              {tr("Giám sát trạng thái 87 khu vực. Nhấn vào dây chuyền (viền xanh lá) để xem chi tiết.")}
             </p>
           </div>
         </div>
@@ -187,7 +188,7 @@ export function FactoryLayoutMap({
               }`}
             >
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Mức độ an toàn</span>
+              <span>{tr("Mức độ an toàn")}</span>
             </button>
             <button
               type="button"
@@ -199,7 +200,7 @@ export function FactoryLayoutMap({
               }`}
             >
               <Activity className="w-3.5 h-3.5" />
-              <span>Trạng thái</span>
+              <span>{tr("Trạng thái")}</span>
             </button>
           </div>
 
@@ -208,7 +209,7 @@ export function FactoryLayoutMap({
             <button
               type="button"
               onClick={handleZoomIn}
-              title="Phóng to"
+              title={tr("Phóng to")}
               className="p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-factory-card transition-colors cursor-pointer"
             >
               <ZoomIn className="w-3.5 h-3.5" />
@@ -216,7 +217,7 @@ export function FactoryLayoutMap({
             <button
               type="button"
               onClick={handleZoomOut}
-              title="Thu nhỏ"
+              title={tr("Thu nhỏ")}
               className="p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-factory-card transition-colors cursor-pointer"
             >
               <ZoomOut className="w-3.5 h-3.5" />
@@ -224,7 +225,7 @@ export function FactoryLayoutMap({
             <button
               type="button"
               onClick={handleResetZoom}
-              title="Đặt lại tỷ lệ ban đầu"
+              title={tr("Đặt lại tỷ lệ ban đầu")}
               className="p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-factory-card transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -658,11 +659,11 @@ export function FactoryLayoutMap({
               <span className="text-sm">{hoveredZone.name}</span>
               {hoveredZone.isConfiguredLine ? (
                 <span className="ml-1 text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold border border-emerald-300">
-                  Dây chuyền giám sát ({hoveredZone.mappedLineId})
+                  {tr("Dây chuyền giám sát (")}{hoveredZone.mappedLineId})
                 </span>
               ) : (
                 <span className="ml-1 text-[9px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-semibold border border-slate-200">
-                  Chưa kết nối IoT (N/A)
+                  {tr("Chưa kết nối IoT (N/A)")}
                 </span>
               )}
             </div>
@@ -676,7 +677,7 @@ export function FactoryLayoutMap({
             {hoveredZone.isConfiguredLine && hoveredZone.mappedLineId ? (
               <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1">
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-slate-500">Mức an toàn đo lường:</span>
+                  <span className="text-slate-500">{tr("Mức an toàn đo lường:")}</span>
                   <strong
                     className="font-mono font-bold"
                     style={{
@@ -689,13 +690,13 @@ export function FactoryLayoutMap({
                   </strong>
                 </div>
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-slate-500">Trạng thái vận hành:</span>
+                  <span className="text-slate-500">{tr("Trạng thái vận hành:")}</span>
                   <strong className="font-mono text-slate-800 dark:text-slate-200">
-                    {lineDataMap.get(hoveredZone.mappedLineId)?.operatingStatusLabel ?? 'Đang hoạt động'}
+                    {lineDataMap.get(hoveredZone.mappedLineId)?.operatingStatusLabel ?? tr("Đang hoạt động")}
                   </strong>
                 </div>
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-slate-500">Mức độ cảnh báo:</span>
+                  <span className="text-slate-500">{tr("Mức độ cảnh báo:")}</span>
                   <strong
                     className="font-mono font-bold"
                     style={{
@@ -707,20 +708,20 @@ export function FactoryLayoutMap({
                           : '#16A34A',
                     }}
                   >
-                    {lineDataMap.get(hoveredZone.mappedLineId)?.alarmSeverityLabel ?? 'Bình thường'}
+                    {lineDataMap.get(hoveredZone.mappedLineId)?.alarmSeverityLabel ?? tr("Bình thường")}
                   </strong>
                 </div>
                 <p className="text-[10px] text-blue-600 font-semibold mt-1">
-                  &bull; Nhấn vào khu vực để mở Line Overview (Chi tiết dây chuyền)
+                  {tr("• Nhấn vào khu vực để mở Line Overview (Chi tiết dây chuyền)")}
                 </p>
                 <p className="text-[9px] text-slate-400 italic">
-                  * Vị trí liên kết dự kiến trên bản đồ sơ bộ (Đang chờ nhà máy nghiệm thu vị trí thực tế).
+                  {tr("* Vị trí liên kết dự kiến trên bản đồ sơ bộ (Đang chờ nhà máy nghiệm thu vị trí thực tế).")}
                 </p>
               </div>
             ) : (
               <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <p className="text-[11px] text-slate-400">
-                  Khu vực phụ trợ hoặc chưa lắp đặt cảm biến đo lường. Không có dữ liệu đo lường trực tiếp.
+                  {tr("Khu vực phụ trợ hoặc chưa lắp đặt cảm biến đo lường. Không có dữ liệu đo lường trực tiếp.")}
                 </p>
               </div>
             )}
@@ -732,10 +733,10 @@ export function FactoryLayoutMap({
       <div className="px-3.5 py-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50/40 dark:bg-factory-card flex items-center justify-between text-[11px] text-slate-500">
         <span className="flex items-center gap-1.5">
           <Info className="w-3.5 h-3.5 text-blue-500" />
-          <span>Kéo chuột để di chuyển (Pan) &bull; Dùng nút +/- để phóng to/thu nhỏ</span>
+          <span>{tr("Kéo chuột để di chuyển (Pan) • Dùng nút +/- để phóng to/thu nhỏ")}</span>
         </span>
         <span className="font-medium hidden sm:inline text-slate-400">
-          Tổng số: 87 khu vực quy hoạch nhà máy
+          {tr("Tổng số: 87 khu vực quy hoạch nhà máy")}
         </span>
       </div>
     </div>

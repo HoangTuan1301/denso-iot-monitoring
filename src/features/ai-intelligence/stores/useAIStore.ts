@@ -16,6 +16,7 @@ import {
   generatePredictiveOrders,
   answerAssistantQuery,
 } from '../simulation/aiSimulationEngine';
+import { tr } from '../../../i18n/tr';
 
 export interface AIStoreState {
   // Demo Mode & Scenarios
@@ -60,13 +61,13 @@ const INITIAL_CHAT_MESSAGES: AIChatMessage[] = [
   {
     id: 'msg-init-1',
     sender: 'assistant',
-    text: 'Xin chào! Tôi là **Trợ lý AI KaiLink** của DENSO IoT System. Tôi có thể hỗ trợ bạn chẩn đoán sức khỏe thiết bị, giải thích bất thường kỹ thuật và tư vấn kế hoạch bảo trì dự đoán theo thời gian thực.',
+    text: tr("Xin chào! Tôi là **Trợ lý AI KaiLink** của DENSO IoT System. Tôi có thể hỗ trợ bạn chẩn đoán sức khỏe thiết bị, giải thích bất thường kỹ thuật và tư vấn kế hoạch bảo trì dự đoán theo thời gian thực."),
     timestamp: new Date(Date.now() - 15 * 60 * 1000).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
     suggestedPrompts: [
-      'Máy nào hiện đang có nguy cơ hỏng hóc cao nhất?',
-      'Giải thích nguyên nhân cảnh báo nhiệt độ Máy dập MCH-PRS-01',
-      'Đề xuất kế hoạch bảo dưỡng ca này',
-      'Tổng quan sức khỏe 6 thiết bị',
+      tr("Máy nào hiện đang có nguy cơ hỏng hóc cao nhất?"),
+      tr("Giải thích nguyên nhân cảnh báo nhiệt độ Máy dập MCH-PRS-01"),
+      tr("Đề xuất kế hoạch bảo dưỡng ca này"),
+      tr("Tổng quan sức khỏe 6 thiết bị"),
     ],
   },
 ];

@@ -15,6 +15,7 @@ import {
 import { QRCodeSVG } from 'qrcode.react';
 import { Download, Printer, QrCode } from 'lucide-react';
 import { MachineComponent } from '../../types/hierarchy';
+import { tr } from '../../i18n/tr';
 
 interface QRCodeModalProps {
   machine: MachineComponent | null;
@@ -76,8 +77,8 @@ export function QRCodeModal({ machine, isOpen, onClose }: QRCodeModalProps) {
                 <QrCode className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">Mã QR Định Danh Thiết Bị</h3>
-                <p className="text-xs text-gray-400 font-mono">Tầng 2 &bull; {machine.id}</p>
+                <h3 className="text-base font-bold text-white">{tr("Mã QR Định Danh Thiết Bị")}</h3>
+                <p className="text-xs text-gray-400 font-mono">{tr("Tầng 2 •")} {machine.id}</p>
               </div>
             </ModalHeader>
 
@@ -100,19 +101,19 @@ export function QRCodeModal({ machine, isOpen, onClose }: QRCodeModalProps) {
               {/* Thông tin thiết bị đính kèm */}
               <div className="w-full mt-5 bg-factory-bg/80 p-3.5 rounded-xl border border-factory-border/70 text-left space-y-2 text-xs">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Tên thiết bị:</span>
+                  <span className="text-gray-400">{tr("Tên thiết bị:")}</span>
                   <span className="font-semibold text-white">{machine.name}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Model máy:</span>
+                  <span className="text-gray-400">{tr("Model máy:")}</span>
                   <span className="font-mono text-blue-400 font-medium">{machine.model}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Vị trí lắp đặt:</span>
+                  <span className="text-gray-400">{tr("Vị trí lắp đặt:")}</span>
                   <span className="text-gray-300">{machine.location}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Trạng thái:</span>
+                  <span className="text-gray-400">{tr("Trạng thái:")}</span>
                   <Chip
                     size="sm"
                     color={
@@ -130,13 +131,13 @@ export function QRCodeModal({ machine, isOpen, onClose }: QRCodeModalProps) {
                 </div>
               </div>
               <p className="text-[11px] text-gray-500 mt-2">
-                * Thợ kỹ thuật có thể quét mã QR này bằng camera thiết bị để mở nhanh thông số Tầng 3.
+                {tr("* Thợ kỹ thuật có thể quét mã QR này bằng camera thiết bị để mở nhanh thông số Tầng 3.")}
               </p>
             </ModalBody>
 
             <ModalFooter className="flex justify-between">
               <Button size="sm" variant="light" color="default" onPress={onClose}>
-                Đóng
+                {tr("Đóng")}
               </Button>
               <div className="flex gap-2">
                 <Button
@@ -155,7 +156,7 @@ export function QRCodeModal({ machine, isOpen, onClose }: QRCodeModalProps) {
                   startContent={<Download className="w-4 h-4" />}
                   onPress={handleDownloadQR}
                 >
-                  Tải Mã SVG
+                  {tr("Tải Mã SVG")}
                 </Button>
               </div>
             </ModalFooter>

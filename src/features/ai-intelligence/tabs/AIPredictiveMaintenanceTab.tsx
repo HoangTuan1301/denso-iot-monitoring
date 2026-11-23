@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { AIPredictiveOrder, MaintenancePriority } from '../types/ai';
 import { AIProcessedMachine } from '../adapters/aiTelemetryAdapter';
+import { tr } from '../../../i18n/tr';
 
 interface AIPredictiveMaintenanceTabProps {
   allMachines?: AIProcessedMachine[];
@@ -94,26 +95,26 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
       case 'P1_CRITICAL':
         return (
           <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-rose-500 text-white shadow-2xs">
-            P1 - Khẩn cấp
+            {tr("P1 - Khẩn cấp")}
           </span>
         );
       case 'P2_HIGH':
         return (
           <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500 text-white shadow-2xs">
-            P2 - Ưu tiên cao
+            {tr("P2 - Ưu tiên cao")}
           </span>
         );
       case 'P3_MEDIUM':
         return (
           <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-sky-500 text-white shadow-2xs">
-            P3 - Theo dõi
+            {tr("P3 - Theo dõi")}
           </span>
         );
       case 'P4_ROUTINE':
       default:
         return (
           <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-500 text-white shadow-2xs">
-            P4 - Định kỳ
+            {tr("P4 - Định kỳ")}
           </span>
         );
     }
@@ -126,7 +127,7 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
             <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
-            Đang triển khai
+            {tr("Đang triển khai")}
           </span>
         );
       case 'PLANNED':
@@ -134,7 +135,7 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-            Đã lên kế hoạch
+            {tr("Đã lên kế hoạch")}
           </span>
         );
       case 'PENDING':
@@ -142,7 +143,7 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
             <Clock className="w-3.5 h-3.5 text-rose-500" />
-            Chờ xử lý
+            {tr("Chờ xử lý")}
           </span>
         );
     }
@@ -157,12 +158,12 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
         <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
           <Info className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <span className="font-medium">
-            Đánh giá sức khỏe thiết bị thời gian thực, phát hiện dị biệt và đề xuất kế hoạch bảo trì dự đoán.
+            {tr("Đánh giá sức khỏe thiết bị thời gian thực, phát hiện dị biệt và đề xuất kế hoạch bảo trì dự đoán.")}
           </span>
         </div>
         <div className="flex items-center gap-2 text-[11px]">
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 font-semibold">
-            Mô phỏng an toàn — Cách ly với CSDL &amp; PLC vật lý
+            {tr("Mô phỏng an toàn — Cách ly với CSDL & PLC vật lý")}
           </span>
         </div>
       </div>
@@ -175,13 +176,13 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-              Tổng khuyến nghị bảo trì
+              {tr("Tổng khuyến nghị bảo trì")}
             </span>
             <div className="mt-1 flex items-baseline gap-1.5">
               <span className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
                 {stats.total}
               </span>
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">công việc</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">{tr("công việc")}</span>
             </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-200/80 dark:border-emerald-800/60 shrink-0">
@@ -193,13 +194,13 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-              Ưu tiên cao (P1)
+              {tr("Ưu tiên cao (P1)")}
             </span>
             <div className="mt-1 flex items-baseline gap-1.5">
               <span className="text-2xl font-black text-rose-600 dark:text-rose-400 tracking-tight">
                 {stats.p1Count}
               </span>
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">công việc</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">{tr("công việc")}</span>
             </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center border border-rose-200/80 dark:border-rose-800/60 shrink-0">
@@ -211,13 +212,13 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-              Ưu tiên trung bình (P2)
+              {tr("Ưu tiên trung bình (P2)")}
             </span>
             <div className="mt-1 flex items-baseline gap-1.5">
               <span className="text-2xl font-black text-amber-500 dark:text-amber-400 tracking-tight">
                 {stats.p2Count}
               </span>
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">công việc</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">{tr("công việc")}</span>
             </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-500 dark:text-amber-400 flex items-center justify-center border border-amber-200/80 dark:border-amber-800/60 shrink-0">
@@ -229,13 +230,13 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-              Ưu tiên thấp (P3)
+              {tr("Ưu tiên thấp (P3)")}
             </span>
             <div className="mt-1 flex items-baseline gap-1.5">
               <span className="text-2xl font-black text-sky-600 dark:text-sky-400 tracking-tight">
                 {stats.p3Count}
               </span>
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">công việc</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">{tr("công việc")}</span>
             </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 flex items-center justify-center border border-sky-200/80 dark:border-sky-800/60 shrink-0">
@@ -247,13 +248,13 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-              Định kỳ (P4)
+              {tr("Định kỳ (P4)")}
             </span>
             <div className="mt-1 flex items-baseline gap-1.5">
               <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
                 {stats.p4Count}
               </span>
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">công việc</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">{tr("công việc")}</span>
             </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-200/80 dark:border-emerald-800/60 shrink-0">
@@ -274,10 +275,10 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
             </div>
             <div>
               <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                Danh sách Khuyến nghị Bảo trì Dự đoán
+                {tr("Danh sách Khuyến nghị Bảo trì Dự đoán")}
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Các công việc bảo trì được AI phân tích và đề xuất dựa trên dữ liệu vận hành, xu hướng và bất thường.
+                {tr("Các công việc bảo trì được AI phân tích và đề xuất dựa trên dữ liệu vận hành, xu hướng và bất thường.")}
               </p>
             </div>
           </div>
@@ -286,42 +287,42 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
           <div className="flex flex-wrap items-center gap-2.5">
             {/* Lọc dây chuyền */}
             <select
-              aria-label="Lọc theo dây chuyền"
+              aria-label={tr("Lọc theo dây chuyền")}
               value={lineFilter}
               onChange={(e) => setLineFilter(e.target.value)}
               className="text-xs font-medium px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
             >
-              <option value="ALL">Tất cả dây chuyền</option>
-              <option value="Dập & Hàn">Dập & Hàn Khung Gầm</option>
-              <option value="Gia công cơ khí">Gia công cơ khí</option>
-              <option value="Tiện ích">Tiện ích (Utility)</option>
+              <option value="ALL">{tr("Tất cả dây chuyền")}</option>
+              <option value={tr("Dập & Hàn")}>{tr("Dập & Hàn Khung Gầm")}</option>
+              <option value={tr("Gia công cơ khí")}>{tr("Gia công cơ khí")}</option>
+              <option value={tr("Tiện ích")}>{tr("Tiện ích (Utility)")}</option>
             </select>
 
             {/* Lọc mức ưu tiên */}
             <select
-              aria-label="Lọc theo mức ưu tiên"
+              aria-label={tr("Lọc theo mức ưu tiên")}
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
               className="text-xs font-medium px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
             >
-              <option value="ALL">Tất cả mức ưu tiên</option>
-              <option value="P1_CRITICAL">P1 - Khẩn cấp</option>
-              <option value="P2_HIGH">P2 - Ưu tiên cao</option>
-              <option value="P3_MEDIUM">P3 - Theo dõi</option>
-              <option value="P4_ROUTINE">P4 - Định kỳ</option>
+              <option value="ALL">{tr("Tất cả mức ưu tiên")}</option>
+              <option value="P1_CRITICAL">{tr("P1 - Khẩn cấp")}</option>
+              <option value="P2_HIGH">{tr("P2 - Ưu tiên cao")}</option>
+              <option value="P3_MEDIUM">{tr("P3 - Theo dõi")}</option>
+              <option value="P4_ROUTINE">{tr("P4 - Định kỳ")}</option>
             </select>
 
             {/* Lọc trạng thái */}
             <select
-              aria-label="Lọc theo trạng thái"
+              aria-label={tr("Lọc theo trạng thái")}
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="text-xs font-medium px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
             >
-              <option value="ALL">Tất cả trạng thái</option>
-              <option value="PENDING">Chờ xử lý</option>
-              <option value="IN_PROGRESS">Đang triển khai</option>
-              <option value="PLANNED">Đã lên kế hoạch</option>
+              <option value="ALL">{tr("Tất cả trạng thái")}</option>
+              <option value="PENDING">{tr("Chờ xử lý")}</option>
+              <option value="IN_PROGRESS">{tr("Đang triển khai")}</option>
+              <option value="PLANNED">{tr("Đã lên kế hoạch")}</option>
             </select>
 
             {/* Ô tìm kiếm */}
@@ -329,7 +330,7 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Tìm theo mã, tên máy..."
+                placeholder={tr("Tìm theo mã, tên máy...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
@@ -368,17 +369,17 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
                       {order.machineName}
                     </h4>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                      Mã máy: <span className="font-semibold text-slate-700 dark:text-slate-300">{order.machineCode}</span>
+                      {tr("Mã máy:")} <span className="font-semibold text-slate-700 dark:text-slate-300">{order.machineCode}</span>
                     </p>
                     <p className="text-[11px] text-slate-400">
-                      Dây chuyền: {order.lineName}
+                      {tr("Dây chuyền:")} {order.lineName}
                     </p>
 
                     {/* Mức ưu tiên & Độ tin cậy AI */}
                     <div className="mt-2 flex items-center gap-2">
                       {renderPriorityBadge(order.priority)}
                       <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
-                        <span>Độ tin cậy:</span>
+                        <span>{tr("Độ tin cậy:")}</span>
                         <span className="font-bold text-slate-800 dark:text-slate-200">{confidence}%</span>
                       </div>
                     </div>
@@ -398,7 +399,7 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
                   <div className="space-y-1">
                     <div className="flex items-center gap-1.5 text-[11px] font-semibold text-sky-600 dark:text-sky-400">
                       <Activity className="w-3.5 h-3.5" />
-                      <span>Triệu chứng phát hiện</span>
+                      <span>{tr("Triệu chứng phát hiện")}</span>
                     </div>
                     <p className="text-slate-800 dark:text-slate-200 text-xs leading-relaxed font-medium">
                       {order.symptom}
@@ -409,7 +410,7 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
                   <div className="space-y-1">
                     <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                       <Settings className="w-3.5 h-3.5" />
-                      <span>Nguyên nhân nghi ngờ</span>
+                      <span>{tr("Nguyên nhân nghi ngờ")}</span>
                     </div>
                     <p className="text-slate-600 dark:text-slate-300 text-xs leading-relaxed">
                       {order.rootCause}
@@ -420,7 +421,7 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
                   <div className="space-y-1">
                     <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
                       <TrendingUp className="w-3.5 h-3.5" />
-                      <span>Khuyến nghị xử lý</span>
+                      <span>{tr("Khuyến nghị xử lý")}</span>
                     </div>
                     <p className="text-emerald-800 dark:text-emerald-300 text-xs leading-relaxed font-medium">
                       {order.recommendedAction}
@@ -432,11 +433,11 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
                 <div className="min-w-[150px] space-y-1 text-xs border-t xl:border-t-0 pt-2 xl:pt-0 border-slate-100 dark:border-slate-700/60">
                   <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
                     <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span>Phụ trách: <strong>{order.assignee || 'Trần Văn Minh'}</strong></span>
+                    <span>{tr("Phụ trách:")} <strong>{order.assignee || tr("Trần Văn Minh")}</strong></span>
                   </div>
                   <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-[11px]">
                     <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span>Hạn xử lý: <strong>{order.dueDate || 'Hôm nay, 17:00'}</strong></span>
+                    <span>{tr("Hạn xử lý:")} <strong>{order.dueDate || tr("Hôm nay, 17:00")}</strong></span>
                   </div>
                 </div>
 
@@ -449,7 +450,7 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
                     <button
                       onClick={() => setActiveMenuOrderId(activeMenuOrderId === order.id ? null : order.id)}
                       className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 transition-colors"
-                      title="Tùy chọn bổ sung"
+                      title={tr("Tùy chọn bổ sung")}
                     >
                       <MoreHorizontal className="w-4 h-4" />
                     </button>
@@ -465,7 +466,7 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
                           }}
                           className="w-full text-left px-3 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
                         >
-                          Xem phân tích dị biệt
+                          {tr("Xem phân tích dị biệt")}
                         </button>
                         <button
                           onClick={() => {
@@ -475,7 +476,7 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
                           }}
                           className="w-full text-left px-3 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
                         >
-                          Hỏi trợ lý AI KaiLink
+                          {tr("Hỏi trợ lý AI KaiLink")}
                         </button>
                       </div>
                     )}
@@ -488,7 +489,7 @@ export const AIPredictiveMaintenanceTab: React.FC<AIPredictiveMaintenanceTabProp
           {filteredOrders.length === 0 && (
             <div className="p-12 text-center text-slate-400 text-xs">
               <ClipboardList className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              Không tìm thấy khuyến nghị bảo trì nào phù hợp với bộ lọc hiện tại.
+              {tr("Không tìm thấy khuyến nghị bảo trì nào phù hợp với bộ lọc hiện tại.")}
             </div>
           )}
         </div>

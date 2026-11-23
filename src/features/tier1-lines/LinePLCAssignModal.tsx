@@ -27,6 +27,7 @@ import {
 import { ProductionLine } from '../../types/hierarchy';
 import { apiClient } from '../../services/api';
 import { useMonitoringStore } from '../../stores/useMonitoringStore';
+import { tr } from '../../i18n/tr';
 
 interface LinePLCAssignModalProps {
   isOpen: boolean;
@@ -84,7 +85,7 @@ export function LinePLCAssignModal({
           }
         })
         .catch((err) => {
-          setGeneralError(err.message || 'Không thể tải danh sách trạm PLC');
+          setGeneralError(err.message || tr("Không thể tải danh sách trạm PLC"));
         })
         .finally(() => {
           setIsLoadingStations(false);
@@ -106,17 +107,17 @@ export function LinePLCAssignModal({
 
   const handleSubmit = async () => {
     if (!selectedPlcId) {
-      setGeneralError('Vui lòng chọn một trạm PLC.');
+      setGeneralError(tr("Vui lòng chọn một trạm PLC."));
       return;
     }
 
     if (isDemoPLC) {
-      setGeneralError('Không được phép gán trạm PLC Demo cho dây chuyền sản xuất thực tế.');
+      setGeneralError(tr("Không được phép gán trạm PLC Demo cho dây chuyền sản xuất thực tế."));
       return;
     }
 
     if (isDisabledPLC) {
-      setGeneralError('Trạm PLC này đang bị vô hiệu hóa, không được phép gán vận hành.');
+      setGeneralError(tr("Trạm PLC này đang bị vô hiệu hóa, không được phép gán vận hành."));
       return;
     }
 
@@ -130,7 +131,7 @@ export function LinePLCAssignModal({
         confirmSourceTransfer,
       });
 
-      setSuccessMessage(res.message || 'Gán trạm PLC cho dây chuyền thành công!');
+      setSuccessMessage(res.message || tr("Gán trạm PLC cho dây chuyền thành công!"));
       setTimeout(() => {
         onAssigned?.();
         onClose();
@@ -140,7 +141,7 @@ export function LinePLCAssignModal({
       if (err.status === 409 || err.errorCode) {
         setConflictError({
           code: err.errorCode || 'CONFLICT',
-          message: err.message || 'Xung đột khi gán trạm PLC.',
+          message: err.message || tr("Xung đột khi gán trạm PLC."),
           currentPlcName: err.currentPlcName,
           sourceLineName: err.sourceLineName,
         });
@@ -153,7 +154,7 @@ export function LinePLCAssignModal({
           setConfirmSourceTransfer(true);
         }
       } else {
-        setGeneralError(err.message || 'Có lỗi xảy ra khi gán trạm PLC cho dây chuyền.');
+        setGeneralError(err.message || tr("Có lỗi xảy ra khi gán trạm PLC cho dây chuyền."));
       }
     } finally {
       setIsSubmitting(false);
@@ -182,10 +183,10 @@ export function LinePLCAssignModal({
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  Gán / Chuyển Giao Trạm PLC Cho Dây Chuyền
+                  {tr("Gán / Chuyển Giao Trạm PLC Cho Dây Chuyền")}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">
-                  Dây chuyền: <span className="font-semibold text-slate-700 dark:text-slate-300">{line.name}</span> ({line.code})
+                  {tr("Dây chuyền:")} <span className="font-semibold text-slate-700 dark:text-slate-300">{line.name}</span> ({line.code})
                 </p>
               </div>
             </ModalHeader>
@@ -195,15 +196,15 @@ export function LinePLCAssignModal({
               <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    Trạng Thái Trạm PLC Hiện Tại Của Dây Chuyền
+                    {tr("Trạng Thái Trạm PLC Hiện Tại Của Dây Chuyền")}
                   </span>
                   {currentPlcId ? (
                     <Chip size="sm" color="success" variant="flat" className="font-semibold">
-                      Đã gán PLC
+                      {tr("Đã gán PLC")}
                     </Chip>
                   ) : (
                     <Chip size="sm" color="default" variant="flat" className="text-slate-500 font-semibold">
-                      Chưa gán PLC
+                      {tr("Chưa gán PLC")}
                     </Chip>
                   )}
                 </div>
@@ -217,7 +218,7 @@ export function LinePLCAssignModal({
                   </div>
                 ) : (
                   <p className="text-xs text-slate-500 italic">
-                    Dây chuyền chưa được liên kết với bất kỳ trạm PLC nào. Các máy trong dây chuyền hiện chưa có nguồn PLC.
+                    {tr("Dây chuyền chưa được liên kết với bất kỳ trạm PLC nào. Các máy trong dây chuyền hiện chưa có nguồn PLC.")}
                   </p>
                 )}
               </div>
@@ -225,10 +226,10 @@ export function LinePLCAssignModal({
               {/* Lựa chọn trạm PLC */}
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
-                  <span>Chọn Trạm PLC Liên Kết:</span>
+                  <span>{tr("Chọn Trạm PLC Liên Kết:")}</span>
                   {isLoadingStations && (
                     <span className="text-[11px] text-blue-500 flex items-center gap-1">
-                      <Loader2 className="w-3 h-3 animate-spin" /> Đang tải danh sách...
+                      <Loader2 className="w-3 h-3 animate-spin" /> {tr("Đang tải danh sách...")}
                     </span>
                   )}
                 </label>
@@ -236,7 +237,7 @@ export function LinePLCAssignModal({
                 <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                   {stations.length === 0 && !isLoadingStations && (
                     <div className="text-center py-6 text-xs text-slate-500 border border-dashed rounded-xl">
-                      Không có trạm PLC nào trong hệ thống.
+                      {tr("Không có trạm PLC nào trong hệ thống.")}
                     </div>
                   )}
 
@@ -270,18 +271,18 @@ export function LinePLCAssignModal({
                               )}
                               {isCurDisabled && (
                                 <Chip size="sm" color="danger" variant="flat" className="text-[10px] h-5">
-                                  Vô hiệu hóa
+                                  {tr("Vô hiệu hóa")}
                                 </Chip>
                               )}
                               {isCurAssignedToThis && (
                                 <Chip size="sm" color="success" variant="flat" className="text-[10px] h-5">
-                                  Đang gắn dây chuyền này
+                                  {tr("Đang gắn dây chuyền này")}
                                 </Chip>
                               )}
                             </div>
                             <div className="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-                              <span>Mã: {st.id}</span>
-                              <span>Giao thức: {st.protocol}</span>
+                              <span>{tr("Mã:")} {st.id}</span>
+                              <span>{tr("Giao thức:")} {st.protocol}</span>
                               <span>IP: {st.ipAddress}:{st.port}</span>
                             </div>
                           </div>
@@ -300,7 +301,7 @@ export function LinePLCAssignModal({
                         {isCurAssignedToOther && (
                           <div className="mt-2 text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1.5 pt-1.5 border-t border-slate-100 dark:border-slate-800/80">
                             <ArrowRightLeft className="w-3.5 h-3.5 shrink-0" />
-                            <span>Đang thuộc dây chuyền khác: <span className="font-semibold">{st.line_id}</span></span>
+                            <span>{tr("Đang thuộc dây chuyền khác:")} <span className="font-semibold">{st.line_id}</span></span>
                           </div>
                         )}
                       </div>
@@ -314,9 +315,9 @@ export function LinePLCAssignModal({
                 <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs flex items-start gap-2.5">
                   <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-bold">Không được phép gán trạm PLC Demo</p>
+                    <p className="font-bold">{tr("Không được phép gán trạm PLC Demo")}</p>
                     <p className="mt-0.5 text-[11px] opacity-90">
-                      Chính sách an toàn DENSO nghiêm cấm gắn trạm PLC Demo vào dây chuyền sản xuất thật. Vui lòng chọn một trạm PLC công nghiệp hợp lệ.
+                      {tr("Chính sách an toàn DENSO nghiêm cấm gắn trạm PLC Demo vào dây chuyền sản xuất thật. Vui lòng chọn một trạm PLC công nghiệp hợp lệ.")}
                     </p>
                   </div>
                 </div>
@@ -326,9 +327,9 @@ export function LinePLCAssignModal({
                 <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-400 text-xs flex items-start gap-2.5">
                   <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-bold">Trạm PLC đang bị vô hiệu hóa</p>
+                    <p className="font-bold">{tr("Trạm PLC đang bị vô hiệu hóa")}</p>
                     <p className="mt-0.5 text-[11px] opacity-90">
-                      Không thể kích hoạt kết nối với trạm PLC bị vô hiệu hóa. Vui lòng bật kích hoạt trạm PLC trong phần Quản lý Trạm PLC trước.
+                      {tr("Không thể kích hoạt kết nối với trạm PLC bị vô hiệu hóa. Vui lòng bật kích hoạt trạm PLC trong phần Quản lý Trạm PLC trước.")}
                     </p>
                   </div>
                 </div>
@@ -339,7 +340,7 @@ export function LinePLCAssignModal({
                 <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs space-y-3">
                   <div className="flex items-start gap-2 font-bold">
                     <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
-                    <span>Yêu Cầu Xác Nhận Thay Thế & Chuyển Giao Trạm PLC:</span>
+                    <span>{tr("Yêu Cầu Xác Nhận Thay Thế & Chuyển Giao Trạm PLC:")}</span>
                   </div>
 
                   {conflictError && (
@@ -358,7 +359,7 @@ export function LinePLCAssignModal({
                           className="mt-0.5 rounded text-amber-600 focus:ring-amber-500"
                         />
                         <span className="text-[11px] leading-snug">
-                          <strong>Xác nhận thay thế trạm PLC hiện tại của Dây chuyền</strong>: Đồng ý gỡ bỏ trạm PLC cũ khỏi dây chuyền này. Các kênh đo lường liên kết của các máy trong dây chuyền sẽ được ngắt kết nối an toàn.
+                          <strong>{tr("Xác nhận thay thế trạm PLC hiện tại của Dây chuyền")}</strong>{tr(": Đồng ý gỡ bỏ trạm PLC cũ khỏi dây chuyền này. Các kênh đo lường liên kết của các máy trong dây chuyền sẽ được ngắt kết nối an toàn.")}
                         </span>
                       </label>
                     )}
@@ -372,7 +373,7 @@ export function LinePLCAssignModal({
                           className="mt-0.5 rounded text-amber-600 focus:ring-amber-500"
                         />
                         <span className="text-[11px] leading-snug">
-                          <strong>Xác nhận chuyển giao trạm PLC từ Dây chuyền khác</strong>: Đồng ý ngắt trạm PLC khỏi dây chuyền nguồn ({selectedPlc?.line_id || conflictError?.sourceLineName}) để chuyển giao sang dây chuyền này.
+                          <strong>{tr("Xác nhận chuyển giao trạm PLC từ Dây chuyền khác")}</strong>{tr(": Đồng ý ngắt trạm PLC khỏi dây chuyền nguồn (")}{selectedPlc?.line_id || conflictError?.sourceLineName}{tr(") để chuyển giao sang dây chuyền này.")}
                         </span>
                       </label>
                     )}
@@ -406,7 +407,7 @@ export function LinePLCAssignModal({
                 disabled={isSubmitting}
                 className="font-medium"
               >
-                Đóng
+                {tr("Đóng")}
               </Button>
               <Button
                 size="sm"
@@ -416,7 +417,7 @@ export function LinePLCAssignModal({
                 disabled={isSubmitting || !selectedPlcId || isDemoPLC || isDisabledPLC}
                 className="font-bold bg-blue-600 hover:bg-blue-700 text-white"
               >
-                Xác Nhận Gán PLC
+                {tr("Xác Nhận Gán PLC")}
               </Button>
             </ModalFooter>
           </>

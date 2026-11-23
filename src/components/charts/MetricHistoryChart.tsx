@@ -15,6 +15,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { MetricIndicator } from '../../types/hierarchy';
+import { tr } from '../../i18n/tr';
 
 interface MetricHistoryChartProps {
   metric: MetricIndicator;
@@ -36,9 +37,9 @@ function CustomTooltip({ active, payload, label, unit }: CustomTooltipProps) {
     const value = payload[0].value;
     return (
       <div className="bg-white/95 dark:bg-factory-card/95 border border-slate-200 dark:border-factory-border p-2.5 rounded-lg shadow-xl backdrop-blur-sm text-xs">
-        <p className="text-slate-500 dark:text-gray-400 font-mono mb-1">Thời gian: {label}</p>
+        <p className="text-slate-500 dark:text-gray-400 font-mono mb-1">{tr("Thời gian:")} {label}</p>
         <p className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5 font-mono text-sm">
-          <span>Giá trị:</span>
+          <span>{tr("Giá trị:")}</span>
           <span className="text-emerald-600 dark:text-emerald-400">{value}</span>
           <span className="text-xs text-slate-500 dark:text-gray-400 font-normal">{unit}</span>
         </p>
@@ -78,7 +79,7 @@ export function MetricHistoryChart({
     <div className="w-full">
       <div className="flex flex-wrap items-center justify-between text-xs text-slate-600 dark:text-gray-400 mb-2 gap-2">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-slate-800 dark:text-gray-300">Biến thiên chuỗi thời gian:</span>
+          <span className="font-semibold text-slate-800 dark:text-gray-300">{tr("Biến thiên chuỗi thời gian:")}</span>
           {isDatabaseSource && (
             <span className="px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono">
               MySQL TEST
@@ -96,7 +97,7 @@ export function MetricHistoryChart({
           </span>
           <span className="flex items-center gap-1">
             <span className="w-2.5 h-1.5 rounded-sm bg-emerald-500 inline-block"></span>
-            <span>Thực tế ({metric.unit || 'raw'})</span>
+            <span>{tr("Thực tế (")}{metric.unit || 'raw'})</span>
           </span>
         </div>
       </div>

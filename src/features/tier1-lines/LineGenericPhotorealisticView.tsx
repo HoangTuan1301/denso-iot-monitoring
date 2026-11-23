@@ -23,6 +23,7 @@ import {
   StopCircle,
   X,
 } from 'lucide-react';
+import { tr } from '../../i18n/tr';
 
 export interface StationFlowData {
   id: string;
@@ -98,12 +99,12 @@ export function LineGenericPhotorealisticView({
       const status = live?.status || 'OK';
       const statusLabel =
         status === 'CRITICAL'
-          ? 'Sự cố'
+          ? tr("Sự cố")
           : status === 'WARNING'
-          ? 'Cảnh báo'
+          ? tr("Cảnh báo")
           : status === 'STOPPED' || status === 'OFFLINE'
-          ? 'Tạm dừng'
-          : 'Đang chạy';
+          ? tr("Tạm dừng")
+          : tr("Đang chạy");
 
       return {
         op: cfg.op,
@@ -146,6 +147,9 @@ export function LineGenericPhotorealisticView({
   // Bảo toàn thống kê vận hành nội bộ
   void stats;
 
+  /**
+   * Component render khung sơ đồ dây chuyền trung tâm (dùng chung trong Card và Modal toàn màn hình)
+   */
   /**
    * Component render khung sơ đồ dây chuyền trung tâm (dùng chung trong Card và Modal toàn màn hình)
    */
@@ -196,7 +200,7 @@ export function LineGenericPhotorealisticView({
                         ? 'bg-slate-100/95 dark:bg-slate-900/90 border-slate-400 text-slate-800 dark:text-slate-200'
                         : 'bg-white/95 dark:bg-slate-900/90 border-slate-200/90 dark:border-slate-700/80 hover:border-blue-400 dark:hover:border-blue-500'
                     }`}
-                    title={`Nhấn để mở Machine Detail & CHECK SHEET cho ${st.code} (${st.name})`}
+                    title={tr("Nhấn để mở Machine Detail & CHECK SHEET cho {0} ({1})", st.code, st.name)}
                   >
                     {/* Hàng 1: Mã OP (Màu xanh dương đậm) */}
                     <div className="font-mono font-black text-xs text-blue-600 dark:text-blue-400 tracking-wide leading-none">
@@ -270,7 +274,7 @@ export function LineGenericPhotorealisticView({
                       ? 'bg-blue-500/10 ring-2 ring-blue-500/40 shadow-lg'
                       : 'hover:bg-blue-500/5'
                   }`}
-                  title={`Nhấn vào máy ${st.code} (${st.name}) để xem Machine Detail`}
+                  title={tr("Nhấn vào máy {0} ({1}) để xem Machine Detail", st.code, st.name)}
                 />
               );
             })}
@@ -304,14 +308,14 @@ export function LineGenericPhotorealisticView({
         {/* Góc trên bên phải: 4 Công đoạn + Nút phóng to */}
         <div className="flex items-center gap-2">
           <span className="text-xs font-mono font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-factory-surface px-3 py-1.5 rounded-full border border-slate-200/70 dark:border-slate-700/60 shadow-2xs">
-            {stations.length} Công đoạn
+            {stations.length} {tr("Công đoạn")}
           </span>
 
           <button
             type="button"
             onClick={() => setIsFullscreen(true)}
             className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-2xs cursor-pointer"
-            title="Mở sơ đồ ở chế độ toàn màn hình"
+            title={tr("Mở sơ đồ ở chế độ toàn màn hình")}
           >
             <Maximize2 className="w-4 h-4" />
           </button>
@@ -337,10 +341,10 @@ export function LineGenericPhotorealisticView({
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                    {lineTitle} (Toàn màn hình)
+                    {lineTitle} {tr("(Toàn màn hình)")}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Bấm vào bất kỳ máy nào để mở Machine Detail & CHECK SHEET
+                    {tr("Bấm vào bất kỳ máy nào để mở Machine Detail & CHECK SHEET")}
                   </p>
                 </div>
               </div>
@@ -350,7 +354,7 @@ export function LineGenericPhotorealisticView({
                   type="button"
                   onClick={() => setIsFullscreen(false)}
                   className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
-                  title="Đóng toàn màn hình"
+                  title={tr("Đóng toàn màn hình")}
                 >
                   <Minimize2 className="w-4 h-4" />
                 </button>
@@ -358,7 +362,7 @@ export function LineGenericPhotorealisticView({
                   type="button"
                   onClick={() => setIsFullscreen(false)}
                   className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
-                  title="Đóng"
+                  title={tr("Đóng")}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -370,13 +374,13 @@ export function LineGenericPhotorealisticView({
 
             {/* Chú thích hướng dẫn tương tác */}
             <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200/80 dark:border-slate-800">
-              <span>💡 Nhấp trực tiếp vào máy hoặc thẻ OP để mở nhanh Machine Detail</span>
+              <span>{tr("💡 Nhấp trực tiếp vào máy hoặc thẻ OP để mở nhanh Machine Detail")}</span>
               <button
                 type="button"
                 onClick={() => setIsFullscreen(false)}
                 className="font-bold text-blue-600 hover:underline cursor-pointer"
               >
-                Quay lại giao diện chính
+                {tr("Quay lại giao diện chính")}
               </button>
             </div>
           </div>
@@ -389,19 +393,25 @@ export function LineGenericPhotorealisticView({
 /**
  * Cấu hình chuẩn 4 công đoạn Line 2 (LN-PNT-02)
  */
+/**
+ * Cấu hình chuẩn 4 công đoạn Line 2 (LN-PNT-02)
+ */
 export const LINE2_STATION_CONFIGS: LineStationConfig[] = [
-  { op: 'OP10', code: 'DRY-01', name: 'Lò sấy nhiệt hồng ngoại Kawasumi', defaultId: 'MCH-DRY-01', percentX: 20.0 },
-  { op: 'OP20', code: 'MC-DRY-01', name: 'Trạm sấy hồng ngoại', defaultId: 'MC-DRY-01', percentX: 40.0 },
-  { op: 'OP30', code: 'MC-PNT-01', name: 'Trạm phun sơn tự động', defaultId: 'MC-PNT-01', percentX: 60.0 },
-  { op: 'OP40', code: 'PNT-01', name: 'Buồng phun sơn robot Yaskawa EPX', defaultId: 'MCH-PNT-01', percentX: 80.0 },
+  { op: 'OP10', code: 'DRY-01', name: tr("Lò sấy nhiệt hồng ngoại Kawasumi"), defaultId: 'MCH-DRY-01', percentX: 20.0 },
+  { op: 'OP20', code: 'MC-DRY-01', name: tr("Trạm sấy hồng ngoại"), defaultId: 'MC-DRY-01', percentX: 40.0 },
+  { op: 'OP30', code: 'MC-PNT-01', name: tr("Trạm phun sơn tự động"), defaultId: 'MC-PNT-01', percentX: 60.0 },
+  { op: 'OP40', code: 'PNT-01', name: tr("Buồng phun sơn robot Yaskawa EPX"), defaultId: 'MCH-PNT-01', percentX: 80.0 },
 ];
 
 /**
  * Cấu hình chuẩn 4 công đoạn Line 3 (LN-ASM-03)
  */
+/**
+ * Cấu hình chuẩn 4 công đoạn Line 3 (LN-ASM-03)
+ */
 export const LINE3_STATION_CONFIGS: LineStationConfig[] = [
-  { op: 'OP10', code: 'ASM-01', name: 'Robot siết bulong tự động Atlas Copco', defaultId: 'MCH-ASM-01', percentX: 20.0 },
-  { op: 'OP20', code: 'MC-TST-01', name: 'Trạm kiểm tra chức năng', defaultId: 'MC-TST-01', percentX: 40.0 },
+  { op: 'OP10', code: 'ASM-01', name: tr("Robot siết bulong tự động Atlas Copco"), defaultId: 'MCH-ASM-01', percentX: 20.0 },
+  { op: 'OP20', code: 'MC-TST-01', name: tr("Trạm kiểm tra chức năng"), defaultId: 'MC-TST-01', percentX: 40.0 },
   { op: 'OP30', code: 'MS-10', name: 'Messi', defaultId: 'MCH-MS10', percentX: 60.0 },
-  { op: 'OP40', code: 'TST-01', name: 'Băng chuyền kiểm tra cuối dòng TestBench', defaultId: 'MCH-TST-01', percentX: 80.0 },
+  { op: 'OP40', code: 'TST-01', name: tr("Băng chuyền kiểm tra cuối dòng TestBench"), defaultId: 'MCH-TST-01', percentX: 80.0 },
 ];

@@ -10,6 +10,7 @@ import { useState, useEffect, useRef } from 'react';
 import { RotateCcw, AlertTriangle, Box, Layers } from 'lucide-react';
 import { Line3DScene } from './Line3DScene';
 import { useThemeStore } from '../../../stores/useThemeStore';
+import { tr } from '../../../i18n/tr';
 
 interface StationFlowData {
   id: string;
@@ -60,7 +61,7 @@ export function Line3DView({
   useEffect(() => {
     if (!isWebGLAvailable()) {
       setHasWebGLError(true);
-      setErrorMessage('Trình duyệt hoặc phần cứng hiện tại không hỗ trợ WebGL tăng tốc đồ họa.');
+      setErrorMessage(tr("Trình duyệt hoặc phần cứng hiện tại không hỗ trợ WebGL tăng tốc đồ họa."));
     }
   }, []);
 
@@ -79,10 +80,10 @@ export function Line3DView({
         </div>
         <div>
           <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-            Không thể kích hoạt bộ dựng hình 3D WebGL
+            {tr("Không thể kích hoạt bộ dựng hình 3D WebGL")}
           </h4>
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 max-w-md mx-auto">
-            {errorMessage || 'Sự cố tương thích đồ họa. Hệ thống đã tự động bảo vệ dữ liệu giám sát.'}
+            {errorMessage || tr("Sự cố tương thích đồ họa. Hệ thống đã tự động bảo vệ dữ liệu giám sát.")}
           </p>
         </div>
         <button
@@ -91,7 +92,7 @@ export function Line3DView({
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
         >
           <Layers className="w-4 h-4" />
-          <span>Quay lại Chế độ xem 2D</span>
+          <span>{tr("Quay lại Chế độ xem 2D")}</span>
         </button>
       </div>
     );
@@ -108,7 +109,7 @@ export function Line3DView({
           </span>
           <span className="text-[10px] text-slate-400 hidden sm:inline">•</span>
           <span className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:inline">
-            Nhấn vào bất kỳ máy nào để mở Machine Detail & CHECK SHEET
+            {tr("Nhấn vào bất kỳ máy nào để mở Machine Detail & CHECK SHEET")}
           </span>
         </div>
 
@@ -119,10 +120,10 @@ export function Line3DView({
             type="button"
             onClick={handleResetCamera}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold text-[11px] shadow-2xs transition-colors cursor-pointer"
-            title="Đặt lại camera về góc nhìn toàn cảnh mặc định"
+            title={tr("Đặt lại camera về góc nhìn toàn cảnh mặc định")}
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>Đặt lại góc nhìn</span>
+            <span>{tr("Đặt lại góc nhìn")}</span>
           </button>
         </div>
       </div>

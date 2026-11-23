@@ -54,6 +54,7 @@ import { ProductionLine } from '../../../types/hierarchy';
 import { SemiCircleHealthGauge } from '../components/SemiCircleHealthGauge';
 import { EquipmentRiskHeatmap } from '../components/EquipmentRiskHeatmap';
 import { OEECircularAnalytics } from '../components/OEECircularAnalytics';
+import { tr } from '../../../i18n/tr';
 
 interface AIOverviewTabProps {
   allMachines: AIProcessedMachine[];
@@ -188,10 +189,10 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
   // Dữ liệu biểu đồ Donut Phân bố Mức độ Rủi ro
   const riskDonutData = useMemo(() => {
     return [
-      { name: 'An toàn', value: kpis.normalCount, color: '#10b981' },
-      { name: 'Cảnh báo', value: kpis.warningCount, color: '#f59e0b' },
-      { name: 'Nguy hiểm', value: kpis.criticalCount, color: '#ef4444' },
-      { name: 'Chưa đánh giá', value: kpis.machinesNoData, color: '#94a3b8' },
+      { name: tr("An toàn"), value: kpis.normalCount, color: '#10b981' },
+      { name: tr("Cảnh báo"), value: kpis.warningCount, color: '#f59e0b' },
+      { name: tr("Nguy hiểm"), value: kpis.criticalCount, color: '#ef4444' },
+      { name: tr("Chưa đánh giá"), value: kpis.machinesNoData, color: '#94a3b8' },
     ];
   }, [kpis]);
 
@@ -216,7 +217,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
               <Layers className="w-3.5 h-3.5" />
             </div>
             <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
-              Tổng thiết bị
+              {tr("Tổng thiết bị")}
             </span>
           </div>
           <div className="mt-2 relative z-10">
@@ -224,10 +225,10 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
               <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                 {kpis.totalMachines}
               </span>
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">máy</span>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{tr("máy")}</span>
             </div>
             <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-0.5 truncate">
-              Thiết bị giám sát
+              {tr("Thiết bị giám sát")}
             </p>
           </div>
           {/* Họa tiết robot công nghiệp mờ góc phải dưới */}
@@ -252,7 +253,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
               <Database className="w-3.5 h-3.5" />
             </div>
             <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
-              Có dữ liệu
+              {tr("Có dữ liệu")}
             </span>
           </div>
           <div className="mt-2 flex items-center justify-between gap-1.5">
@@ -261,10 +262,10 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
                 <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                   {kpis.machinesWithData}
                 </span>
-                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">máy</span>
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{tr("máy")}</span>
               </div>
               <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-0.5 truncate">
-                {kpis.dataRatioPercent}% tổng thiết bị
+                {kpis.dataRatioPercent}{tr("% tổng thiết bị")}
               </p>
             </div>
             <MiniProgressRing
@@ -282,7 +283,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
               <HelpCircle className="w-3.5 h-3.5" />
             </div>
             <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
-              Chưa có dữ liệu
+              {tr("Chưa có dữ liệu")}
             </span>
           </div>
           <div className="mt-2 flex items-center justify-between gap-1.5">
@@ -291,10 +292,10 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
                 <span className="text-2xl font-black text-slate-700 dark:text-slate-300 tracking-tight">
                   {kpis.machinesNoData}
                 </span>
-                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">máy</span>
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{tr("máy")}</span>
               </div>
               <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-0.5 truncate">
-                {Math.max(0, 100 - kpis.dataRatioPercent)}% tổng thiết bị
+                {Math.max(0, 100 - kpis.dataRatioPercent)}{tr("% tổng thiết bị")}
               </p>
             </div>
             <MiniProgressRing
@@ -312,7 +313,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
               <ShieldCheck className="w-3.5 h-3.5" />
             </div>
             <span className="text-xs font-bold text-emerald-800 dark:text-emerald-200 truncate">
-              An toàn
+              {tr("An toàn")}
             </span>
           </div>
           <div className="mt-2">
@@ -320,10 +321,10 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
               <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
                 {kpis.normalCount}
               </span>
-              <span className="text-xs font-semibold text-emerald-700/80 dark:text-emerald-400">máy</span>
+              <span className="text-xs font-semibold text-emerald-700/80 dark:text-emerald-400">{tr("máy")}</span>
             </div>
             <p className="text-[11px] font-medium text-emerald-700/80 dark:text-emerald-400/80 mt-0.5 truncate">
-              {kpis.machinesWithData > 0 ? Math.round((kpis.normalCount / kpis.machinesWithData) * 100) : 0}% (trên máy có dữ liệu)
+              {kpis.machinesWithData > 0 ? Math.round((kpis.normalCount / kpis.machinesWithData) * 100) : 0}{tr("% (trên máy có dữ liệu)")}
             </p>
           </div>
         </div>
@@ -335,7 +336,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
               <AlertTriangle className="w-3.5 h-3.5" />
             </div>
             <span className="text-xs font-bold text-amber-800 dark:text-amber-200 truncate">
-              Cảnh báo
+              {tr("Cảnh báo")}
             </span>
           </div>
           <div className="mt-2">
@@ -343,10 +344,10 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
               <span className="text-2xl font-black text-amber-600 dark:text-amber-400 tracking-tight">
                 {kpis.warningCount}
               </span>
-              <span className="text-xs font-semibold text-amber-700/80 dark:text-amber-400">máy</span>
+              <span className="text-xs font-semibold text-amber-700/80 dark:text-amber-400">{tr("máy")}</span>
             </div>
             <p className="text-[11px] font-medium text-amber-700/80 dark:text-amber-400/80 mt-0.5 truncate">
-              {kpis.machinesWithData > 0 ? Math.round((kpis.warningCount / kpis.machinesWithData) * 100) : 0}% (trên máy có dữ liệu)
+              {kpis.machinesWithData > 0 ? Math.round((kpis.warningCount / kpis.machinesWithData) * 100) : 0}{tr("% (trên máy có dữ liệu)")}
             </p>
           </div>
         </div>
@@ -370,7 +371,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
               <ShieldAlert className="w-3.5 h-3.5" />
             </div>
             <span className="text-xs font-bold text-rose-800 dark:text-rose-200 truncate">
-              Nguy hiểm
+              {tr("Nguy hiểm")}
             </span>
           </div>
           <div className="mt-2">
@@ -378,10 +379,10 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
               <span className="text-2xl font-black text-rose-600 dark:text-rose-400 tracking-tight">
                 {kpis.criticalCount}
               </span>
-              <span className="text-xs font-semibold text-rose-700/80 dark:text-rose-400">máy</span>
+              <span className="text-xs font-semibold text-rose-700/80 dark:text-rose-400">{tr("máy")}</span>
             </div>
             <p className="text-[11px] font-medium text-rose-700/80 dark:text-rose-400/80 mt-0.5 truncate">
-              {kpis.machinesWithData > 0 ? Math.round((kpis.criticalCount / kpis.machinesWithData) * 100) : 0}% (trên máy có dữ liệu)
+              {kpis.machinesWithData > 0 ? Math.round((kpis.criticalCount / kpis.machinesWithData) * 100) : 0}{tr("% (trên máy có dữ liệu)")}
             </p>
           </div>
         </div>
@@ -393,7 +394,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
               <Activity className="w-3.5 h-3.5" />
             </div>
             <span className="text-xs font-bold text-teal-800 dark:text-teal-200 truncate">
-              OEE (ước tính)
+              {tr("OEE (ước tính)")}
             </span>
           </div>
           <div className="mt-2">
@@ -403,7 +404,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
               </span>
             </div>
             <p className="text-[11px] font-medium text-teal-700/80 dark:text-teal-400/80 mt-0.5 truncate">
-              Hiệu suất thiết bị tổng thể
+              {tr("Hiệu suất thiết bị tổng thể")}
             </p>
           </div>
         </div>
@@ -418,25 +419,25 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
           <div className="flex items-center gap-2 pb-2 mb-1 border-b border-slate-100 dark:border-slate-700/60">
             <Activity className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
-              Điểm Sức khỏe Nhà máy
+              {tr("Điểm Sức khỏe Nhà máy")}
             </h4>
           </div>
 
           <div className="py-2">
             <SemiCircleHealthGauge
               score={kpis.avgHealthScore ?? 98}
-              subtitle={`Trung bình (${kpis.machinesWithData} máy có dữ liệu)`}
+              subtitle={tr("Trung bình ({0} máy có dữ liệu)", kpis.machinesWithData)}
               trendText={
                 kpis.hasActiveEmergency
-                  ? '▼ -40.0 điểm (Diễn tập sự cố Header)'
-                  : '▲ +1.2 điểm so với 24h trước'
+                  ? tr("▼ -40.0 điểm (Diễn tập sự cố Header)")
+                  : tr("▲ +1.2 điểm so với 24h trước")
               }
               isSpike={kpis.hasActiveEmergency}
             />
           </div>
 
           <div className="pt-2 text-[10px] text-slate-400 text-center border-t border-slate-100 dark:border-slate-800">
-            Tổng hợp dữ liệu cảm biến đa chiều (Nhiệt, Rung, Áp, Dòng)
+            {tr("Tổng hợp dữ liệu cảm biến đa chiều (Nhiệt, Rung, Áp, Dòng)")}
           </div>
         </div>
 
@@ -446,7 +447,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                Xu hướng Sức khỏe &amp; Cảnh báo
+                {tr("Xu hướng Sức khỏe & Cảnh báo")}
               </h4>
             </div>
 
@@ -454,15 +455,15 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
             <div className="flex items-center gap-2.5 text-[10px]">
               <div className="flex items-center gap-1">
                 <span className="w-2.5 h-1.5 rounded-sm bg-emerald-500" />
-                <span className="text-slate-600 dark:text-slate-400">Health Score (TB)</span>
+                <span className="text-slate-600 dark:text-slate-400">{tr("Điểm sức khỏe (TB)")}</span>
               </div>
               <div className="flex items-center gap-1">
                 <span className="w-2.5 h-1.5 rounded-sm bg-amber-400" />
-                <span className="text-slate-600 dark:text-slate-400">Số cảnh báo</span>
+                <span className="text-slate-600 dark:text-slate-400">{tr("Số cảnh báo")}</span>
               </div>
               <div className="flex items-center gap-1">
                 <span className="w-2.5 h-1.5 rounded-sm bg-rose-500" />
-                <span className="text-slate-600 dark:text-slate-400">Số bất thường</span>
+                <span className="text-slate-600 dark:text-slate-400">{tr("Số bất thường")}</span>
               </div>
             </div>
           </div>
@@ -494,7 +495,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
                   yAxisId="left"
                   type="monotone"
                   dataKey="healthScore"
-                  name="Điểm sức khỏe (TB)"
+                  name={tr("Điểm sức khỏe (TB)")}
                   stroke="#10b981"
                   strokeWidth={2}
                   fillOpacity={1}
@@ -504,7 +505,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
                   yAxisId="right"
                   type="stepAfter"
                   dataKey="warnings"
-                  name="Số cảnh báo"
+                  name={tr("Số cảnh báo")}
                   stroke="#f59e0b"
                   strokeWidth={1.5}
                   dot={{ r: 2 }}
@@ -513,7 +514,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
                   yAxisId="right"
                   type="stepAfter"
                   dataKey="anomalies"
-                  name="Số bất thường"
+                  name={tr("Số bất thường")}
                   stroke="#ef4444"
                   strokeWidth={2}
                   dot={{ r: 3 }}
@@ -523,7 +524,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
           </div>
 
           <div className="pt-2 text-[10px] text-slate-400 text-center border-t border-slate-100 dark:border-slate-800">
-            Diễn biến điểm số trung bình và số lượng sự kiện bất thường ghi nhận
+            {tr("Diễn biến điểm số trung bình và số lượng sự kiện bất thường ghi nhận")}
           </div>
         </div>
 
@@ -533,7 +534,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
             <div className="flex items-center gap-2">
               <PieChartIcon className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                Phân bố Mức độ Rủi ro
+                {tr("Phân bố Mức độ Rủi ro")}
               </h4>
             </div>
           </div>
@@ -561,7 +562,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
                 <span className="text-xs font-black text-slate-900 dark:text-white leading-tight">
                   {kpis.machinesWithData}
                 </span>
-                <span className="text-[9px] text-slate-400 leading-tight">Có dữ liệu</span>
+                <span className="text-[9px] text-slate-400 leading-tight">{tr("Có dữ liệu")}</span>
               </div>
             </div>
 
@@ -570,39 +571,39 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span>An toàn</span>
+                  <span>{tr("An toàn")}</span>
                 </span>
-                <span className="font-bold text-emerald-600">{kpis.normalCount} máy</span>
+                <span className="font-bold text-emerald-600">{kpis.normalCount} {tr("máy")}</span>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
                   <span className="w-2 h-2 rounded-full bg-amber-400" />
-                  <span>Cảnh báo</span>
+                  <span>{tr("Cảnh báo")}</span>
                 </span>
-                <span className="font-bold text-amber-500">{kpis.warningCount} máy</span>
+                <span className="font-bold text-amber-500">{kpis.warningCount} {tr("máy")}</span>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
                   <span className="w-2 h-2 rounded-full bg-rose-500" />
-                  <span>Nguy hiểm</span>
+                  <span>{tr("Nguy hiểm")}</span>
                 </span>
-                <span className="font-bold text-rose-600">{kpis.criticalCount} máy</span>
+                <span className="font-bold text-rose-600">{kpis.criticalCount} {tr("máy")}</span>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-slate-400">
                   <span className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600" />
-                  <span>Chưa đánh giá</span>
+                  <span>{tr("Chưa đánh giá")}</span>
                 </span>
-                <span className="font-bold text-slate-400">{kpis.machinesNoData} máy</span>
+                <span className="font-bold text-slate-400">{kpis.machinesNoData} {tr("máy")}</span>
               </div>
             </div>
           </div>
 
           <div className="pt-2 text-[10px] text-slate-400 text-center border-t border-slate-100 dark:border-slate-800">
-            Tỷ lệ rủi ro phân loại theo ngưỡng kiểm soát thống kê Z-score
+            {tr("Tỷ lệ rủi ro phân loại theo ngưỡng kiểm soát thống kê Z-score")}
           </div>
         </div>
       </div>
@@ -617,14 +618,14 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
             <div className="flex items-center gap-2">
               <Activity className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                Thiết bị nổi bật cần chú ý
+                {tr("Thiết bị nổi bật cần chú ý")}
               </h4>
             </div>
             <button
               onClick={() => onNavigateToTab && onNavigateToTab('anomaly')}
               className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
             >
-              Xem tất cả
+              {tr("Xem tất cả")}
             </button>
           </div>
 
@@ -658,7 +659,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
                             : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
                         }`}
                       >
-                        {isCrit ? 'CRITICAL' : isWarn ? 'CẢNH BÁO' : 'AN TOÀN'}
+                        {isCrit ? 'CRITICAL' : isWarn ? tr("CẢNH BÁO") : tr("AN TOÀN")}
                       </span>
                     </div>
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate max-w-[150px]">
@@ -685,7 +686,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
           </div>
 
           <div className="pt-2 text-[10px] text-slate-400 text-center">
-            Nhấn vào thiết bị để phân tích chi tiết Z-score
+            {tr("Nhấn vào thiết bị để phân tích chi tiết Z-score")}
           </div>
         </div>
 
@@ -695,10 +696,10 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                Dự đoán Bảo trì (RUL)
+                {tr("Dự đoán Bảo trì (RUL)")}
               </h4>
             </div>
-            <span title="RUL: Thời gian ước tính còn lại trước khi cần bảo trì" className="inline-flex cursor-help">
+            <span title={tr("RUL: Thời gian ước tính còn lại trước khi cần bảo trì")} className="inline-flex cursor-help">
               <Info className="w-3.5 h-3.5 text-slate-400" />
             </span>
           </div>
@@ -706,38 +707,38 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
           {/* RUL Table */}
           <div className="space-y-2 flex-1">
             <div className="grid grid-cols-3 text-[10px] font-bold text-slate-400 pb-1 border-b border-slate-100 dark:border-slate-800">
-              <span>Thiết bị</span>
-              <span className="text-center">RUL ước tính</span>
-              <span className="text-right">Mức rủi ro</span>
+              <span>{tr("Thiết bị")}</span>
+              <span className="text-center">{tr("RUL ước tính")}</span>
+              <span className="text-right">{tr("Mức rủi ro")}</span>
             </div>
 
             <div className="space-y-2 text-xs">
               <div className="grid grid-cols-3 items-center">
                 <span className="font-bold text-slate-800 dark:text-slate-200">ROB-01</span>
-                <span className="text-center font-bold text-rose-600 dark:text-rose-400">~ 7 ngày</span>
+                <span className="text-center font-bold text-rose-600 dark:text-rose-400">{tr("~ 7 ngày")}</span>
                 <div className="text-right">
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200 dark:border-rose-800">
-                    Cao
+                    {tr("Cao")}
                   </span>
                 </div>
               </div>
 
               <div className="grid grid-cols-3 items-center">
                 <span className="font-bold text-slate-800 dark:text-slate-200">PRS-01</span>
-                <span className="text-center font-semibold text-slate-700 dark:text-slate-300">~ 42 ngày</span>
+                <span className="text-center font-semibold text-slate-700 dark:text-slate-300">{tr("~ 42 ngày")}</span>
                 <div className="text-right">
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
-                    Trung bình
+                    {tr("Trung bình")}
                   </span>
                 </div>
               </div>
 
               <div className="grid grid-cols-3 items-center">
                 <span className="font-bold text-slate-800 dark:text-slate-200">WLD-01</span>
-                <span className="text-center font-semibold text-slate-700 dark:text-slate-300">~ 68 ngày</span>
+                <span className="text-center font-semibold text-slate-700 dark:text-slate-300">{tr("~ 68 ngày")}</span>
                 <div className="text-right">
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                    Thấp
+                    {tr("Thấp")}
                   </span>
                 </div>
               </div>
@@ -745,7 +746,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
           </div>
 
           <div className="pt-2 text-[10px] text-slate-400 border-t border-slate-100 dark:border-slate-800">
-            RUL: Thời gian ước tính còn lại trước khi cần bảo trì
+            {tr("RUL: Thời gian ước tính còn lại trước khi cần bảo trì")}
           </div>
         </div>
 
@@ -755,7 +756,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                Hiệu suất &amp; Năng lượng
+                {tr("Hiệu suất & Năng lượng")}
               </h4>
             </div>
           </div>
@@ -766,7 +767,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
               <div className="flex items-center gap-2">
                 <Zap className="w-4 h-4 text-emerald-600" />
                 <div>
-                  <span className="text-[10px] text-slate-400 block">Tiêu thụ điện (24h)</span>
+                  <span className="text-[10px] text-slate-400 block">{tr("Tiêu thụ điện (24h)")}</span>
                   <span className="font-bold text-slate-900 dark:text-slate-100">12,840 kWh</span>
                 </div>
               </div>
@@ -777,8 +778,8 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
               <div className="flex items-center gap-2">
                 <Activity className="w-4 h-4 text-amber-500" />
                 <div>
-                  <span className="text-[10px] text-slate-400 block">Suất tiêu thụ</span>
-                  <span className="font-bold text-slate-900 dark:text-slate-100">0.92 kWh/chi tiết</span>
+                  <span className="text-[10px] text-slate-400 block">{tr("Suất tiêu thụ")}</span>
+                  <span className="font-bold text-slate-900 dark:text-slate-100">{tr("0.92 kWh/chi tiết")}</span>
                 </div>
               </div>
               <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">▼ -4.1%</span>
@@ -788,8 +789,8 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
               <div className="flex items-center gap-2">
                 <Leaf className="w-4 h-4 text-blue-500" />
                 <div>
-                  <span className="text-[10px] text-slate-400 block">Ước tính CO₂</span>
-                  <span className="font-bold text-slate-900 dark:text-slate-100">9.6 tấn</span>
+                  <span className="text-[10px] text-slate-400 block">{tr("Ước tính CO₂")}</span>
+                  <span className="font-bold text-slate-900 dark:text-slate-100">{tr("9.6 tấn")}</span>
                 </div>
               </div>
               <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">▼ -3.6%</span>
@@ -797,7 +798,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
           </div>
 
           <div className="pt-2 text-[10px] text-slate-400 border-t border-slate-100 dark:border-slate-800">
-            Dữ liệu quan trắc trạm biến áp trung thế DENSO
+            {tr("Dữ liệu quan trắc trạm biến áp trung thế DENSO")}
           </div>
         </div>
       </div>
@@ -831,7 +832,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                Dòng thời gian Cảnh báo &amp; Sự kiện
+                {tr("Dòng thời gian Cảnh báo & Sự kiện")}
               </h4>
             </div>
             <span className="text-[10px] font-semibold text-slate-400">Live</span>
@@ -844,9 +845,9 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
                 <AlertOctagon className="w-3.5 h-3.5 text-rose-500 mt-0.5 shrink-0 animate-bounce" />
                 <div>
                   <span className="font-bold text-rose-700 dark:text-rose-300 block text-[11px]">
-                    {criticalMachine.machineCode}: {criticalMachine.keyMetricName} vượt ngưỡng ({criticalMachine.keyMetricValue} {criticalMachine.keyMetricUnit})
+                    {criticalMachine.machineCode}: {criticalMachine.keyMetricName} {tr("vượt ngưỡng (")}{criticalMachine.keyMetricValue} {criticalMachine.keyMetricUnit})
                   </span>
-                  <span className="text-[10px] text-rose-500 dark:text-rose-400">Vừa xong • Diễn tập giả lập sự cố</span>
+                  <span className="text-[10px] text-rose-500 dark:text-rose-400">{tr("Vừa xong • Diễn tập giả lập sự cố")}</span>
                 </div>
               </div>
             ) : null}
@@ -854,28 +855,28 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
             <div className="flex items-start gap-2 text-slate-700 dark:text-slate-300">
               <span className="text-[10px] font-bold text-slate-400 w-9 shrink-0">10:28</span>
               <div>
-                <p className="font-medium text-[11px]">ROB-01: Hoàn tất đo rung định kỳ (2.1 mm/s)</p>
+                <p className="font-medium text-[11px]">{tr("ROB-01: Hoàn tất đo rung định kỳ (2.1 mm/s)")}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-2 text-slate-700 dark:text-slate-300">
               <span className="text-[10px] font-bold text-slate-400 w-9 shrink-0">09:15</span>
               <div>
-                <p className="font-medium text-[11px]">Hệ thống AI: Bắt đầu chu kỳ giám sát thời gian thực</p>
+                <p className="font-medium text-[11px]">{tr("Hệ thống AI: Bắt đầu chu kỳ giám sát thời gian thực")}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-2 text-slate-700 dark:text-slate-300">
               <span className="text-[10px] font-bold text-slate-400 w-9 shrink-0">08:02</span>
               <div>
-                <p className="font-medium text-[11px]">DC1: Trạng thái 6 thiết bị hoạt động ổn định</p>
+                <p className="font-medium text-[11px]">{tr("DC1: Trạng thái 6 thiết bị hoạt động ổn định")}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-2 text-slate-700 dark:text-slate-300">
               <span className="text-[10px] font-bold text-slate-400 w-9 shrink-0">07:10</span>
               <div>
-                <p className="font-medium text-[11px]">Đồng bộ dữ liệu PLC thành công (10/14)</p>
+                <p className="font-medium text-[11px]">{tr("Đồng bộ dữ liệu PLC thành công (10/14)")}</p>
               </div>
             </div>
           </div>
@@ -885,7 +886,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
               onClick={() => onNavigateToTab && onNavigateToTab('anomaly')}
               className="text-emerald-600 dark:text-emerald-400 hover:underline flex items-center justify-end gap-1 ml-auto font-semibold cursor-pointer"
             >
-              <span>Xem lịch sử chi tiết</span>
+              <span>{tr("Xem lịch sử chi tiết")}</span>
               <ArrowRight className="w-3 h-3" />
             </button>
           </div>
@@ -897,7 +898,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />
               <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                AI Insights &amp; Kế hoạch Hành động
+                {tr("AI Insights & Kế hoạch Hành động")}
               </h4>
             </div>
           </div>
@@ -908,56 +909,56 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
               <div className="p-2.5 rounded-xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-rose-900 dark:text-rose-200 space-y-1">
                 <div className="flex items-center gap-1.5 font-bold text-rose-700 dark:text-rose-300">
                   <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
-                  <span>Phát hiện rủi ro tại {criticalMachine?.machineCode || 'Thiết bị'}</span>
+                  <span>{tr("Phát hiện rủi ro tại")} {criticalMachine?.machineCode || tr("Thiết bị")}</span>
                 </div>
                 <p className="text-[11px] leading-relaxed text-slate-700 dark:text-slate-300">
-                  Thông số {criticalMachine?.keyMetricName} tăng vọt ({criticalMachine?.keyMetricValue} {criticalMachine?.keyMetricUnit}), Z-score: +4.2σ vượt ngưỡng tới hạn. Nguy cơ sự cố cơ khí.
+                  {tr("Thông số")} {criticalMachine?.keyMetricName} {tr("tăng vọt (")}{criticalMachine?.keyMetricValue} {criticalMachine?.keyMetricUnit}{tr("), Z-score: +4.2σ vượt ngưỡng tới hạn. Nguy cơ sự cố cơ khí.")}
                 </p>
               </div>
             ) : (
               <div className="p-2.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 space-y-1">
                 <div className="flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-300">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Hệ thống vận hành tối ưu</span>
+                  <span>{tr("Hệ thống vận hành tối ưu")}</span>
                 </div>
                 <p className="text-[11px] leading-relaxed text-slate-700 dark:text-slate-300">
-                  Toàn bộ thiết bị đang vận hành trong dải định mức an toàn, độ lệch chuẩn Z-score thấp. Không phát hiện dấu hiệu dị biệt nguy hiểm.
+                  {tr("Toàn bộ thiết bị đang vận hành trong dải định mức an toàn, độ lệch chuẩn Z-score thấp. Không phát hiện dấu hiệu dị biệt nguy hiểm.")}
                 </p>
               </div>
             )}
 
             {/* Khuyến nghị hành động (Checklist động theo ngữ cảnh thực tế) */}
             <div className="space-y-1 text-[11px]">
-              <span className="font-bold text-slate-600 dark:text-slate-400">Khuyến nghị:</span>
+              <span className="font-bold text-slate-600 dark:text-slate-400">{tr("Khuyến nghị:")}</span>
               <div className="space-y-1 text-slate-700 dark:text-slate-300">
                 {kpis.hasActiveEmergency || criticalMachine ? (
                   <>
                     <div className="flex items-center gap-1.5">
                       <span className="text-rose-600 font-bold">!</span>
-                      <span>Kiểm tra cụm cảm biến và khu vực vận hành {criticalMachine?.machineCode}.</span>
+                      <span>{tr("Kiểm tra cụm cảm biến và khu vực vận hành")} {criticalMachine?.machineCode}.</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="text-rose-600 font-bold">!</span>
-                      <span>Giảm tải vận hành hoặc cô lập thiết bị để tránh hư hỏng dây chuyền.</span>
+                      <span>{tr("Giảm tải vận hành hoặc cô lập thiết bị để tránh hư hỏng dây chuyền.")}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="text-rose-600 font-bold">!</span>
-                      <span>Tạo phiếu bảo trì ưu tiên cao P1 xử lý ngay trong ca làm việc.</span>
+                      <span>{tr("Tạo phiếu bảo trì ưu tiên cao P1 xử lý ngay trong ca làm việc.")}</span>
                     </div>
                   </>
                 ) : (
                   <>
                     <div className="flex items-center gap-1.5">
                       <span className="text-emerald-600 font-bold">✓</span>
-                      <span>Duy trì chu kỳ kiểm tra định kỳ theo kế hoạch vận hành.</span>
+                      <span>{tr("Duy trì chu kỳ kiểm tra định kỳ theo kế hoạch vận hành.")}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="text-emerald-600 font-bold">✓</span>
-                      <span>Giám sát trực tuyến các thông số nhiệt độ và rung qua telemetry.</span>
+                      <span>{tr("Giám sát trực tuyến các thông số nhiệt độ và rung qua telemetry.")}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="text-emerald-600 font-bold">✓</span>
-                      <span>Chuẩn bị kế hoạch bảo trì phòng ngừa (PM) cho các cụm cơ khí.</span>
+                      <span>{tr("Chuẩn bị kế hoạch bảo trì phòng ngừa (PM) cho các cụm cơ khí.")}</span>
                     </div>
                   </>
                 )}
@@ -971,10 +972,10 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
               type="button"
               onClick={() => onNavigateToTab && onNavigateToTab('predictive')}
               className="inline-flex items-center gap-1.5 px-3 h-8.5 rounded-xl bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-700 dark:bg-slate-750 dark:text-slate-200 dark:hover:bg-emerald-600 border border-slate-200 dark:border-slate-700 transition-all text-xs font-semibold whitespace-nowrap cursor-pointer shadow-2xs"
-              title="Mở phân hệ tạo phiếu bảo trì dự đoán"
+              title={tr("Mở phân hệ tạo phiếu bảo trì dự đoán")}
             >
               <PlusCircle className="w-3.5 h-3.5 text-emerald-600 group-hover:text-white shrink-0" />
-              <span>Tạo phiếu bảo trì</span>
+              <span>{tr("Tạo phiếu bảo trì")}</span>
             </button>
 
             <button
@@ -982,7 +983,7 @@ export const AIOverviewTab: React.FC<AIOverviewTabProps> = ({
               onClick={() => onNavigateToTab && onNavigateToTab('assistant')}
               className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-semibold whitespace-nowrap flex items-center gap-1 cursor-pointer"
             >
-              <span>Xem phân tích</span>
+              <span>{tr("Xem phân tích")}</span>
               <ArrowRight className="w-3 h-3" />
             </button>
           </div>

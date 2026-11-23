@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { ProductionLine } from '../../types/hierarchy';
 import { useMonitoringStore } from '../../stores/useMonitoringStore';
+import { tr } from '../../i18n/tr';
 
 interface LinePLCUnassignModalProps {
   isOpen: boolean;
@@ -44,7 +45,7 @@ export function LinePLCUnassignModal({
   if (!line) return null;
 
   const currentPlcId = line.plc?.id || line.plcId;
-  const plcName = line.plc?.name || line.plcName || currentPlcId || 'Trạm PLC';
+  const plcName = line.plc?.name || line.plcName || currentPlcId || tr("Trạm PLC");
 
   const handleConfirmUnassign = async () => {
     setIsSubmitting(true);
@@ -52,14 +53,14 @@ export function LinePLCUnassignModal({
 
     try {
       const res = await unassignLinePLC(line.id);
-      setSuccessMessage(res.message || 'Gỡ trạm PLC khỏi dây chuyền thành công!');
+      setSuccessMessage(res.message || tr("Gỡ trạm PLC khỏi dây chuyền thành công!"));
       setTimeout(() => {
         onUnassigned?.();
         onClose();
       }, 700);
     } catch (err: any) {
       console.warn('[Unassign Line PLC Error]:', err);
-      setError(err.message || 'Lỗi khi gỡ trạm PLC khỏi dây chuyền.');
+      setError(err.message || tr("Lỗi khi gỡ trạm PLC khỏi dây chuyền."));
     } finally {
       setIsSubmitting(false);
     }
@@ -87,10 +88,10 @@ export function LinePLCUnassignModal({
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  Gỡ Bỏ Trạm PLC Khỏi Dây Chuyền
+                  {tr("Gỡ Bỏ Trạm PLC Khỏi Dây Chuyền")}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">
-                  Ngắt kết nối trạm PLC khỏi dây chuyền sản xuất
+                  {tr("Ngắt kết nối trạm PLC khỏi dây chuyền sản xuất")}
                 </p>
               </div>
             </ModalHeader>
@@ -99,14 +100,14 @@ export function LinePLCUnassignModal({
               <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    Dây Chuyền Sản Xuất
+                    {tr("Dây Chuyền Sản Xuất")}
                   </span>
                   <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                     {line.name}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200 dark:border-slate-800">
-                  <span className="text-slate-500 dark:text-slate-400">Trạm PLC đang gắn:</span>
+                  <span className="text-slate-500 dark:text-slate-400">{tr("Trạm PLC đang gắn:")}</span>
                   <span className="font-bold text-rose-600 dark:text-rose-400">
                     {plcName}
                   </span>
@@ -116,9 +117,9 @@ export function LinePLCUnassignModal({
               <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs flex items-start gap-2.5">
                 <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
                 <div className="space-y-1">
-                  <p className="font-bold">Lưu ý an toàn kỹ thuật:</p>
+                  <p className="font-bold">{tr("Lưu ý an toàn kỹ thuật:")}</p>
                   <p className="text-[11px] leading-relaxed">
-                    Sau khi gỡ bỏ, tất cả các máy trực thuộc dây chuyền này (<span className="font-semibold">{line.machines?.length || 0} máy</span>) sẽ không còn kế thừa trạm PLC, và mọi cấu hình giám sát trực tiếp từ PLC sẽ bị ngắt kết nối an toàn.
+                    {tr("Sau khi gỡ bỏ, tất cả các máy trực thuộc dây chuyền này (")}<span className="font-semibold">{line.machines?.length || 0} {tr("máy")}</span>{tr(") sẽ không còn kế thừa trạm PLC, và mọi cấu hình giám sát trực tiếp từ PLC sẽ bị ngắt kết nối an toàn.")}
                   </p>
                 </div>
               </div>
@@ -147,7 +148,7 @@ export function LinePLCUnassignModal({
                 disabled={isSubmitting}
                 className="font-medium"
               >
-                Hủy Bỏ
+                {tr("Hủy Bỏ")}
               </Button>
               <Button
                 size="sm"
@@ -157,7 +158,7 @@ export function LinePLCUnassignModal({
                 disabled={isSubmitting}
                 className="font-bold bg-rose-600 hover:bg-rose-700 text-white"
               >
-                Xác Nhận Gỡ PLC
+                {tr("Xác Nhận Gỡ PLC")}
               </Button>
             </ModalFooter>
           </>

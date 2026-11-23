@@ -25,7 +25,7 @@ const AIIntelligenceView = lazy(() => import('./features/ai-intelligence/AIIntel
 // Khung chờ hiển thị trong lúc tải chunk của phân hệ
 function ViewSkeleton() {
   return (
-    <div className="space-y-4 animate-pulse" aria-busy="true" aria-label="Đang tải">
+    <div className="space-y-4 animate-pulse" aria-busy="true" aria-label={tr("Đang tải")}>
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {[0, 1, 2, 3].map((i) => (
           <div key={i} className="h-28 rounded-2xl bg-slate-200/70 dark:bg-white/5" />
@@ -42,6 +42,7 @@ import { socketClient } from './services/socket';
 import { Card, CardBody, Button } from '@heroui/react';
 import { QrCode, ShieldAlert } from 'lucide-react';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { tr } from './i18n/tr';
 
 export default function App() {
   const {
@@ -197,13 +198,13 @@ export default function App() {
                   <ShieldAlert className="w-10 h-10" />
                 </div>
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                  Không Đủ Quyền Truy Cập (403 Forbidden)
+                  {tr("Không Đủ Quyền Truy Cập (403 Forbidden)")}
                 </h2>
                 <p className="text-sm text-slate-600 dark:text-slate-400 max-w-lg">
-                  Tài khoản nhân viên vận hành (Operator) không có quyền cấu hình Dây chuyền & Thiết bị. Vui lòng liên hệ Quản trị viên để được hỗ trợ.
+                  {tr("Tài khoản nhân viên vận hành (Operator) không có quyền cấu hình Dây chuyền & Thiết bị. Vui lòng liên hệ Quản trị viên để được hỗ trợ.")}
                 </p>
                 <Button color="primary" variant="solid" className="bg-emerald-600 text-white" onPress={() => setActiveTab('dashboard')}>
-                  Quay Về Dashboard Tổng Quan
+                  {tr("Quay Về Dashboard Tổng Quan")}
                 </Button>
               </CardBody>
             </Card>
@@ -220,13 +221,13 @@ export default function App() {
                   <ShieldAlert className="w-10 h-10" />
                 </div>
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                  Không Đủ Quyền Truy Cập (403 Forbidden)
+                  {tr("Không Đủ Quyền Truy Cập (403 Forbidden)")}
                 </h2>
                 <p className="text-sm text-slate-600 dark:text-slate-400 max-w-lg">
-                  Tài khoản nhân viên vận hành (Operator) không có quyền thay đổi thông số kỹ thuật và cấu hình trạm PLC. Vui lòng liên hệ Admin (<span className="font-mono text-emerald-600 dark:text-emerald-400 font-semibold">admin@denso.com</span>) để được cấp quyền.
+                  {tr("Tài khoản nhân viên vận hành (Operator) không có quyền thay đổi thông số kỹ thuật và cấu hình trạm PLC. Vui lòng liên hệ Admin (")}<span className="font-mono text-emerald-600 dark:text-emerald-400 font-semibold">admin@denso.com</span>{tr(") để được cấp quyền.")}
                 </p>
                 <Button color="primary" variant="solid" className="bg-emerald-600 text-white" onPress={() => setActiveTab('dashboard')}>
-                  Quay Về Dashboard Tổng Quan
+                  {tr("Quay Về Dashboard Tổng Quan")}
                 </Button>
               </CardBody>
             </Card>
@@ -243,13 +244,13 @@ export default function App() {
                   <ShieldAlert className="w-10 h-10" />
                 </div>
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                  Phân Hệ Dành Riêng Cho Quản Trị Viên (Admin)
+                  {tr("Phân Hệ Dành Riêng Cho Quản Trị Viên (Admin)")}
                 </h2>
                 <p className="text-sm text-slate-600 dark:text-slate-400 max-w-lg">
-                  Chỉ Quản trị viên hệ thống (Admin) mới có quyền truy cập trang Quản lý Người dùng & Phân quyền nhân viên.
+                  {tr("Chỉ Quản trị viên hệ thống (Admin) mới có quyền truy cập trang Quản lý Người dùng & Phân quyền nhân viên.")}
                 </p>
                 <Button color="primary" variant="solid" className="bg-emerald-600 text-white" onPress={() => setActiveTab('dashboard')}>
-                  Quay Về Dashboard Tổng Quan
+                  {tr("Quay Về Dashboard Tổng Quan")}
                 </Button>
               </CardBody>
             </Card>
@@ -266,13 +267,13 @@ export default function App() {
                   <ShieldAlert className="w-10 h-10" />
                 </div>
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                  Nhật Ký Kiểm Toán Bị Khóa
+                  {tr("Nhật Ký Kiểm Toán Bị Khóa")}
                 </h2>
                 <p className="text-sm text-slate-600 dark:text-slate-400 max-w-lg">
-                  Nhật ký kiểm toán hệ thống yêu cầu tài khoản Quản trị viên (Admin) hoặc Kỹ thuật bảo trì (Maintenance).
+                  {tr("Nhật ký kiểm toán hệ thống yêu cầu tài khoản Quản trị viên (Admin) hoặc Kỹ thuật bảo trì (Maintenance).")}
                 </p>
                 <Button color="primary" variant="solid" className="bg-emerald-600 text-white" onPress={() => setActiveTab('dashboard')}>
-                  Quay Về Dashboard Tổng Quan
+                  {tr("Quay Về Dashboard Tổng Quan")}
                 </Button>
               </CardBody>
             </Card>
@@ -296,12 +297,12 @@ export default function App() {
               <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400">
                 <QrCode className="w-10 h-10" />
               </div>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Quét Mã QR Thiết Bị Tầng 2</h2>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">{tr("Quét Mã QR Thiết Bị Tầng 2")}</h2>
               <p className="text-sm text-slate-600 dark:text-slate-400 max-w-lg">
-                Hỗ trợ Camera quét QR trên thân máy hoặc mở modal QR tại danh sách thiết bị để tra cứu nhanh thông số đo lường Tầng 3.
+                {tr("Hỗ trợ Camera quét QR trên thân máy hoặc mở modal QR tại danh sách thiết bị để tra cứu nhanh thông số đo lường Tầng 3.")}
               </p>
               <Button color="primary" variant="solid" className="bg-emerald-600 text-white" onPress={() => setActiveTab('lines')}>
-                Đến Danh Sách Thiết Bị & Mã QR
+                {tr("Đến Danh Sách Thiết Bị & Mã QR")}
               </Button>
             </CardBody>
           </Card>
@@ -317,13 +318,13 @@ export default function App() {
                   <ShieldAlert className="w-10 h-10" />
                 </div>
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                  Không Đủ Quyền Truy Cập (403 Forbidden)
+                  {tr("Không Đủ Quyền Truy Cập (403 Forbidden)")}
                 </h2>
                 <p className="text-sm text-slate-600 dark:text-slate-400 max-w-lg">
-                  Tài khoản nhân viên vận hành (Operator) không có quyền truy cập hoặc cấu hình Danh mục Thông số. Vui lòng liên hệ Quản trị viên để được hỗ trợ.
+                  {tr("Tài khoản nhân viên vận hành (Operator) không có quyền truy cập hoặc cấu hình Danh mục Thông số. Vui lòng liên hệ Quản trị viên để được hỗ trợ.")}
                 </p>
                 <Button color="primary" variant="solid" className="bg-emerald-600 text-white" onPress={() => setActiveTab('dashboard')}>
-                  Quay Về Dashboard Tổng Quan
+                  {tr("Quay Về Dashboard Tổng Quan")}
                 </Button>
               </CardBody>
             </Card>
@@ -339,7 +340,7 @@ export default function App() {
   return (
     <MainLayout>
       <ErrorBoundary
-        fallbackTitle="Sự cố hiển thị phân hệ giám sát"
+        fallbackTitle={tr("Sự cố hiển thị phân hệ giám sát")}
         onReset={() => {
           setActiveTab('dashboard');
           useMonitoringStore.getState().setDashboardViewLevel('factory_layout');

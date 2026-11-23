@@ -15,6 +15,7 @@ import {
   LineChart 
 } from 'lucide-react';
 import { MachineComponent } from '../../types/hierarchy';
+import { tr } from '../../i18n/tr';
 
 interface MachineCardProps {
   machine: MachineComponent;
@@ -57,12 +58,12 @@ export function MachineCard({ machine, lineName, onOpenDetails, onOpenQR }: Mach
                 className="font-semibold text-xs capitalize"
               >
                 {isNormal
-                  ? 'Bình thường'
+                  ? tr("Bình thường")
                   : isWarning
-                  ? 'Cảnh báo'
+                  ? tr("Cảnh báo")
                   : isCritical
-                  ? 'Nguy hiểm'
-                  : 'Chưa có dữ liệu'}
+                  ? tr("Nguy hiểm")
+                  : tr("Chưa có dữ liệu")}
               </Chip>
             </div>
             <h3 className="text-sm font-bold text-white mt-1 line-clamp-1">{machine.name}</h3>
@@ -77,7 +78,7 @@ export function MachineCard({ machine, lineName, onOpenDetails, onOpenQR }: Mach
                 </span>
               ) : (
                 <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
-                  MODBUS: KHÔNG KẾT NỐI
+                  {tr("MODBUS: KHÔNG KẾT NỐI")}
                 </span>
               )}
             </div>
@@ -112,8 +113,8 @@ export function MachineCard({ machine, lineName, onOpenDetails, onOpenQR }: Mach
           {/* DANH SÁCH CHỈ SỐ TẦNG 3 TÓM TẮT & HIỆU ỨNG BLINK ANIMATION */}
           <div className="space-y-1.5">
             <div className="flex justify-between items-center text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
-              <span>Chỉ số đo lường ({machine.metrics.length})</span>
-              <span>Giá trị / PLC</span>
+              <span>{tr("Chỉ số đo lường (")}{machine.metrics.length})</span>
+              <span>{tr("Giá trị / PLC")}</span>
             </div>
 
             {machine.metrics.map((metric) => {
@@ -145,7 +146,7 @@ export function MachineCard({ machine, lineName, onOpenDetails, onOpenQR }: Mach
                             ? 'bg-amber-400'
                             : 'bg-rose-500'
                         }`}
-                        title={`Chất lượng dữ liệu: ${quality}`}
+                        title={tr("Chất lượng dữ liệu: {0}", quality)}
                       />
                       <p className="text-gray-300 font-medium truncate">{metric.name}</p>
                     </div>
@@ -201,7 +202,7 @@ export function MachineCard({ machine, lineName, onOpenDetails, onOpenQR }: Mach
       {/* Footer Card: Nút mở Modal Biểu đồ biến thiên */}
       <CardFooter className="p-3 border-t border-factory-border/60 flex justify-between items-center bg-factory-bg/30">
         <span className="text-[10px] text-gray-500 font-mono">
-          {machine.metrics.length} cảm biến
+          {machine.metrics.length} {tr("cảm biến")}
         </span>
         <Button
           size="sm"
@@ -211,7 +212,7 @@ export function MachineCard({ machine, lineName, onOpenDetails, onOpenQR }: Mach
           className="text-xs font-semibold"
           onPress={() => onOpenDetails(machine)}
         >
-          Biểu Đồ & Chi Tiết Tầng 3
+          {tr("Biểu Đồ & Chi Tiết Tầng 3")}
         </Button>
       </CardFooter>
     </Card>

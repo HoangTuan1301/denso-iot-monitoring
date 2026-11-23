@@ -10,6 +10,7 @@ import {
   LINE3_STATION_CONFIGS,
   StationFlowData,
 } from './LineGenericPhotorealisticView';
+import { tr } from '../../i18n/tr';
 
 interface Line3PhotorealisticViewProps {
   flowStations: StationFlowData[];
@@ -26,8 +27,8 @@ export function Line3PhotorealisticView({
     <LineGenericPhotorealisticView
       lineId="LN-ASM-03"
       lineCode="LN-ASM-03"
-      lineTitle="Sơ đồ dây chuyền & trạng thái thiết bị - LN-ASM-03"
-      lineSubtitle="Dây chuyền Assembly – Lắp ráp cụm chi tiết và kiểm tra hoàn thiện"
+      lineTitle={tr("Sơ đồ dây chuyền & trạng thái thiết bị - LN-ASM-03")}
+      lineSubtitle={tr("Dây chuyền Assembly – Lắp ráp cụm chi tiết và kiểm tra hoàn thiện")}
       bgImageUrl="/images/lines/line3-diagram-body.jpg"
       stationConfigs={LINE3_STATION_CONFIGS}
       flowStations={flowStations}

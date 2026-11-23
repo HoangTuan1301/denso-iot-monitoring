@@ -6,6 +6,7 @@
 
 import React from 'react';
 import { Gauge } from 'lucide-react';
+import { tr } from '../../../i18n/tr';
 
 interface OEECircularAnalyticsProps {
   overallOEE?: number;
@@ -32,11 +33,11 @@ export const OEECircularAnalytics: React.FC<OEECircularAnalyticsProps> = ({
         <div className="flex items-center gap-2">
           <Gauge className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
-            Chỉ số Vận hành (OEE)
+            {tr("Chỉ số Vận hành (OEE)")}
           </h4>
         </div>
         <span className="text-[10px] px-1.5 py-0.2 rounded font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-          Ước tính ca
+          {tr("Ước tính ca")}
         </span>
       </div>
 
@@ -77,7 +78,7 @@ export const OEECircularAnalytics: React.FC<OEECircularAnalyticsProps> = ({
             </div>
           </div>
           <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1">
-            OEE Nhà máy
+            {tr("OEE Nhà máy")}
           </span>
         </div>
 
@@ -130,7 +131,7 @@ export const OEECircularAnalytics: React.FC<OEECircularAnalyticsProps> = ({
       {/* Footer disclaimer */}
       <div className="pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[10px] text-slate-400">
         <span>A × P × Q = 87.6%</span>
-        <span>Mô hình định lượng chuẩn DENSO</span>
+        <span>{tr("Mô hình định lượng chuẩn DENSO")}</span>
       </div>
     </div>
   );

@@ -11,6 +11,7 @@
 
 import { useState, useMemo } from 'react';
 import { Cpu, Box } from 'lucide-react';
+import { tr } from '../i18n/tr';
 
 export interface MachineImageConfig {
   databaseId: string;
@@ -27,119 +28,124 @@ export interface MachineImageConfig {
  * Tuân thủ tuyệt đối quy tắc: Ánh xạ theo Database ID với fallback Machine Code,
  * không phụ thuộc vào tên máy hiển thị.
  */
+/**
+ * Bảng đăng ký ánh xạ 14 thiết bị chuẩn DENSO Smart Factory
+ * Tuân thủ tuyệt đối quy tắc: Ánh xạ theo Database ID với fallback Machine Code,
+ * không phụ thuộc vào tên máy hiển thị.
+ */
 export const MACHINE_IMAGE_REGISTRY: Record<string, MachineImageConfig> = {
   // === DÂY CHUYỀN 1: LN-PRS-01 (Dập & Hàn Khung Gầm) ===
   'MC-ASM-01': {
     databaseId: 'MC-ASM-01',
     machineCode: 'MC-ASM-01',
-    machineName: 'Trạm siết bulong tự động',
+    machineName: tr("Trạm siết bulong tự động"),
     lineId: 'LN-PRS-01',
     imageFileName: 'MC-ASM-01.webp',
     primaryPath: '/images/machines/MC-ASM-01.webp',
-    description: 'Trạm siết bulong mô-men xoắn tự động đa trục',
+    description: tr("Trạm siết bulong mô-men xoắn tự động đa trục"),
   },
   'MC-CYL-01': {
     databaseId: 'MC-CYL-01',
     machineCode: 'MC-CYL-01',
-    machineName: 'Máy dập xi lanh thủy lực',
+    machineName: tr("Máy dập xi lanh thủy lực"),
     lineId: 'LN-PRS-01',
     imageFileName: 'MC-CYL-01.webp',
     primaryPath: '/images/machines/MC-CYL-01.webp',
-    description: 'Máy ép/dập xi-lanh thủy lực áp suất cao SMC',
+    description: tr("Máy ép/dập xi-lanh thủy lực áp suất cao SMC"),
   },
   'MC-FDR-01': {
     databaseId: 'MC-FDR-01',
     machineCode: 'MC-FDR-01',
-    machineName: 'Máy cấp phôi tự động',
+    machineName: tr("Máy cấp phôi tự động"),
     lineId: 'LN-PRS-01',
     imageFileName: 'MC-FDR-01.webp',
     primaryPath: '/images/machines/MC-FDR-01.webp',
-    description: 'Hệ thống nạp và cấp phôi phôi tự động DENSO-FEED',
+    description: tr("Hệ thống nạp và cấp phôi phôi tự động DENSO-FEED"),
   },
   'MC-TEST-C01': {
     databaseId: 'MC-TEST-C01',
     machineCode: 'MC-PHASE-C',
-    machineName: 'Máy thử nghiệm giai đoạn C',
+    machineName: tr("Máy thử nghiệm giai đoạn C"),
     lineId: 'LN-PRS-01',
     imageFileName: 'MC-PHASE-C.webp',
     primaryPath: '/images/machines/MC-PHASE-C.webp',
-    description: 'Trạm máy thử nghiệm giai đoạn C tích hợp cảm biến IoT Modbus/OPC-UA (CAD chuẩn Mentor)',
+    description: tr("Trạm máy thử nghiệm giai đoạn C tích hợp cảm biến IoT Modbus/OPC-UA (CAD chuẩn Mentor)"),
   },
   'MCH-WLD-01': {
     databaseId: 'MCH-WLD-01',
     machineCode: 'ROB-01',
-    machineName: 'Robot hàn điểm Fanuc R-2000iC',
+    machineName: tr("Robot hàn điểm Fanuc R-2000iC"),
     lineId: 'LN-PRS-01',
     imageFileName: 'ROB-01.webp',
     primaryPath: '/images/machines/ROB-01.webp',
-    description: 'Robot hàn điểm công nghiệp 6 trục Fanuc R-2000iC',
+    description: tr("Robot hàn điểm công nghiệp 6 trục Fanuc R-2000iC"),
   },
   'MCH-PRS-01': {
     databaseId: 'MCH-PRS-01',
     machineCode: 'STP-01',
-    machineName: 'Máy dập thủy lực 500T Komatsu',
+    machineName: tr("Máy dập thủy lực 500T Komatsu"),
     lineId: 'LN-PRS-01',
     imageFileName: 'STP-01.webp',
     primaryPath: '/images/machines/STP-01.webp',
-    description: 'Máy dập thủy lực công suất lớn 500 Tấn Komatsu',
+    description: tr("Máy dập thủy lực công suất lớn 500 Tấn Komatsu"),
   },
 
   // === DÂY CHUYỀN 2: LN-PNT-02 (Sơn Tĩnh Điện) ===
   'MCH-DRY-01': {
     databaseId: 'MCH-DRY-01',
     machineCode: 'DRY-01',
-    machineName: 'Lò sấy nhiệt hồng ngoại Kawasumi',
+    machineName: tr("Lò sấy nhiệt hồng ngoại Kawasumi"),
     lineId: 'LN-PNT-02',
     imageFileName: 'DRY-01-new.png',
     primaryPath: '/images/machines/DRY-01-new.png',
-    description: 'Buồng lò sấy nhiệt hồng ngoại điều nhiệt tự động Kawasumi',
+    description: tr("Buồng lò sấy nhiệt hồng ngoại điều nhiệt tự động Kawasumi"),
   },
   'MC-DRY-01': {
     databaseId: 'MC-DRY-01',
     machineCode: 'MC-DRY-01',
-    machineName: 'Trạm sấy hồng ngoại',
+    machineName: tr("Trạm sấy hồng ngoại"),
     lineId: 'LN-PNT-02',
     imageFileName: 'MC-DRY-01-new.png',
     primaryPath: '/images/machines/MC-DRY-01-new.png',
-    description: 'Trạm tiền sấy hồng ngoại công đoạn sơn',
+    description: tr("Trạm tiền sấy hồng ngoại công đoạn sơn"),
   },
   'MC-PNT-01': {
     databaseId: 'MC-PNT-01',
     machineCode: 'MC-PNT-01',
-    machineName: 'Trạm phun sơn tự động',
+    machineName: tr("Trạm phun sơn tự động"),
     lineId: 'LN-PNT-02',
     imageFileName: 'MC-PNT-01-new.png',
     primaryPath: '/images/machines/MC-PNT-01-new.png',
-    description: 'Trạm phun phủ bề mặt sơn tĩnh điện tự động',
+    description: tr("Trạm phun phủ bề mặt sơn tĩnh điện tự động"),
   },
   'MCH-PNT-01': {
     databaseId: 'MCH-PNT-01',
     machineCode: 'PNT-01',
-    machineName: 'Buồng phun sơn robot Yaskawa EPX',
+    machineName: tr("Buồng phun sơn robot Yaskawa EPX"),
     lineId: 'LN-PNT-02',
     imageFileName: 'PNT-01-new.png',
     primaryPath: '/images/machines/PNT-01-new.png',
-    description: 'Buồng robot sơn cánh tay chuyển động linh hoạt Yaskawa EPX',
+    description: tr("Buồng robot sơn cánh tay chuyển động linh hoạt Yaskawa EPX"),
   },
 
   // === DÂY CHUYỀN 3: LN-ASM-03 (Lắp Ráp Hoàn Thiện) ===
   'MCH-ASM-01': {
     databaseId: 'MCH-ASM-01',
     machineCode: 'ASM-01',
-    machineName: 'Robot siết bulong tự động Atlas Copco',
+    machineName: tr("Robot siết bulong tự động Atlas Copco"),
     lineId: 'LN-ASM-03',
     imageFileName: 'ASM-01-new.png',
     primaryPath: '/images/machines/ASM-01-new.png',
-    description: 'Hệ thống siết lực chính xác cao Atlas Copco Tensor',
+    description: tr("Hệ thống siết lực chính xác cao Atlas Copco Tensor"),
   },
   'MC-TST-01': {
     databaseId: 'MC-TST-01',
     machineCode: 'MC-TST-01',
-    machineName: 'Trạm kiểm tra chức năng',
+    machineName: tr("Trạm kiểm tra chức năng"),
     lineId: 'LN-ASM-03',
     imageFileName: 'MC-TST-01-new.png',
     primaryPath: '/images/machines/MC-TST-01-new.png',
-    description: 'Trạm kiểm tra chức năng rò rỉ khí và kín khít',
+    description: tr("Trạm kiểm tra chức năng rò rỉ khí và kín khít"),
   },
   'MCH-MS10': {
     databaseId: 'MCH-MS10',
@@ -148,16 +154,16 @@ export const MACHINE_IMAGE_REGISTRY: Record<string, MachineImageConfig> = {
     lineId: 'LN-ASM-03',
     imageFileName: 'MS-10-new.png',
     primaryPath: '/images/machines/MS-10-new.png',
-    description: 'Trạm gia công chuyên dụng MS-10 (gán 2 metric TORQUE_TIGHTENING & CURRENT_PHASE)',
+    description: tr("Trạm gia công chuyên dụng MS-10 (gán 2 metric TORQUE_TIGHTENING & CURRENT_PHASE)"),
   },
   'MCH-TST-01': {
     databaseId: 'MCH-TST-01',
     machineCode: 'TST-01',
-    machineName: 'Băng chuyền kiểm tra cuối dòng TestBench',
+    machineName: tr("Băng chuyền kiểm tra cuối dòng TestBench"),
     lineId: 'LN-ASM-03',
     imageFileName: 'TST-01-new.png',
     primaryPath: '/images/machines/TST-01-new.png',
-    description: 'Băng chuyền kiểm tra tổng thể cuối chuyền TestBench',
+    description: tr("Băng chuyền kiểm tra tổng thể cuối chuyền TestBench"),
   },
 };
 
@@ -234,6 +240,13 @@ export interface MachineImageProps {
  * - Ưu tiên 3: Industrial CAD placeholder
  * - Không gây lỗi vỡ hình ảnh hay console loop
  */
+/**
+ * Component MachineImage hiển thị hình ảnh CAD của thiết bị:
+ * - Ưu tiên 1: Ảnh do người dùng upload/tùy chỉnh (imageUrl)
+ * - Ưu tiên 2: Ảnh tĩnh được ánh xạ theo Database ID / Machine Code trong registry
+ * - Ưu tiên 3: Industrial CAD placeholder
+ * - Không gây lỗi vỡ hình ảnh hay console loop
+ */
 export function MachineImage({
   machineId,
   machineCode,
@@ -298,7 +311,7 @@ export function MachineImage({
       <div className={`flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 dark:bg-factory-surface border border-dashed border-slate-200 dark:border-factory-border ${containerClassName}`}>
         <Box className={fallbackIconClassName} />
         {showFallbackLabel && (
-          <span className="text-[10px] font-mono text-slate-400 mt-1">Chưa xác định</span>
+          <span className="text-[10px] font-mono text-slate-400 mt-1">{tr("Chưa xác định")}</span>
         )}
       </div>
     );
@@ -315,7 +328,7 @@ export function MachineImage({
             <span className="text-[10px] font-mono font-bold text-slate-700 dark:text-slate-300 block">
               {cfg?.machineCode || identifier}
             </span>
-            <span className="text-[9px] text-slate-400">Chờ nạp ảnh CAD</span>
+            <span className="text-[9px] text-slate-400">{tr("Chờ nạp ảnh CAD")}</span>
           </div>
         )}
       </div>

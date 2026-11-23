@@ -28,6 +28,7 @@ import {
   CreateMappingPayload,
   UpdateMappingPayload,
 } from '../types/metric';
+import { tr, trData, localizeData, delocalizeBody } from '../i18n/tr';
 
 const TOKEN_KEY = 'denso_iot_access_token';
 const REFRESH_TOKEN_KEY = 'denso_iot_refresh_token';
@@ -90,8 +91,10 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
   const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout để không treo UI khi server ngủ
 
   try {
+    const body = typeof options.body === 'string' ? delocalizeBody(options.body) : options.body;
     const response = await fetch(fullUrl, {
       ...options,
+      body,
       headers,
       signal: options.signal || controller.signal,
     });
@@ -101,20 +104,20 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
       // Phiên làm việc hết hạn
       tokenStorage.clearSession();
       window.dispatchEvent(new Event('auth:unauthorized'));
-      throw new Error('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.');
+      throw new Error(tr("Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại."));
     }
 
     const contentType = response.headers.get('content-type') || '';
     if (!contentType.includes('application/json')) {
       const text = await response.text();
       console.warn(`[API Error] Phản hồi non-JSON từ ${fullUrl}:`, text.slice(0, 150));
-      throw new Error('Máy chủ đang khởi động hoặc chưa sẵn sàng. Vui lòng thử lại sau giây lát.');
+      throw new Error(tr("Máy chủ đang khởi động hoặc chưa sẵn sàng. Vui lòng thử lại sau giây lát."));
     }
 
     const data = await response.json();
 
     if (!response.ok) {
-      const error: any = new Error(data.message || `Lỗi yêu cầu: ${response.statusText}`);
+      const error: any = new Error((data.message && trData(data.message)) || tr("Lỗi yêu cầu: {0}", response.statusText));
       error.status = response.status;
       error.errorCode = data.errorCode;
       error.code = data.code || data.errorCode;
@@ -126,11 +129,11 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
       throw error;
     }
 
-    return data as T;
+    return localizeData(data) as T;
   } catch (err: any) {
     clearTimeout(timeoutId);
     if (err.name === 'AbortError') {
-      throw new Error('Máy chủ Backend phản hồi quá lâu (đang khởi động). Vui lòng thử lại.');
+      throw new Error(tr("Máy chủ Backend phản hồi quá lâu (đang khởi động). Vui lòng thử lại."));
     }
     throw err;
   }
@@ -151,7 +154,7 @@ export const apiClient = {
       return res;
     } catch (err: any) {
       if (err.message && err.message.includes('Failed to fetch')) {
-        throw new Error('Không thể kết nối đến máy chủ Backend. Máy chủ có thể đang ngủ hoặc chưa khởi động.');
+        throw new Error(tr("Không thể kết nối đến máy chủ Backend. Máy chủ có thể đang ngủ hoặc chưa khởi động."));
       }
       throw err;
     }

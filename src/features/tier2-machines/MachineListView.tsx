@@ -32,6 +32,7 @@ import { QRCodeModal } from '../../components/qr/QRCodeModal';
 import { CreateMachineModal } from './CreateMachineModal';
 import { EditMachineModal } from './EditMachineModal';
 import { MachineImage } from '../../config/machineImages';
+import { tr } from '../../i18n/tr';
 
 export function MachineListView() {
   const { 
@@ -99,7 +100,7 @@ export function MachineListView() {
   const currentLineId = selectedLineId || lines[0]?.id || 'LINE-01';
   const currentLine: ProductionLine = lines.find((l) => l.id === currentLineId) || lines[0] || {
     id: 'LINE-01',
-    name: 'Đang tải luồng...',
+    name: tr("Đang tải luồng..."),
     code: 'LINE-01',
     status: 'normal',
     safetyScore: 100,
@@ -162,13 +163,13 @@ export function MachineListView() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            {activeNavGroup === 'monitoring' ? 'Giám sát Thiết bị' : 'Dây chuyền & Thiết bị'}
+            {activeNavGroup === 'monitoring' ? tr("Giám sát Thiết bị") : tr("Dây chuyền & Thiết bị")}
             {(isLoadingLines || isLoadingMachines) && (
               <Loader2 className="w-4 h-4 animate-spin text-emerald-600 dark:text-emerald-400" />
             )}
           </h1>
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-            Danh mục {lines.length} dây chuyền sản xuất và các thiết bị máy móc kỹ thuật trực thuộc CSDL TEST.
+            {tr("Danh mục")} {lines.length} {tr("dây chuyền sản xuất và các thiết bị máy móc kỹ thuật trực thuộc CSDL TEST.")}
           </p>
         </div>
 
@@ -181,7 +182,7 @@ export function MachineListView() {
             onPress={handleRetry}
             isDisabled={isLoadingMachines}
           >
-            Làm mới
+            {tr("Làm mới")}
           </Button>
 
           {canAddDevice ? (
@@ -193,10 +194,10 @@ export function MachineListView() {
               startContent={<Plus className="w-4 h-4" />}
               onPress={() => setIsCreateModalOpen(true)}
             >
-              Thêm thiết bị
+              {tr("Thêm thiết bị")}
             </Button>
           ) : (
-            <Tooltip content="Chỉ quản trị viên (Admin) mới có quyền thêm thiết bị">
+            <Tooltip content={tr("Chỉ quản trị viên (Admin) mới có quyền thêm thiết bị")}>
               <span>
                 <Button
                   size="sm"
@@ -206,7 +207,7 @@ export function MachineListView() {
                   className="text-xs px-3.5 h-9 opacity-60 cursor-not-allowed rounded-xl flex items-center gap-1.5"
                   startContent={<Plus className="w-4 h-4" />}
                 >
-                  Thêm thiết bị
+                  {tr("Thêm thiết bị")}
                 </Button>
               </span>
             </Tooltip>
@@ -221,10 +222,10 @@ export function MachineListView() {
         <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 flex items-center justify-between text-xs text-rose-700 dark:text-rose-400">
           <div className="flex items-center gap-2.5">
             <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>Lỗi tải dữ liệu: {linesError || machinesError}</span>
+            <span>{tr("Lỗi tải dữ liệu:")} {linesError || machinesError}</span>
           </div>
           <Button size="sm" variant="flat" color="danger" onPress={handleRetry} className="h-7 text-xs">
-            Thử lại
+            {tr("Thử lại")}
           </Button>
         </div>
       )}
@@ -277,17 +278,17 @@ export function MachineListView() {
                   <div className="mt-2 flex justify-center">
                     {line.status === 'normal' && (
                       <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                        Bình thường
+                        {tr("Bình thường")}
                       </span>
                     )}
                     {line.status === 'warning' && (
                       <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
-                        Cảnh báo &bull; 1
+                        {tr("Cảnh báo • 1")}
                       </span>
                     )}
                     {line.status === 'critical' && (
                       <span className="text-[11px] font-semibold text-rose-600 dark:text-rose-400 animate-pulse">
-                        Nghiêm trọng &bull; 1
+                        {tr("Nghiêm trọng • 1")}
                       </span>
                     )}
                   </div>
@@ -314,10 +315,10 @@ export function MachineListView() {
           <div className="flex items-center justify-between border-b border-factory-border pb-3">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
               <Layers className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              {lines.length} Luồng
+              {lines.length} {tr("Luồng")}
             </h3>
             <span className="text-xs text-slate-500 dark:text-slate-400 font-mono font-medium">
-              Tổng số
+              {tr("Tổng số")}
             </span>
           </div>
 
@@ -361,7 +362,7 @@ export function MachineListView() {
 
                   <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2 font-medium">
                     <span className="h-1.5 w-1.5 rounded-full bg-amber-500 inline-block"></span>
-                    <span>{(line.machines || []).length} thành phần</span>
+                    <span>{(line.machines || []).length} {tr("thành phần")}</span>
                     <span>&bull;</span>
                     <span>{(line.machines || []).reduce((acc, m) => acc + (m.mappingCount ?? 0), 0)} mapping</span>
                   </div>
@@ -376,10 +377,10 @@ export function MachineListView() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-factory-border pb-3">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                Thành phần thuộc {currentLine.code} ({currentLine.name})
+                {tr("Thành phần thuộc")} {currentLine.code} ({currentLine.name})
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                Quản lý trạng thái giám sát, trạm PLC liên kết và chỉ số đo lường
+                {tr("Quản lý trạng thái giám sát, trạm PLC liên kết và chỉ số đo lường")}
               </p>
             </div>
 
@@ -388,7 +389,7 @@ export function MachineListView() {
                 <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Tìm máy..."
+                  placeholder={tr("Tìm máy...")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8 pr-3 py-1 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 w-36 sm:w-44"
@@ -396,7 +397,7 @@ export function MachineListView() {
               </div>
 
               <span className="text-xs font-mono text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
-                {filteredMachines.length} máy
+                {filteredMachines.length} {tr("máy")}
               </span>
             </div>
           </div>
@@ -410,7 +411,7 @@ export function MachineListView() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-bold text-slate-800 dark:text-slate-200">
-                    Trạm PLC Dây Chuyền ({currentLine.code}):
+                    {tr("Trạm PLC Dây Chuyền (")}{currentLine.code}):
                   </span>
                   {currentLine.plc ? (
                     <span className="font-semibold text-blue-600 dark:text-blue-400 font-mono">
@@ -418,24 +419,24 @@ export function MachineListView() {
                     </span>
                   ) : (
                     <span className="text-slate-400 dark:text-slate-500 italic">
-                      Chưa cấu hình trạm PLC
+                      {tr("Chưa cấu hình trạm PLC")}
                     </span>
                   )}
                   {currentLine.plc && (
                     <>
                       {currentLine.plc.isDemo && (
                         <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300">
-                          MÔ PHỎNG / DEMO
+                          {tr("MÔ PHỎNG / DEMO")}
                         </span>
                       )}
                       <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                        {currentLine.plc.status === 'CONNECTED' ? 'CONNECTED' : 'CHƯA KẾT NỐI VẬT LÝ (UNKNOWN)'}
+                        {currentLine.plc.status === 'CONNECTED' ? 'CONNECTED' : tr("CHƯA KẾT NỐI VẬT LÝ (UNKNOWN)")}
                       </span>
                     </>
                   )}
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                  Tất cả các máy trong dây chuyền này tự động kế thừa trạm PLC từ dây chuyền.
+                  {tr("Tất cả các máy trong dây chuyền này tự động kế thừa trạm PLC từ dây chuyền.")}
                 </p>
               </div>
             </div>
@@ -448,23 +449,23 @@ export function MachineListView() {
                 {isLoadingMachines ? (
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
-                    <span>Đang nạp dữ liệu máy từ MySQL...</span>
+                    <span>{tr("Đang nạp dữ liệu máy từ MySQL...")}</span>
                   </div>
                 ) : (
-                  <span>Không tìm thấy máy nào trong luồng này.</span>
+                  <span>{tr("Không tìm thấy máy nào trong luồng này.")}</span>
                 )}
               </div>
             ) : (
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-factory-border text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-                    <th className="py-3 px-3 w-[16%]">MÃ COMPONENT</th>
-                    <th className="py-3 px-3 w-[26%]">TÊN THIẾT BỊ</th>
-                    <th className="py-3 px-3 w-[16%]">LOẠI</th>
-                    <th className="py-3 px-3 w-[14%] text-center">TRẠNG THÁI</th>
-                    <th className="py-3 px-3 w-[14%]">VỊ TRÍ</th>
-                    <th className="py-3 px-2 w-[7%] text-center">GIÁM SÁT</th>
-                    <th className="py-3 px-3 w-[7%] text-right">HÀNH ĐỘNG</th>
+                    <th className="py-3 px-3 w-[16%]">{tr("MÃ COMPONENT")}</th>
+                    <th className="py-3 px-3 w-[26%]">{tr("TÊN THIẾT BỊ")}</th>
+                    <th className="py-3 px-3 w-[16%]">{tr("LOẠI")}</th>
+                    <th className="py-3 px-3 w-[14%] text-center">{tr("TRẠNG THÁI")}</th>
+                    <th className="py-3 px-3 w-[14%]">{tr("VỊ TRÍ")}</th>
+                    <th className="py-3 px-2 w-[7%] text-center">{tr("GIÁM SÁT")}</th>
+                    <th className="py-3 px-3 w-[7%] text-right">{tr("HÀNH ĐỘNG")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-factory-border">
@@ -480,7 +481,7 @@ export function MachineListView() {
                             <div 
                               onClick={() => handleOpenDetails(machine)}
                               className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 p-0.5 overflow-hidden cursor-pointer hover:border-emerald-500 transition-colors"
-                              title={`Xem chi tiết ${machine.name}`}
+                              title={tr("Xem chi tiết {0}", machine.name)}
                             >
                               <MachineImage
                                 machineId={machine.id}
@@ -508,7 +509,7 @@ export function MachineListView() {
                         {/* Cột 3: Loại */}
                         <td className="py-3.5 px-3">
                           <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-factory-bg border border-slate-200 dark:border-factory-border text-slate-700 dark:text-gray-300">
-                            {machine.type || 'MÁY CÔNG NGHIỆP'}
+                            {machine.type || tr("MÁY CÔNG NGHIỆP")}
                           </span>
                         </td>
 
@@ -520,7 +521,7 @@ export function MachineListView() {
                               return (
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30">
                                   <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-                                  Nguy hiểm
+                                  {tr("Nguy hiểm")}
                                 </span>
                               );
                             }
@@ -528,7 +529,7 @@ export function MachineListView() {
                               return (
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
                                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                                  Cảnh báo
+                                  {tr("Cảnh báo")}
                                 </span>
                               );
                             }
@@ -536,14 +537,14 @@ export function MachineListView() {
                               return (
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                  Bình thường
+                                  {tr("Bình thường")}
                                 </span>
                               );
                             }
                             return (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 font-mono">
                                 <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-                                Chưa có dữ liệu
+                                {tr("Chưa có dữ liệu")}
                               </span>
                             );
                           })()}
@@ -551,7 +552,7 @@ export function MachineListView() {
 
                         {/* Cột 5: Vị trí / Object */}
                         <td className="py-3.5 px-3 text-slate-600 dark:text-slate-400 font-mono text-[11px] truncate max-w-[140px]">
-                          {(machine.location || `Xưởng ${currentLine.name}`).split(' - ')[0]}
+                          {(machine.location || tr("Xưởng {0}", currentLine.name)).split(' - ')[0]}
                         </td>
 
                         {/* Cột 6: Toggle Giám sát */}
@@ -561,7 +562,7 @@ export function MachineListView() {
                               isSelected={monitoringStatus[machine.id] ?? true}
                               size="sm"
                               color="success"
-                              aria-label={`Bật/Tắt giám sát ${machine.name}`}
+                              aria-label={tr("Bật/Tắt giám sát {0}", machine.name)}
                               onValueChange={(val) =>
                                 setMonitoringStatus((prev) => ({ ...prev, [machine.id]: val }))
                               }
@@ -573,7 +574,7 @@ export function MachineListView() {
                         <td className="py-3.5 px-3 text-right">
                           <div className="flex items-center justify-end gap-1.5">
                             {/* Nút Xem biểu đồ chi tiết Tầng 3 */}
-                            <Tooltip content="Xem chi tiết & Biểu đồ Tầng 3">
+                            <Tooltip content={tr("Xem chi tiết & Biểu đồ Tầng 3")}>
                               <button
                                 onClick={() => handleOpenDetails(machine)}
                                 className="p-1.5 rounded-lg bg-slate-100 dark:bg-factory-bg border border-slate-200 dark:border-factory-border text-slate-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-500/50 transition-colors cursor-pointer"
@@ -583,7 +584,7 @@ export function MachineListView() {
                             </Tooltip>
 
                             {/* Nút Xem mã QR */}
-                            <Tooltip content="Mã QR định danh">
+                            <Tooltip content={tr("Mã QR định danh")}>
                               <button
                                 onClick={() => handleOpenQR(machine)}
                                 className="p-1.5 rounded-lg bg-slate-100 dark:bg-factory-bg border border-slate-200 dark:border-factory-border text-slate-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-500/50 transition-colors cursor-pointer"
@@ -593,14 +594,14 @@ export function MachineListView() {
                             </Tooltip>
 
                             {/* Nút Chỉnh sửa thông tin thiết bị (Yêu cầu 1) */}
-                            <Tooltip content="Chỉnh sửa thông tin thiết bị">
+                            <Tooltip content={tr("Chỉnh sửa thông tin thiết bị")}>
                               <button
                                 onClick={() => {
                                   setEditingMachine(machine);
                                   setIsEditModalOpen(true);
                                 }}
                                 className="p-1.5 rounded-lg bg-slate-100 dark:bg-factory-bg border border-slate-200 dark:border-factory-border text-slate-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-500/50 transition-colors cursor-pointer"
-                                aria-label={`Chỉnh sửa thông tin ${machine.name}`}
+                                aria-label={tr("Chỉnh sửa thông tin {0}", machine.name)}
                               >
                                 <Edit3 className="w-3.5 h-3.5" />
                               </button>

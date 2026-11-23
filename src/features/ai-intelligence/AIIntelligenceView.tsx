@@ -25,6 +25,7 @@ import { AIOverviewTab } from './tabs/AIOverviewTab';
 import { AIAnomalyDetectionTab } from './tabs/AIAnomalyDetectionTab';
 import { AIPredictiveMaintenanceTab } from './tabs/AIPredictiveMaintenanceTab';
 import { AIAssistantTab } from './tabs/AIAssistantTab';
+import { tr } from '../../i18n/tr';
 
 export const AIIntelligenceView: React.FC = () => {
   const { lines, activeEmergencyMetricId } = useMonitoringStore();
@@ -52,23 +53,23 @@ export const AIIntelligenceView: React.FC = () => {
   const tabs: { id: AITabType; label: string; icon: React.ReactNode; hasAlert?: boolean }[] = [
     {
       id: 'overview',
-      label: 'Tổng quan AI',
+      label: tr("Tổng quan AI"),
       icon: <LayoutDashboard className="w-4 h-4" />,
     },
     {
       id: 'anomaly',
-      label: 'Phát hiện Bất thường',
+      label: tr("Phát hiện Bất thường"),
       icon: <ShieldAlert className="w-4 h-4" />,
       hasAlert: hasActiveAlert,
     },
     {
       id: 'predictive',
-      label: 'Dự đoán bảo trì',
+      label: tr("Dự đoán bảo trì"),
       icon: <Wrench className="w-4 h-4" />,
     },
     {
       id: 'assistant',
-      label: 'Trợ lý AI KaiLink',
+      label: tr("Trợ lý AI KaiLink"),
       icon: <Bot className="w-4 h-4" />,
     },
   ];
@@ -92,7 +93,7 @@ export const AIIntelligenceView: React.FC = () => {
               AI Command Center
             </h2>
             <p className="text-xs text-emerald-100/80 mt-0.5 font-normal">
-              Trung tâm phân tích, giám sát, dự đoán và tối ưu vận hành thiết bị DENSO Smart Factory
+              {tr("Trung tâm phân tích, giám sát, dự đoán và tối ưu vận hành thiết bị DENSO Smart Factory")}
             </p>
           </div>
 
@@ -120,10 +121,10 @@ export const AIIntelligenceView: React.FC = () => {
 
           <div className="z-10">
             <h2 className="text-lg font-black text-white tracking-tight">
-              Phát hiện bất thường
+              {tr("Phát hiện bất thường")}
             </h2>
             <p className="text-xs text-emerald-100/80 mt-0.5 font-normal">
-              Giám sát dữ liệu cảm biến, phát hiện sớm các dấu hiệu bất thường trong quá trình vận hành thiết bị.
+              {tr("Giám sát dữ liệu cảm biến, phát hiện sớm các dấu hiệu bất thường trong quá trình vận hành thiết bị.")}
             </p>
           </div>
 
@@ -151,10 +152,10 @@ export const AIIntelligenceView: React.FC = () => {
 
           <div className="z-10">
             <h2 className="text-lg font-black text-white tracking-tight">
-              Dự đoán bảo trì
+              {tr("Dự đoán bảo trì")}
             </h2>
             <p className="text-xs text-emerald-100/80 mt-0.5 font-normal">
-              Đánh giá sức khỏe thiết bị, nhận diện nguy cơ hư hỏng và hỗ trợ lập kế hoạch bảo trì.
+              {tr("Đánh giá sức khỏe thiết bị, nhận diện nguy cơ hư hỏng và hỗ trợ lập kế hoạch bảo trì.")}
             </p>
           </div>
 
@@ -182,10 +183,10 @@ export const AIIntelligenceView: React.FC = () => {
 
           <div className="z-10">
             <h2 className="text-lg font-black text-white tracking-tight">
-              Trợ lý AI KaiLink
+              {tr("Trợ lý AI KaiLink")}
             </h2>
             <p className="text-xs text-emerald-100/80 mt-0.5 font-normal">
-              Hỗ trợ tra cứu thông tin thiết bị, phân tích cảnh báo và đề xuất phương án xử lý.
+              {tr("Hỗ trợ tra cứu thông tin thiết bị, phân tích cảnh báo và đề xuất phương án xử lý.")}
             </p>
           </div>
 

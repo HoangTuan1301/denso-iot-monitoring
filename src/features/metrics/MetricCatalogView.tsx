@@ -39,50 +39,51 @@ import {
   MetricDataType,
   MetricSummary,
 } from '../../types/metric';
+import { tr } from '../../i18n/tr';
 
 /* ------------------------------------------------------------------ */
 /* Danh mục chuẩn và Kiểu dữ liệu hỗ trợ                               */
 /* ------------------------------------------------------------------ */
 const CATEGORIES: { label: string; value: MetricCategory }[] = [
-  { label: 'Áp suất (Pressure)', value: 'Pressure' },
-  { label: 'Nhiệt độ (Temperature)', value: 'Temperature' },
-  { label: 'Độ rung (Vibration)', value: 'Vibration' },
-  { label: 'Dòng điện (Current)', value: 'Current' },
-  { label: 'Điện áp (Voltage)', value: 'Voltage' },
-  { label: 'Tốc độ (Speed)', value: 'Speed' },
-  { label: 'Lưu lượng (Flow)', value: 'Flow' },
-  { label: 'Mức (Level)', value: 'Level' },
-  { label: 'Khác (Other)', value: 'Other' },
+  { label: tr("Áp suất (Pressure)"), value: 'Pressure' },
+  { label: tr("Nhiệt độ (Temperature)"), value: 'Temperature' },
+  { label: tr("Độ rung (Vibration)"), value: 'Vibration' },
+  { label: tr("Dòng điện (Current)"), value: 'Current' },
+  { label: tr("Điện áp (Voltage)"), value: 'Voltage' },
+  { label: tr("Tốc độ (Speed)"), value: 'Speed' },
+  { label: tr("Lưu lượng (Flow)"), value: 'Flow' },
+  { label: tr("Mức (Level)"), value: 'Level' },
+  { label: tr("Khác (Other)"), value: 'Other' },
 ];
 
 const DATA_TYPES: { label: string; value: MetricDataType }[] = [
-  { label: 'FLOAT (Số thực)', value: 'FLOAT' },
-  { label: 'INTEGER (Số nguyên)', value: 'INTEGER' },
-  { label: 'BOOLEAN (Đúng/Sai)', value: 'BOOLEAN' },
-  { label: 'STRING (Chuỗi ký tự)', value: 'STRING' },
-  { label: 'ENUM (Danh mục liệt kê)', value: 'ENUM' },
+  { label: tr("FLOAT (Số thực)"), value: 'FLOAT' },
+  { label: tr("INTEGER (Số nguyên)"), value: 'INTEGER' },
+  { label: tr("BOOLEAN (Đúng/Sai)"), value: 'BOOLEAN' },
+  { label: tr("STRING (Chuỗi ký tự)"), value: 'STRING' },
+  { label: tr("ENUM (Danh mục liệt kê)"), value: 'ENUM' },
 ];
 
 function getCategoryDisplay(cat: string): { name: string; className: string } {
   switch (cat) {
     case 'Pressure':
-      return { name: 'ÁP SUẤT', className: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20' };
+      return { name: tr("ÁP SUẤT"), className: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20' };
     case 'Temperature':
-      return { name: 'NHIỆT ĐỘ', className: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20' };
+      return { name: tr("NHIỆT ĐỘ"), className: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20' };
     case 'Vibration':
-      return { name: 'ĐỘ RUNG', className: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' };
+      return { name: tr("ĐỘ RUNG"), className: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' };
     case 'Current':
-      return { name: 'DÒNG ĐIỆN', className: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20' };
+      return { name: tr("DÒNG ĐIỆN"), className: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20' };
     case 'Voltage':
-      return { name: 'ĐIỆN ÁP', className: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' };
+      return { name: tr("ĐIỆN ÁP"), className: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' };
     case 'Speed':
-      return { name: 'TỐC ĐỘ', className: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' };
+      return { name: tr("TỐC ĐỘ"), className: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' };
     case 'Flow':
-      return { name: 'LƯU LƯỢNG', className: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20' };
+      return { name: tr("LƯU LƯỢNG"), className: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20' };
     case 'Level':
-      return { name: 'MỨC DẦU', className: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20' };
+      return { name: tr("MỨC DẦU"), className: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20' };
     default:
-      return { name: 'CÔNG NGHIỆP', className: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20' };
+      return { name: tr("CÔNG NGHIỆP"), className: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20' };
   }
 }
 
@@ -158,7 +159,7 @@ export function MetricCatalogView() {
       }
     } catch (err: any) {
       console.error('[Fetch Metrics Error]:', err);
-      showFeedback('error', err.message || 'Không thể tải danh mục thông số từ máy chủ.');
+      showFeedback('error', err.message || tr("Không thể tải danh mục thông số từ máy chủ."));
     } finally {
       setIsLoading(false);
     }
@@ -229,19 +230,19 @@ export function MetricCatalogView() {
     const cleanUnit = formUnit.trim();
 
     if (!cleanCode) {
-      setFormError('Mã thông số là bắt buộc (ví dụ: PRESSURE_HYDRAULIC).');
+      setFormError(tr("Mã thông số là bắt buộc (ví dụ: PRESSURE_HYDRAULIC)."));
       return;
     }
     if (!/^[A-Z0-9_]{2,64}$/.test(cleanCode)) {
-      setFormError('Mã thông số chỉ chấp nhận chữ in hoa (A-Z), số (0-9) và gạch dưới (_), độ dài 2-64 ký tự.');
+      setFormError(tr("Mã thông số chỉ chấp nhận chữ in hoa (A-Z), số (0-9) và gạch dưới (_), độ dài 2-64 ký tự."));
       return;
     }
     if (!cleanName || cleanName.length < 2) {
-      setFormError('Tên hiển thị thông số phải từ 2 ký tự trở lên.');
+      setFormError(tr("Tên hiển thị thông số phải từ 2 ký tự trở lên."));
       return;
     }
     if (!cleanUnit) {
-      setFormError('Đơn vị đo lường là bắt buộc (ví dụ: bar, °C, mm/s).');
+      setFormError(tr("Đơn vị đo lường là bắt buộc (ví dụ: bar, °C, mm/s)."));
       return;
     }
 
@@ -257,7 +258,7 @@ export function MetricCatalogView() {
           dataType: formDataType,
           description: formDescription.trim() || undefined,
         });
-        showFeedback('success', `Đã cập nhật thành công thông số "${cleanName}".`);
+        showFeedback('success', tr("Đã cập nhật thành công thông số \"{0}\".", cleanName));
       } else {
         // Tạo mới thông số
         await apiClient.createMetric({
@@ -268,14 +269,14 @@ export function MetricCatalogView() {
           dataType: formDataType,
           description: formDescription.trim() || undefined,
         });
-        showFeedback('success', `Đã tạo mới thành công thông số "${cleanName}".`);
+        showFeedback('success', tr("Đã tạo mới thành công thông số \"{0}\".", cleanName));
       }
 
       setIsFormModalOpen(false);
       await fetchMetrics();
     } catch (err: any) {
       console.error('[Save Metric Error]:', err);
-      setFormError(err.message || 'Lỗi khi lưu thông số vào CSDL.');
+      setFormError(err.message || tr("Lỗi khi lưu thông số vào CSDL."));
     } finally {
       setIsSubmitting(false);
     }
@@ -297,13 +298,13 @@ export function MetricCatalogView() {
       await apiClient.updateMetricStatus(statusTargetMetric.id, newStatus);
       showFeedback(
         'success',
-        `Đã ${newStatus === 'ACTIVE' ? 'kích hoạt' : 'ngừng kích hoạt'} thông số "${statusTargetMetric.name}".`
+        tr("Đã {0} thông số \"{1}\".", newStatus === 'ACTIVE' ? tr("kích hoạt") : tr("ngừng kích hoạt"), statusTargetMetric.name)
       );
       setIsStatusModalOpen(false);
       await fetchMetrics();
     } catch (err: any) {
       console.error('[Toggle Status Error]:', err);
-      showFeedback('error', err.message || 'Không thể đổi trạng thái thông số.');
+      showFeedback('error', err.message || tr("Không thể đổi trạng thái thông số."));
     } finally {
       setIsTogglingStatus(false);
     }
@@ -321,13 +322,13 @@ export function MetricCatalogView() {
     setIsDeleting(true);
     try {
       const res = await apiClient.deleteMetric(metricToDelete.id);
-      showFeedback('success', res.message || `Đã xóa thông số "${metricToDelete.name}" thành công.`);
+      showFeedback('success', res.message || tr("Đã xóa thông số \"{0}\" thành công.", metricToDelete.name));
       setIsDeleteModalOpen(false);
       setMetricToDelete(null);
       await fetchMetrics();
     } catch (err: any) {
       console.warn('[Delete Metric Error]:', err);
-      showFeedback('error', err.message || 'Không thể xóa thông số.');
+      showFeedback('error', err.message || tr("Không thể xóa thông số."));
     } finally {
       setIsDeleting(false);
     }
@@ -355,15 +356,15 @@ export function MetricCatalogView() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
-            <span>Cấu hình</span>
+            <span>{tr("Cấu hình")}</span>
             <span>/</span>
-            <span className="text-emerald-600 dark:text-emerald-400">Danh mục Thông số</span>
+            <span className="text-emerald-600 dark:text-emerald-400">{tr("Danh mục Thông số")}</span>
           </div>
           <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-            Danh mục Thông số
+            {tr("Danh mục Thông số")}
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Chỉ số đo lường chuẩn hóa dùng chung cho toàn hệ thống giám sát nhà máy DENSO.
+            {tr("Chỉ số đo lường chuẩn hóa dùng chung cho toàn hệ thống giám sát nhà máy DENSO.")}
           </p>
         </div>
 
@@ -374,13 +375,13 @@ export function MetricCatalogView() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition-all active:scale-95 cursor-pointer"
             >
               <Plus className="w-4 h-4 stroke-[2.5]" />
-              <span>Thêm thông số</span>
+              <span>{tr("Thêm thông số")}</span>
             </button>
           ) : (
-            <Tooltip content="Chỉ Quản trị viên (ADMIN) mới có quyền tạo mới thông số">
+            <Tooltip content={tr("Chỉ Quản trị viên (ADMIN) mới có quyền tạo mới thông số")}>
               <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-400 font-bold text-xs cursor-not-allowed">
                 <Plus className="w-4 h-4" />
-                <span>Thêm thông số</span>
+                <span>{tr("Thêm thông số")}</span>
               </span>
             </Tooltip>
           )}
@@ -420,14 +421,14 @@ export function MetricCatalogView() {
             <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
               <Gauge className="w-4 h-4" />
             </div>
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Tổng thông số</span>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{tr("Tổng thông số")}</span>
           </div>
           <div className="mt-3">
             <span className="text-3xl font-black font-mono text-slate-900 dark:text-white">
               {summary.total}
             </span>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">
-              {summary.active} đang hoạt động
+              {summary.active} {tr("đang hoạt động")}
             </p>
           </div>
           <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500" />
@@ -439,7 +440,7 @@ export function MetricCatalogView() {
             <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
               <Activity className="w-4 h-4" />
             </div>
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Đang hoạt động</span>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{tr("Đang hoạt động")}</span>
           </div>
           <div className="mt-3">
             <span className="text-3xl font-black font-mono text-blue-600 dark:text-blue-400">
@@ -458,14 +459,14 @@ export function MetricCatalogView() {
             <div className="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400">
               <Layers className="w-4 h-4" />
             </div>
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Đã được gán</span>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{tr("Đã được gán")}</span>
           </div>
           <div className="mt-3">
             <span className="text-3xl font-black font-mono text-amber-600 dark:text-amber-400">
               {summary.assigned ?? summary.totalMapped ?? 0}
             </span>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">
-              Đã gán vào thiết bị
+              {tr("Đã gán vào thiết bị")}
             </p>
           </div>
           <div className="absolute top-0 left-0 w-1.5 h-full bg-amber-500" />
@@ -477,14 +478,14 @@ export function MetricCatalogView() {
             <div className="w-7 h-7 rounded-lg bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400">
               <Cpu className="w-4 h-4" />
             </div>
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Chưa được gán</span>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{tr("Chưa được gán")}</span>
           </div>
           <div className="mt-3">
             <span className="text-3xl font-black font-mono text-teal-600 dark:text-teal-400">
               {summary.unassigned ?? Math.max(0, summary.total - (summary.assigned ?? summary.totalMapped ?? 0))}
             </span>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">
-              Chưa gán vào thiết bị
+              {tr("Chưa gán vào thiết bị")}
             </p>
           </div>
           <div className="absolute top-0 left-0 w-1.5 h-full bg-teal-500" />
@@ -501,13 +502,13 @@ export function MetricCatalogView() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm theo mã, tên hoặc nhóm thông số..."
+            placeholder={tr("Tìm theo mã, tên hoặc nhóm thông số...")}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-factory-card text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-xs"
           />
         </div>
 
         <span className="text-xs font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap">
-          {filteredMetrics.length}/{metrics.length} thông số
+          {filteredMetrics.length}/{metrics.length} {tr("thông số")}
         </span>
       </div>
 
@@ -517,9 +518,9 @@ export function MetricCatalogView() {
       <div className="bg-factory-card rounded-2xl border border-factory-border shadow-xs overflow-hidden">
         {/* Header bảng */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-factory-border bg-slate-50/50 dark:bg-white/[0.02]">
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white">Thông số</h3>
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white">{tr("Thông số")}</h3>
           <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-            {filteredMetrics.length} bản ghi
+            {filteredMetrics.length} {tr("bản ghi")}
           </span>
         </div>
 
@@ -528,26 +529,26 @@ export function MetricCatalogView() {
           {isLoading ? (
             <div className="p-12 flex flex-col items-center justify-center gap-3 text-slate-400">
               <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
-              <span className="text-xs font-medium">Đang tải danh mục thông số từ CSDL...</span>
+              <span className="text-xs font-medium">{tr("Đang tải danh mục thông số từ CSDL...")}</span>
             </div>
           ) : filteredMetrics.length === 0 ? (
             <div className="p-12 text-center text-slate-400 space-y-2">
               <Gauge className="w-10 h-10 mx-auto opacity-30" />
-              <p className="text-sm font-semibold">Không tìm thấy thông số nào</p>
-              <p className="text-xs text-slate-500">Thử thay đổi từ khóa tìm kiếm hoặc bấm Thêm thông số mới.</p>
+              <p className="text-sm font-semibold">{tr("Không tìm thấy thông số nào")}</p>
+              <p className="text-xs text-slate-500">{tr("Thử thay đổi từ khóa tìm kiếm hoặc bấm Thêm thông số mới.")}</p>
             </div>
           ) : (
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="border-b border-factory-border text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-50/30 dark:bg-white/[0.01]">
-                  <th className="py-3.5 px-6 w-[20%]">MÃ THÔNG SỐ</th>
-                  <th className="py-3.5 px-6 w-[26%]">TÊN HIỂN THỊ</th>
-                  <th className="py-3.5 px-4 w-[10%]">KIỂU</th>
-                  <th className="py-3.5 px-4 w-[10%]">ĐƠN VỊ</th>
-                  <th className="py-3.5 px-4 w-[12%]">NHÓM</th>
-                  <th className="py-3.5 px-4 w-[10%]">ĐANG GÁN</th>
-                  <th className="py-3.5 px-4 w-[6%] text-center">BẬT</th>
-                  <th className="py-3.5 px-6 w-[8%] text-right">HÀNH ĐỘNG</th>
+                  <th className="py-3.5 px-6 w-[20%]">{tr("MÃ THÔNG SỐ")}</th>
+                  <th className="py-3.5 px-6 w-[26%]">{tr("TÊN HIỂN THỊ")}</th>
+                  <th className="py-3.5 px-4 w-[10%]">{tr("KIỂU")}</th>
+                  <th className="py-3.5 px-4 w-[10%]">{tr("ĐƠN VỊ")}</th>
+                  <th className="py-3.5 px-4 w-[12%]">{tr("NHÓM")}</th>
+                  <th className="py-3.5 px-4 w-[10%]">{tr("ĐANG GÁN")}</th>
+                  <th className="py-3.5 px-4 w-[6%] text-center">{tr("BẬT")}</th>
+                  <th className="py-3.5 px-6 w-[8%] text-right">{tr("HÀNH ĐỘNG")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-factory-border">
@@ -599,11 +600,11 @@ export function MetricCatalogView() {
                       <td className="py-4 px-4">
                         {assignedCount > 0 ? (
                           <span className="font-semibold text-slate-800 dark:text-slate-200">
-                            {assignedCount} thiết bị
+                            {assignedCount} {tr("thiết bị")}
                           </span>
                         ) : (
                           <span className="text-slate-400 dark:text-slate-500">
-                            Chưa gán
+                            {tr("Chưa gán")}
                           </span>
                         )}
                       </td>
@@ -615,7 +616,7 @@ export function MetricCatalogView() {
                             isSelected={isActive}
                             size="sm"
                             color="success"
-                            aria-label={`Bật tắt ${metric.name}`}
+                            aria-label={tr("Bật tắt {0}", metric.name)}
                             onValueChange={() => {
                               if (isAdmin) {
                                 handleToggleStatusClick(metric);
@@ -629,7 +630,7 @@ export function MetricCatalogView() {
                       <td className="py-4 px-6 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           {/* Nút Sửa */}
-                          <Tooltip content={isAdmin ? 'Chỉnh sửa thông số' : 'Chỉ Quản trị viên mới được sửa'}>
+                          <Tooltip content={isAdmin ? tr("Chỉnh sửa thông số") : tr("Chỉ Quản trị viên mới được sửa")}>
                             <button
                               onClick={() => {
                                 if (isAdmin) handleOpenEditModal(metric);
@@ -646,7 +647,7 @@ export function MetricCatalogView() {
                           </Tooltip>
 
                           {/* Nút Xóa thông số */}
-                          <Tooltip content={isAdmin ? 'Xóa thông số' : 'Chỉ Quản trị viên mới được xóa'}>
+                          <Tooltip content={isAdmin ? tr("Xóa thông số") : tr("Chỉ Quản trị viên mới được xóa")}>
                             <button
                               onClick={() => {
                                 if (isAdmin) handleOpenDeleteModal(metric);
@@ -684,7 +685,7 @@ export function MetricCatalogView() {
             {/* Header Modal */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                {editingMetric ? `Sửa thông số: ${editingMetric.code}` : 'Thêm thông số mới'}
+                {editingMetric ? tr("Sửa thông số: {0}", editingMetric.code) : tr("Thêm thông số mới")}
               </h3>
               <button
                 onClick={() => setIsFormModalOpen(false)}
@@ -706,7 +707,7 @@ export function MetricCatalogView() {
               {/* 1. Mã thông số */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Mã thông số *
+                  {tr("Mã thông số *")}
                 </label>
                 <div className="relative">
                   <input
@@ -718,7 +719,7 @@ export function MetricCatalogView() {
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:opacity-60"
                   />
                   {editingMetric && (editingMetric.assignedCount || 0) > 0 && (
-                    <Tooltip content="Mã thông số đã có mapping vào thiết bị, không thể sửa mã để bảo toàn CSDL.">
+                    <Tooltip content={tr("Mã thông số đã có mapping vào thiết bị, không thể sửa mã để bảo toàn CSDL.")}>
                       <Lock className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
                     </Tooltip>
                   )}
@@ -728,13 +729,13 @@ export function MetricCatalogView() {
               {/* 2. Tên hiển thị */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Tên hiển thị *
+                  {tr("Tên hiển thị *")}
                 </label>
                 <input
                   type="text"
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
-                  placeholder="VD: Áp suất dầu thủy lực"
+                  placeholder={tr("VD: Áp suất dầu thủy lực")}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
                 />
               </div>
@@ -744,7 +745,7 @@ export function MetricCatalogView() {
                 {/* Kiểu */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Kiểu
+                    {tr("Kiểu")}
                   </label>
                   <select
                     value={formDataType}
@@ -762,7 +763,7 @@ export function MetricCatalogView() {
                 {/* Đơn vị */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Đơn vị
+                    {tr("Đơn vị")}
                   </label>
                   <input
                     type="text"
@@ -776,7 +777,7 @@ export function MetricCatalogView() {
                 {/* Nhóm */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Nhóm
+                    {tr("Nhóm")}
                   </label>
                   <select
                     value={formCategory}
@@ -795,13 +796,13 @@ export function MetricCatalogView() {
               {/* 4. Mô tả */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Mô tả
+                  {tr("Mô tả")}
                 </label>
                 <textarea
                   value={formDescription}
                   onChange={(e) => setFormDescription(e.target.value)}
                   rows={2}
-                  placeholder="Ghi chú kỹ thuật về thông số này..."
+                  placeholder={tr("Ghi chú kỹ thuật về thông số này...")}
                   className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
                 />
               </div>
@@ -814,7 +815,7 @@ export function MetricCatalogView() {
                   disabled={isSubmitting}
                   className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
-                  Hủy
+                  {tr("Hủy")}
                 </button>
                 <button
                   type="submit"
@@ -824,10 +825,10 @@ export function MetricCatalogView() {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Đang lưu...</span>
+                      <span>{tr("Đang lưu...")}</span>
                     </>
                   ) : (
-                    <span>Lưu thay đổi</span>
+                    <span>{tr("Lưu thay đổi")}</span>
                   )}
                 </button>
               </div>
@@ -851,16 +852,16 @@ export function MetricCatalogView() {
             <div className="flex items-center gap-3 text-amber-500">
               <AlertTriangle className="w-6 h-6 shrink-0" />
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                Xác nhận đổi trạng thái
+                {tr("Xác nhận đổi trạng thái")}
               </h3>
             </div>
 
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-              Bạn có chắc chắn muốn{' '}
+              {tr("Bạn có chắc chắn muốn")}{' '}
               <strong className="text-slate-900 dark:text-white font-mono">
-                {statusTargetMetric.status === 'ACTIVE' ? 'NGỪNG HOẠT ĐỘNG' : 'KÍCH HOẠT'}
+                {statusTargetMetric.status === 'ACTIVE' ? tr("NGỪNG HOẠT ĐỘNG") : tr("KÍCH HOẠT")}
               </strong>{' '}
-              thông số{' '}
+              {tr("thông số")}{' '}
               <strong className="text-slate-900 dark:text-white">"{statusTargetMetric.name}"</strong> (
               <span className="font-mono">{statusTargetMetric.code}</span>)?
             </p>
@@ -871,14 +872,14 @@ export function MetricCatalogView() {
                 disabled={isTogglingStatus}
                 className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               >
-                Hủy
+                {tr("Hủy")}
               </button>
               <button
                 onClick={handleConfirmToggleStatus}
                 disabled={isTogglingStatus}
                 className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/20 cursor-pointer disabled:opacity-50"
               >
-                {isTogglingStatus ? 'Đang cập nhật...' : 'Xác nhận'}
+                {isTogglingStatus ? tr("Đang cập nhật...") : tr("Xác nhận")}
               </button>
             </div>
           </div>
@@ -907,36 +908,36 @@ export function MetricCatalogView() {
             <div className="flex items-center gap-3 text-rose-500">
               <AlertTriangle className="w-6 h-6 shrink-0" />
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                Xác nhận xóa thông số
+                {tr("Xác nhận xóa thông số")}
               </h3>
             </div>
 
             <div className="space-y-3 text-xs text-slate-600 dark:text-slate-300">
-              <p>Bạn có chắc chắn muốn xóa thông số sau khỏi Danh mục chuẩn?</p>
+              <p>{tr("Bạn có chắc chắn muốn xóa thông số sau khỏi Danh mục chuẩn?")}</p>
               
               <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Mã thông số:</span>
+                  <span className="text-slate-500">{tr("Mã thông số:")}</span>
                   <span className="font-mono font-bold text-slate-900 dark:text-white">{metricToDelete.code}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Tên thông số:</span>
+                  <span className="text-slate-500">{tr("Tên thông số:")}</span>
                   <span className="font-semibold text-slate-800 dark:text-slate-200">{metricToDelete.name}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Đơn vị:</span>
+                  <span className="text-slate-500">{tr("Đơn vị:")}</span>
                   <span className="font-mono text-emerald-600 dark:text-emerald-400">{metricToDelete.unit || '—'}</span>
                 </div>
                 {metricToDelete.assignedCount !== undefined && metricToDelete.assignedCount > 0 && (
                   <div className="flex items-center justify-between pt-1 border-t border-slate-200 dark:border-slate-800">
-                    <span className="text-slate-500">Đang gán:</span>
-                    <span className="font-semibold text-amber-600 dark:text-amber-400">{metricToDelete.assignedCount} thiết bị</span>
+                    <span className="text-slate-500">{tr("Đang gán:")}</span>
+                    <span className="font-semibold text-amber-600 dark:text-amber-400">{metricToDelete.assignedCount} {tr("thiết bị")}</span>
                   </div>
                 )}
               </div>
 
               <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-400 text-[11px] leading-relaxed">
-                <strong>Cảnh báo:</strong> Thao tác xóa không thể hoàn tác. Nếu thông số đang có dữ liệu phụ thuộc (thiết bị đang gán, cấu hình ngưỡng hoặc lịch sử đo lường telemetry), Backend sẽ từ chối xóa để đảm bảo toàn vẹn dữ liệu.
+                <strong>{tr("Cảnh báo:")}</strong> {tr("Thao tác xóa không thể hoàn tác. Nếu thông số đang có dữ liệu phụ thuộc (thiết bị đang gán, cấu hình ngưỡng hoặc lịch sử đo lường telemetry), Backend sẽ từ chối xóa để đảm bảo toàn vẹn dữ liệu.")}
               </div>
             </div>
 
@@ -951,7 +952,7 @@ export function MetricCatalogView() {
                 disabled={isDeleting}
                 className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer disabled:opacity-50"
               >
-                Hủy
+                {tr("Hủy")}
               </button>
               <button
                 onClick={handleConfirmDelete}
@@ -961,12 +962,12 @@ export function MetricCatalogView() {
                 {isDeleting ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>Đang xóa...</span>
+                    <span>{tr("Đang xóa...")}</span>
                   </>
                 ) : (
                   <>
                     <Trash2 className="w-3.5 h-3.5" />
-                    <span>Xóa thông số</span>
+                    <span>{tr("Xóa thông số")}</span>
                   </>
                 )}
               </button>

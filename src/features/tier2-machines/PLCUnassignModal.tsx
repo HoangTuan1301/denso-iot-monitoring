@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { MachineComponent } from '../../types/hierarchy';
 import { useMonitoringStore } from '../../stores/useMonitoringStore';
+import { tr } from '../../i18n/tr';
 
 interface PLCUnassignModalProps {
   isOpen: boolean;
@@ -43,7 +44,7 @@ export function PLCUnassignModal({
 
   if (!machine) return null;
 
-  const plcName = machine.plc?.name || machine.plcName || machine.plcId || 'Trạm PLC';
+  const plcName = machine.plc?.name || machine.plcName || machine.plcId || tr("Trạm PLC");
 
   const handleConfirmUnassign = async () => {
     setIsSubmitting(true);
@@ -51,14 +52,14 @@ export function PLCUnassignModal({
 
     try {
       const res = await unassignMachinePLC(machine.id);
-      setSuccessMessage(res.message || 'Gỡ trạm PLC khỏi máy thành công!');
+      setSuccessMessage(res.message || tr("Gỡ trạm PLC khỏi máy thành công!"));
       setTimeout(() => {
         onUnassigned?.();
         onClose();
       }, 700);
     } catch (err: any) {
       console.warn('[Unassign PLC Error]:', err);
-      setError(err.message || 'Lỗi khi gỡ trạm PLC khỏi máy.');
+      setError(err.message || tr("Lỗi khi gỡ trạm PLC khỏi máy."));
     } finally {
       setIsSubmitting(false);
     }
@@ -86,10 +87,10 @@ export function PLCUnassignModal({
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  Gỡ Bỏ Trạm PLC Khỏi Máy
+                  {tr("Gỡ Bỏ Trạm PLC Khỏi Máy")}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">
-                  Ngắt kết nối trạm PLC với máy sản xuất
+                  {tr("Ngắt kết nối trạm PLC với máy sản xuất")}
                 </p>
               </div>
             </ModalHeader>
@@ -98,7 +99,7 @@ export function PLCUnassignModal({
               <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    Thiết bị mục tiêu
+                    {tr("Thiết bị mục tiêu")}
                   </span>
                   <Chip size="sm" variant="flat" color="primary" className="font-mono text-[11px]">
                     {machine.id}
@@ -108,7 +109,7 @@ export function PLCUnassignModal({
                   {machine.name}
                 </div>
                 <div className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-2">
-                  <span>Trạm PLC đang gắn:</span>
+                  <span>{tr("Trạm PLC đang gắn:")}</span>
                   <span className="font-semibold text-rose-600 dark:text-rose-400">{plcName}</span>
                 </div>
               </div>
@@ -117,12 +118,12 @@ export function PLCUnassignModal({
               <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/60 flex items-start gap-2.5 text-xs text-amber-800 dark:text-amber-300">
                 <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
                 <div>
-                  <div className="font-bold">Hành động này sẽ thực hiện trong CSDL:</div>
+                  <div className="font-bold">{tr("Hành động này sẽ thực hiện trong CSDL:")}</div>
                   <ul className="list-disc list-inside mt-1 space-y-0.5 text-[11px] text-amber-900 dark:text-amber-200">
-                    <li>Giải phóng trạm PLC khỏi máy (<span className="font-mono">plc_stations.machine_id = NULL</span>).</li>
-                    <li>Gỡ trạm PLC trên toàn bộ mapping (<span className="font-mono">metric_mappings.plc_id = NULL</span>).</li>
-                    <li>Ngắt thu thập tín hiệu (<span className="font-mono">metric_mappings.monitoring_enabled = 0</span>).</li>
-                    <li>Chuyển trạng thái mapping về chưa cấu hình (<span className="font-mono">status = 'NOT_CONFIGURED'</span>).</li>
+                    <li>{tr("Giải phóng trạm PLC khỏi máy (")}<span className="font-mono">plc_stations.machine_id = NULL</span>).</li>
+                    <li>{tr("Gỡ trạm PLC trên toàn bộ mapping (")}<span className="font-mono">metric_mappings.plc_id = NULL</span>).</li>
+                    <li>{tr("Ngắt thu thập tín hiệu (")}<span className="font-mono">metric_mappings.monitoring_enabled = 0</span>).</li>
+                    <li>{tr("Chuyển trạng thái mapping về chưa cấu hình (")}<span className="font-mono">status = 'NOT_CONFIGURED'</span>).</li>
                   </ul>
                 </div>
               </div>
@@ -151,7 +152,7 @@ export function PLCUnassignModal({
                 isDisabled={isSubmitting}
                 className="text-xs"
               >
-                Hủy bỏ
+                {tr("Hủy bỏ")}
               </Button>
 
               <Button
@@ -163,7 +164,7 @@ export function PLCUnassignModal({
                 isLoading={isSubmitting}
                 startContent={!isSubmitting && <Unlink className="w-3.5 h-3.5" />}
               >
-                Xác nhận Gỡ PLC
+                {tr("Xác nhận Gỡ PLC")}
               </Button>
             </ModalFooter>
           </>

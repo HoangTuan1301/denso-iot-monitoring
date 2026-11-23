@@ -39,27 +39,28 @@ import { ModalPortal } from '../../components/common/ModalPortal';
 import { MappingFormModal } from './MappingFormModal';
 import { ThresholdConfigModal } from './ThresholdConfigModal';
 import { ScheduleConfigModal } from './ScheduleConfigModal';
+import { tr } from '../../i18n/tr';
 
 function getCategoryDisplay(cat: string): { name: string; className: string } {
   switch (cat) {
     case 'Pressure':
-      return { name: 'ÁP SUẤT', className: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20' };
+      return { name: tr("ÁP SUẤT"), className: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20' };
     case 'Temperature':
-      return { name: 'NHIỆT ĐỘ', className: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20' };
+      return { name: tr("NHIỆT ĐỘ"), className: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20' };
     case 'Vibration':
-      return { name: 'ĐỘ RUNG', className: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' };
+      return { name: tr("ĐỘ RUNG"), className: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' };
     case 'Current':
-      return { name: 'DÒNG ĐIỆN', className: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20' };
+      return { name: tr("DÒNG ĐIỆN"), className: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20' };
     case 'Voltage':
-      return { name: 'ĐIỆN ÁP', className: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' };
+      return { name: tr("ĐIỆN ÁP"), className: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' };
     case 'Speed':
-      return { name: 'TỐC ĐỘ', className: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' };
+      return { name: tr("TỐC ĐỘ"), className: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' };
     case 'Flow':
-      return { name: 'LƯU LƯỢNG', className: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20' };
+      return { name: tr("LƯU LƯỢNG"), className: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20' };
     case 'Level':
-      return { name: 'MỨC DẦU', className: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20' };
+      return { name: tr("MỨC DẦU"), className: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20' };
     default:
-      return { name: 'CÔNG NGHIỆP', className: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20' };
+      return { name: tr("CÔNG NGHIỆP"), className: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20' };
   }
 }
 
@@ -94,13 +95,13 @@ function formatScheduleSummary(mapping: MetricMappingItem): string {
     return `CRON: ${cron}`;
   }
   if (freq === 'CONTINUOUS' || interval === 1) {
-    return 'LIÊN TỤC (1s)';
+    return tr("LIÊN TỤC (1s)");
   }
   if (interval && !isNaN(Number(interval))) {
     return `${interval}s`;
   }
   if (freq === 'INTERVAL') {
-    return 'ĐỊNH KỲ';
+    return tr("ĐỊNH KỲ");
   }
   return '';
 }
@@ -158,7 +159,7 @@ export function ThresholdConfigView() {
       console.warn('[Load Data Error]:', err);
       setActionAlert({
         type: 'error',
-        message: err.message || 'Lỗi khi tải dữ liệu từ Backend.',
+        message: err.message || tr("Lỗi khi tải dữ liệu từ Backend."),
       });
     } finally {
       setIsLoading(false);
@@ -316,7 +317,7 @@ export function ThresholdConfigView() {
     if (!canManageMapping) {
       setActionAlert({
         type: 'warning',
-        message: 'Bạn không có quyền thay đổi gán thông số (yêu cầu ADMIN hoặc MAINTENANCE).',
+        message: tr("Bạn không có quyền thay đổi gán thông số (yêu cầu ADMIN hoặc MAINTENANCE)."),
       });
       return;
     }
@@ -343,14 +344,14 @@ export function ThresholdConfigView() {
 
         setActionAlert({
           type: 'success',
-          message: `Đã gán thành công thông số "${metric.name}" (${metric.code}) vào thiết bị "${currentMachine.name}".`,
+          message: tr("Đã gán thành công thông số \"{0}\" ({1}) vào thiết bị \"{2}\".", metric.name, metric.code, currentMachine.name),
         });
         await loadData();
       } catch (err: any) {
         console.error('[Assign Metric Error]:', err);
         setActionAlert({
           type: 'error',
-          message: err.message || 'Lỗi khi gán thông số vào thiết bị.',
+          message: err.message || tr("Lỗi khi gán thông số vào thiết bị."),
         });
       } finally {
         setTogglingMetricId(null);
@@ -367,7 +368,7 @@ export function ThresholdConfigView() {
       await apiClient.deleteMapping(unmapTarget.mapping.id);
       setActionAlert({
         type: 'success',
-        message: `Đã gỡ thông số "${unmapTarget.metric.name}" (${unmapTarget.metric.code}) khỏi thiết bị "${currentMachine?.name}". Thông số trong Danh mục vẫn được bảo toàn.`,
+        message: tr("Đã gỡ thông số \"{0}\" ({1}) khỏi thiết bị \"{2}\". Thông số trong Danh mục vẫn được bảo toàn.", unmapTarget.metric.name, unmapTarget.metric.code, currentMachine?.name),
       });
       setUnmapTarget(null);
       await loadData();
@@ -375,7 +376,7 @@ export function ThresholdConfigView() {
       console.error('[Unmap Metric Error]:', err);
       setActionAlert({
         type: 'error',
-        message: err.message || 'Không thể gỡ thông số khỏi thiết bị.',
+        message: err.message || tr("Không thể gỡ thông số khỏi thiết bị."),
       });
     } finally {
       setIsUnmapping(false);
@@ -391,7 +392,7 @@ export function ThresholdConfigView() {
       mapping.critical_max !== null;
 
     if (!hasThresholds) {
-      return { status: 'none', label: 'Không áp dụng', color: 'slate' };
+      return { status: 'none', label: tr("Không áp dụng"), color: 'slate' };
     }
 
     // Tra cứu giá trị thực tế nếu có trong telemetry
@@ -406,26 +407,26 @@ export function ThresholdConfigView() {
     }
 
     if (currentValue === null) {
-      return { status: 'normal', label: 'Bình thường', color: 'emerald' };
+      return { status: 'normal', label: tr("Bình thường"), color: 'emerald' };
     }
 
     // Kiểm tra Critical
     if (mapping.critical_max !== null && mapping.critical_max !== undefined && currentValue >= mapping.critical_max) {
-      return { status: 'critical', label: 'Nghiêm trọng', color: 'rose' };
+      return { status: 'critical', label: tr("Nghiêm trọng"), color: 'rose' };
     }
     if (mapping.critical_min !== null && mapping.critical_min !== undefined && currentValue <= mapping.critical_min) {
-      return { status: 'critical', label: 'Nghiêm trọng', color: 'rose' };
+      return { status: 'critical', label: tr("Nghiêm trọng"), color: 'rose' };
     }
 
     // Kiểm tra Warning
     if (mapping.warning_max !== null && mapping.warning_max !== undefined && currentValue >= mapping.warning_max) {
-      return { status: 'warning', label: 'Cảnh báo', color: 'amber' };
+      return { status: 'warning', label: tr("Cảnh báo"), color: 'amber' };
     }
     if (mapping.warning_min !== null && mapping.warning_min !== undefined && currentValue <= mapping.warning_min) {
-      return { status: 'warning', label: 'Cảnh báo', color: 'amber' };
+      return { status: 'warning', label: tr("Cảnh báo"), color: 'amber' };
     }
 
-    return { status: 'normal', label: 'Bình thường', color: 'emerald' };
+    return { status: 'normal', label: tr("Bình thường"), color: 'emerald' };
   };
 
   return (
@@ -436,14 +437,14 @@ export function ThresholdConfigView() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">
-            Cấu hình / Mapping & Ngưỡng cảnh báo
+            {tr("Cấu hình / Mapping & Ngưỡng cảnh báo")}
           </div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            Mapping & Ngưỡng cảnh báo
+            {tr("Mapping & Ngưỡng cảnh báo")}
             {isLoading && <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />}
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Chọn dây chuyền — chọn thiết bị — gán thông số và cấu hình ngưỡng cảnh báo, lịch thu thập cho từng thông số.
+            {tr("Chọn dây chuyền — chọn thiết bị — gán thông số và cấu hình ngưỡng cảnh báo, lịch thu thập cho từng thông số.")}
           </p>
         </div>
 
@@ -454,7 +455,7 @@ export function ThresholdConfigView() {
             className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-xs"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-            Làm mới
+            {tr("Làm mới")}
           </button>
         </div>
       </div>
@@ -501,7 +502,7 @@ export function ThresholdConfigView() {
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
             <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Layers className="w-4 h-4 text-emerald-600" />
-              Thiết bị
+              {tr("Thiết bị")}
             </h2>
             <span className="text-xs font-mono font-semibold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
               {filteredMachines.length}/{allMachines.length}
@@ -511,7 +512,7 @@ export function ThresholdConfigView() {
           {/* Chọn Dây chuyền sản xuất */}
           <div className="space-y-1.5">
             <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
-              Dây chuyền sản xuất
+              {tr("Dây chuyền sản xuất")}
             </label>
             <select
               value={lineFilter}
@@ -527,10 +528,10 @@ export function ThresholdConfigView() {
               }}
               className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
-              <option value="all">Tất cả dây chuyền ({allMachines.length} máy)</option>
+              <option value="all">{tr("Tất cả dây chuyền (")}{allMachines.length} {tr("máy)")}</option>
               {lines.map((l) => (
                 <option key={l.id} value={l.id}>
-                  {l.code} — {l.name} ({l.machines?.length || 0} máy)
+                  {l.code} — {l.name} ({l.machines?.length || 0} {tr("máy)")}
                 </option>
               ))}
             </select>
@@ -541,7 +542,7 @@ export function ThresholdConfigView() {
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Tìm thiết bị theo mã, tên..."
+              placeholder={tr("Tìm thiết bị theo mã, tên...")}
               value={machineSearchTerm}
               onChange={(e) => setMachineSearchTerm(e.target.value)}
               className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -552,7 +553,7 @@ export function ThresholdConfigView() {
           <div className="space-y-2 max-h-[580px] overflow-y-auto pr-1">
             {filteredMachines.length === 0 ? (
               <div className="py-8 text-center text-xs text-slate-400">
-                Không tìm thấy thiết bị phù hợp.
+                {tr("Không tìm thấy thiết bị phù hợp.")}
               </div>
             ) : (
               filteredMachines.map((m) => {
@@ -586,11 +587,11 @@ export function ThresholdConfigView() {
 
                     <div className="mt-2.5 flex items-center justify-between text-[11px]">
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                        {m.type || 'THIẾT BỊ'}
+                        {m.type || tr("THIẾT BỊ")}
                       </span>
 
                       <span className="text-slate-500 dark:text-slate-400 font-mono text-[11px]">
-                        {stats.metricCount} thông số &bull; {stats.ruleCount} quy tắc
+                        {stats.metricCount} {tr("thông số •")} {stats.ruleCount} {tr("quy tắc")}
                       </span>
                     </div>
                   </div>
@@ -610,12 +611,12 @@ export function ThresholdConfigView() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div>
                   <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                    Thông số của {currentMachine.name} ({currentMachine.code || currentMachine.id})
+                    {tr("Thông số của")} {currentMachine.name} ({currentMachine.code || currentMachine.id})
                   </h2>
                 </div>
 
                 <div className="text-xs font-mono font-semibold text-slate-500">
-                  {mappingsForCurrentMachine.length}/{catalogMetrics.length} đã gán
+                  {mappingsForCurrentMachine.length}/{catalogMetrics.length} {tr("đã gán")}
                 </div>
               </div>
 
@@ -624,7 +625,7 @@ export function ThresholdConfigView() {
                 <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Tìm thông số theo mã, tên hoặc nhóm..."
+                  placeholder={tr("Tìm thông số theo mã, tên hoặc nhóm...")}
                   value={metricSearchTerm}
                   onChange={(e) => setMetricSearchTerm(e.target.value)}
                   className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -636,13 +637,13 @@ export function ThresholdConfigView() {
                 <span>{currentMachine.name}</span>
                 <span>&bull;</span>
                 <span className="font-bold text-slate-700 dark:text-slate-300 uppercase">
-                  {currentMachine.type || 'THIẾT BỊ'}
+                  {currentMachine.type || tr("THIẾT BỊ")}
                 </span>
                 <span>&bull;</span>
                 <span>
-                  Nguồn PLC:{' '}
+                  {tr("Nguồn PLC:")}{' '}
                   <strong className="text-emerald-600 dark:text-emerald-400">
-                    {currentMachine.plc?.name || currentMachine.plcName || currentMachine.plcId || 'Trạm PLC Dây chuyền'}
+                    {currentMachine.plc?.name || currentMachine.plcName || currentMachine.plcId || tr("Trạm PLC Dây chuyền")}
                   </strong>
                 </span>
               </div>
@@ -654,8 +655,8 @@ export function ThresholdConfigView() {
                     <Sliders className="w-8 h-8 opacity-40 mx-auto text-slate-400" />
                     <div>
                       {metricSearchTerm.trim()
-                        ? `Không tìm thấy thông số nào phù hợp với từ khóa "${metricSearchTerm}".`
-                        : 'Chưa có thông số nào trong Danh mục Thông số.'}
+                        ? tr("Không tìm thấy thông số nào phù hợp với từ khóa \"{0}\".", metricSearchTerm)
+                        : tr("Chưa có thông số nào trong Danh mục Thông số.")}
                     </div>
                   </div>
                 ) : (
@@ -684,7 +685,7 @@ export function ThresholdConfigView() {
                             {/* Khối Thông tin Metric (Bên trái) */}
                             <div className="flex items-start gap-3">
                               {/* Checkbox ĐÃ TÍCH: Nhấn để mở xác nhận gỡ gán */}
-                              <Tooltip content={canManageMapping ? 'Bỏ tích để gỡ thông số khỏi thiết bị' : 'Yêu cầu quyền ADMIN hoặc MAINTENANCE'}>
+                              <Tooltip content={canManageMapping ? tr("Bỏ tích để gỡ thông số khỏi thiết bị") : tr("Yêu cầu quyền ADMIN hoặc MAINTENANCE")}>
                                 <button
                                   type="button"
                                   onClick={() => handleToggleMetricAssignment(metric, mapping)}
@@ -761,7 +762,7 @@ export function ThresholdConfigView() {
                                   className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:border-amber-400 hover:bg-amber-50/50 dark:hover:bg-amber-950/30 text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
                                 >
                                   <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                                    Ngưỡng:
+                                    {tr("Ngưỡng:")}
                                   </span>
                                   <span className="text-amber-600 dark:text-amber-400 font-semibold">
                                     {thresholdText}
@@ -775,8 +776,8 @@ export function ThresholdConfigView() {
                                   }}
                                   className="px-3 py-1.5 rounded-xl border border-dashed border-amber-300 dark:border-amber-800/80 bg-amber-50/40 dark:bg-amber-950/20 hover:border-amber-500 text-amber-700 dark:text-amber-400 text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
                                 >
-                                  <span className="text-[11px] font-bold">Ngưỡng:</span>
-                                  <span className="italic">Chưa cấu hình</span>
+                                  <span className="text-[11px] font-bold">{tr("Ngưỡng:")}</span>
+                                  <span className="italic">{tr("Chưa cấu hình")}</span>
                                   <Plus className="w-3 h-3 text-amber-600 ml-0.5" />
                                 </button>
                               )}
@@ -791,7 +792,7 @@ export function ThresholdConfigView() {
                                   className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
                                 >
                                   <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                                    Phiên:
+                                    {tr("Phiên:")}
                                   </span>
                                   <span className="font-semibold text-blue-600 dark:text-blue-400">
                                     {scheduleText}
@@ -805,15 +806,15 @@ export function ThresholdConfigView() {
                                   }}
                                   className="px-3 py-1.5 rounded-xl border border-dashed border-blue-300 dark:border-blue-800/80 bg-blue-50/40 dark:bg-blue-950/20 hover:border-blue-500 text-blue-700 dark:text-blue-400 text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
                                 >
-                                  <span className="text-[11px] font-bold">Lịch:</span>
-                                  <span className="italic">Chưa cấu hình</span>
+                                  <span className="text-[11px] font-bold">{tr("Lịch:")}</span>
+                                  <span className="italic">{tr("Chưa cấu hình")}</span>
                                   <Plus className="w-3 h-3 text-blue-600 ml-0.5" />
                                 </button>
                               )}
 
                               {/* Nút sửa Mapping (plc_register, scale_factor, channel_name) */}
                               {canManageMapping && (
-                                <Tooltip content="Chỉnh sửa kênh đo">
+                                <Tooltip content={tr("Chỉnh sửa kênh đo")}>
                                   <button
                                     onClick={() => {
                                       setSelectedMappingForEdit(mapping);
@@ -829,7 +830,7 @@ export function ThresholdConfigView() {
 
                               {/* Nút Xóa / Bỏ gán mapping */}
                               {canManageMapping && (
-                                <Tooltip content="Bỏ gán thông số khỏi thiết bị">
+                                <Tooltip content={tr("Bỏ gán thông số khỏi thiết bị")}>
                                   <button
                                     onClick={() => setUnmapTarget({ metric, mapping })}
                                     className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-rose-400 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
@@ -855,7 +856,7 @@ export function ThresholdConfigView() {
                             {/* Khối Thông tin Metric (Bên trái) */}
                             <div className="flex items-start gap-3">
                               {/* Checkbox CHƯA TÍCH: Nhấn để gán ngay */}
-                              <Tooltip content={canManageMapping ? 'Tích chọn để gán thông số này vào thiết bị' : 'Yêu cầu quyền ADMIN hoặc MAINTENANCE'}>
+                              <Tooltip content={canManageMapping ? tr("Tích chọn để gán thông số này vào thiết bị") : tr("Yêu cầu quyền ADMIN hoặc MAINTENANCE")}>
                                 <button
                                   type="button"
                                   onClick={() => handleToggleMetricAssignment(metric, null)}
@@ -898,7 +899,7 @@ export function ThresholdConfigView() {
                             {/* Bên phải: Trạng thái chưa gán & Nút gán nhanh */}
                             <div className="flex items-center gap-2 md:self-center">
                               <span className="text-[11px] font-medium text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg">
-                                Chưa gán
+                                {tr("Chưa gán")}
                               </span>
                               {canManageMapping && (
                                 <button
@@ -907,7 +908,7 @@ export function ThresholdConfigView() {
                                   disabled={togglingMetricId === metric.id}
                                   className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 hover:underline cursor-pointer"
                                 >
-                                  + Gán vào thiết bị
+                                  {tr("+ Gán vào thiết bị")}
                                 </button>
                               )}
                             </div>
@@ -921,7 +922,7 @@ export function ThresholdConfigView() {
             </>
           ) : (
             <div className="py-16 text-center text-xs text-slate-400">
-              Vui lòng chọn một Thiết bị bên trái để xem cấu hình thông số và ngưỡng cảnh báo.
+              {tr("Vui lòng chọn một Thiết bị bên trái để xem cấu hình thông số và ngưỡng cảnh báo.")}
             </div>
           )}
         </div>
@@ -944,36 +945,36 @@ export function ThresholdConfigView() {
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                  Xác nhận gỡ thông số khỏi thiết bị
+                  {tr("Xác nhận gỡ thông số khỏi thiết bị")}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Thiết bị: <strong className="text-slate-700 dark:text-slate-200">{currentMachine?.name}</strong> ({currentMachine?.code || currentMachine?.id})
+                  {tr("Thiết bị:")} <strong className="text-slate-700 dark:text-slate-200">{currentMachine?.name}</strong> ({currentMachine?.code || currentMachine?.id})
                 </p>
               </div>
             </div>
 
             <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-1.5 text-xs">
               <div className="flex justify-between">
-                <span className="text-slate-500">Mã thông số:</span>
+                <span className="text-slate-500">{tr("Mã thông số:")}</span>
                 <span className="font-bold text-slate-900 dark:text-white font-mono">{unmapTarget.metric.code}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Tên hiển thị:</span>
+                <span className="text-slate-500">{tr("Tên hiển thị:")}</span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200">{unmapTarget.metric.name}</span>
               </div>
               {unmapTarget.mapping.channel_name && (
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Kênh đo:</span>
+                  <span className="text-slate-500">{tr("Kênh đo:")}</span>
                   <span className="text-slate-700 dark:text-slate-300 truncate max-w-[200px]">{unmapTarget.mapping.channel_name}</span>
                 </div>
               )}
             </div>
 
             <p className="text-xs text-slate-600 dark:text-slate-400">
-              Hành động này sẽ gỡ kênh đo và xóa các cấu hình ngưỡng cảnh báo, lịch thu thập của thông số này trên thiết bị <strong className="text-slate-800 dark:text-slate-200">{currentMachine?.name}</strong>.
+              {tr("Hành động này sẽ gỡ kênh đo và xóa các cấu hình ngưỡng cảnh báo, lịch thu thập của thông số này trên thiết bị")} <strong className="text-slate-800 dark:text-slate-200">{currentMachine?.name}</strong>.
             </p>
             <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-              &bull; Thông số trong <strong>Danh mục Thông số</strong> vẫn được bảo toàn nguyên vẹn.
+              {tr("• Thông số trong")} <strong>{tr("Danh mục Thông số")}</strong> {tr("vẫn được bảo toàn nguyên vẹn.")}
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-2">
@@ -983,7 +984,7 @@ export function ThresholdConfigView() {
                 disabled={isUnmapping}
                 className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
-                Hủy
+                {tr("Hủy")}
               </button>
               <button
                 type="button"
@@ -994,10 +995,10 @@ export function ThresholdConfigView() {
                 {isUnmapping ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>Đang gỡ...</span>
+                    <span>{tr("Đang gỡ...")}</span>
                   </>
                 ) : (
-                  <span>Gỡ thông số</span>
+                  <span>{tr("Gỡ thông số")}</span>
                 )}
               </button>
             </div>

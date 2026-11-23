@@ -32,6 +32,7 @@ import { useMonitoringStore } from '../../stores/useMonitoringStore';
 import { ModalPortal } from '../../components/common/ModalPortal';
 import { MachineImage } from '../../config/machineImages';
 import { apiClient } from '../../services/api';
+import { tr } from '../../i18n/tr';
 
 export interface MachineFormModalProps {
   isOpen: boolean;
@@ -45,13 +46,13 @@ export interface MachineFormModalProps {
 }
 
 export const COMMON_MACHINE_TYPES = [
-  { key: 'stamping', label: 'Máy dập thủy lực / dập phôi (Stamping)' },
-  { key: 'welding', label: 'Robot hàn / Trạm hàn tự động (Welding)' },
-  { key: 'coating', label: 'Buồng sơn tĩnh điện / buồng sấy (Coating)' },
-  { key: 'assembly', label: 'Trạm siết bulong / trạm ép vòng bi (Assembly)' },
-  { key: 'inspection', label: 'Máy đo kích thước quang học / Test rò rỉ (Inspection)' },
-  { key: 'feeder', label: 'Hệ thống cấp phôi / gắp phôi tự động (Feeder)' },
-  { key: 'general', label: 'Thiết bị phụ trợ / Máy gia công chung (General)' },
+  { key: 'stamping', label: tr("Máy dập thủy lực / dập phôi (Stamping)") },
+  { key: 'welding', label: tr("Robot hàn / Trạm hàn tự động (Welding)") },
+  { key: 'coating', label: tr("Buồng sơn tĩnh điện / buồng sấy (Coating)") },
+  { key: 'assembly', label: tr("Trạm siết bulong / trạm ép vòng bi (Assembly)") },
+  { key: 'inspection', label: tr("Máy đo kích thước quang học / Test rò rỉ (Inspection)") },
+  { key: 'feeder', label: tr("Hệ thống cấp phôi / gắp phôi tự động (Feeder)") },
+  { key: 'general', label: tr("Thiết bị phụ trợ / Máy gia công chung (General)") },
 ];
 
 type ActiveTab = 'general' | 'image' | 'specs';
@@ -253,7 +254,7 @@ export function MachineFormModal({
 
     if (isDirty) {
       const confirmed = window.confirm(
-        'Bạn có các thông tin thiết bị chưa lưu. Bạn có chắc chắn muốn đóng và hủy bỏ không?'
+        tr("Bạn có các thông tin thiết bị chưa lưu. Bạn có chắc chắn muốn đóng và hủy bỏ không?")
       );
       if (!confirmed) return;
     }
@@ -285,14 +286,14 @@ export function MachineFormModal({
     // 1. Kiểm tra kích thước file (tối đa 5MB)
     const MAX_SIZE = 5 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
-      setUploadError('Dung lượng tệp vượt quá giới hạn cho phép (tối đa 5MB).');
+      setUploadError(tr("Dung lượng tệp vượt quá giới hạn cho phép (tối đa 5MB)."));
       return;
     }
 
     // 2. Kiểm tra định dạng ảnh (PNG, JPG, JPEG, WEBP)
     const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
     if (!validTypes.includes(file.type.toLowerCase())) {
-      setUploadError('Chỉ hỗ trợ tệp ảnh định dạng PNG, JPG, JPEG hoặc WEBP.');
+      setUploadError(tr("Chỉ hỗ trợ tệp ảnh định dạng PNG, JPG, JPEG hoặc WEBP."));
       return;
     }
 
@@ -307,12 +308,12 @@ export function MachineFormModal({
       setIsUploadingImage(true);
       const res = await apiClient.uploadMachineImage(file, machine?.id);
       setImageUrl(res.imageUrl);
-      setUploadSuccess(`Đã tải lên ảnh thiết bị thành công (${Math.round(file.size / 1024)} KB)`);
+      setUploadSuccess(tr("Đã tải lên ảnh thiết bị thành công ({0} KB)", Math.round(file.size / 1024)));
     } catch (err: any) {
       console.warn('[Upload Image Warning]:', err);
       // Nếu server chưa hỗ trợ hoặc offline, giữ preview blob tạm thời
       setUploadError(
-        err.message || 'Không thể tải ảnh lên máy chủ. Ảnh sẽ được lưu khi gửi form.'
+        err.message || tr("Không thể tải ảnh lên máy chủ. Ảnh sẽ được lưu khi gửi form.")
       );
     } finally {
       setIsUploadingImage(false);
@@ -322,7 +323,7 @@ export function MachineFormModal({
   // Xóa ảnh thiết bị
   const handleRemoveImage = () => {
     const confirmed = window.confirm(
-      'Bạn có chắc chắn muốn xóa ảnh tùy chỉnh này và khôi phục ảnh CAD mặc định của DENSO?'
+      tr("Bạn có chắc chắn muốn xóa ảnh tùy chỉnh này và khôi phục ảnh CAD mặc định của DENSO?")
     );
     if (!confirmed) return;
 
@@ -330,7 +331,7 @@ export function MachineFormModal({
     setImageUrl(null);
     setImagePreview(null);
     setUploadError(null);
-    setUploadSuccess('Đã gỡ ảnh tùy chỉnh. Thiết bị sẽ sử dụng ảnh CAD tiêu chuẩn.');
+    setUploadSuccess(tr("Đã gỡ ảnh tùy chỉnh. Thiết bị sẽ sử dụng ảnh CAD tiêu chuẩn."));
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -350,14 +351,14 @@ export function MachineFormModal({
     // 1. Validation Dây chuyền
     if (!lineId) {
       setActiveTab('general');
-      setErrorMessage('Vui lòng chọn Dây chuyền sản xuất tiếp nhận thiết bị.');
+      setErrorMessage(tr("Vui lòng chọn Dây chuyền sản xuất tiếp nhận thiết bị."));
       return;
     }
 
     // 2. Validation Tên máy
     if (!trimmedName) {
       setActiveTab('general');
-      setErrorMessage('Vui lòng nhập Tên thiết bị.');
+      setErrorMessage(tr("Vui lòng nhập Tên thiết bị."));
       nameInputRef.current?.focus();
       return;
     }
@@ -366,13 +367,13 @@ export function MachineFormModal({
     if (mode === 'create') {
       if (!trimmedCode) {
         setActiveTab('general');
-        setErrorMessage('Vui lòng nhập Mã thiết bị duy nhất.');
+        setErrorMessage(tr("Vui lòng nhập Mã thiết bị duy nhất."));
         return;
       }
       if (!/^[A-Z0-9\-_]+$/i.test(trimmedCode)) {
         setActiveTab('general');
         setErrorMessage(
-          'Mã thiết bị chỉ được chứa chữ cái, số, dấu gạch nối (-) hoặc gạch dưới (_).'
+          tr("Mã thiết bị chỉ được chứa chữ cái, số, dấu gạch nối (-) hoặc gạch dưới (_).")
         );
         return;
       }
@@ -411,7 +412,7 @@ export function MachineFormModal({
           technicalNotes: technicalNotes.trim() || undefined,
         });
 
-        setSuccessMessage(`Đã thêm mới thiết bị ${trimmedName} (${trimmedCode}) thành công!`);
+        setSuccessMessage(tr("Đã thêm mới thiết bị {0} ({1}) thành công!", trimmedName, trimmedCode));
       } else {
         // Mode EDIT
         if (!machine) return;
@@ -430,7 +431,7 @@ export function MachineFormModal({
           technicalNotes: technicalNotes.trim() || undefined,
         });
 
-        setSuccessMessage(`Đã cập nhật thông tin thiết bị ${trimmedName} thành công!`);
+        setSuccessMessage(tr("Đã cập nhật thông tin thiết bị {0} thành công!", trimmedName));
       }
 
       setTimeout(() => {
@@ -444,7 +445,7 @@ export function MachineFormModal({
         err.message ||
         (typeof err === 'string'
           ? err
-          : 'Lỗi khi lưu dữ liệu thiết bị. Vui lòng kiểm tra lại kết nối hoặc quyền truy cập.');
+          : tr("Lỗi khi lưu dữ liệu thiết bị. Vui lòng kiểm tra lại kết nối hoặc quyền truy cập."));
       setErrorMessage(msg);
     } finally {
       setIsSubmitting(false);
@@ -481,12 +482,12 @@ export function MachineFormModal({
               </div>
               <div>
                 <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-tight">
-                  {mode === 'create' ? 'Thêm thiết bị máy móc mới' : 'Thông tin & Chỉnh sửa thiết bị'}
+                  {mode === 'create' ? tr("Thêm thiết bị máy móc mới") : tr("Thông tin & Chỉnh sửa thiết bị")}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
                   {mode === 'create'
-                    ? 'Khai báo thông số kỹ thuật và gán vào dây chuyền sản xuất'
-                    : `Cập nhật thông tin vận hành cho ${machine?.code || machine?.id || 'thiết bị'}`}
+                    ? tr("Khai báo thông số kỹ thuật và gán vào dây chuyền sản xuất")
+                    : tr("Cập nhật thông tin vận hành cho {0}", machine?.code || machine?.id || tr("thiết bị"))}
                 </p>
               </div>
             </div>
@@ -496,7 +497,7 @@ export function MachineFormModal({
               onClick={handleSafeClose}
               disabled={isSubmitting || isUploadingImage}
               className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer disabled:opacity-50"
-              title="Đóng (Escape)"
+              title={tr("Đóng (Escape)")}
             >
               <X className="w-4 h-4" />
             </button>
@@ -516,7 +517,7 @@ export function MachineFormModal({
               }`}
             >
               <Sliders className="w-4 h-4" />
-              <span>Thông tin chung</span>
+              <span>{tr("Thông tin chung")}</span>
             </button>
 
             <button
@@ -529,7 +530,7 @@ export function MachineFormModal({
               }`}
             >
               <ImageIcon className="w-4 h-4" />
-              <span>Hình ảnh thiết bị</span>
+              <span>{tr("Hình ảnh thiết bị")}</span>
               {imagePreview && (
                 <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900" />
               )}
@@ -545,7 +546,7 @@ export function MachineFormModal({
               }`}
             >
               <FileText className="w-4 h-4" />
-              <span>Thông số kỹ thuật</span>
+              <span>{tr("Thông số kỹ thuật")}</span>
             </button>
           </div>
 
@@ -576,7 +577,7 @@ export function MachineFormModal({
                   {/* Dây chuyền sản xuất */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                      Dây chuyền sản xuất <span className="text-rose-500">*</span>
+                      {tr("Dây chuyền sản xuất")} <span className="text-rose-500">*</span>
                     </label>
                     {mode === 'create' ? (
                       <select
@@ -607,7 +608,7 @@ export function MachineFormModal({
                   {/* Mã thiết bị (Machine Code) */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                      Mã thiết bị <span className="text-rose-500">*</span>
+                      {tr("Mã thiết bị")} <span className="text-rose-500">*</span>
                     </label>
                     {mode === 'create' ? (
                       <input
@@ -637,14 +638,14 @@ export function MachineFormModal({
                   {/* Tên thiết bị */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                      Tên thiết bị <span className="text-rose-500">*</span>
+                      {tr("Tên thiết bị")} <span className="text-rose-500">*</span>
                     </label>
                     <input
                       ref={nameInputRef}
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      placeholder="VD: Trạm siết bulong tự động 02"
+                      placeholder={tr("VD: Trạm siết bulong tự động 02")}
                       disabled={isSubmitting}
                       className="w-full h-10 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-colors"
                     />
@@ -653,7 +654,7 @@ export function MachineFormModal({
                   {/* Loại thiết bị */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                      Loại thiết bị công nghiệp
+                      {tr("Loại thiết bị công nghiệp")}
                     </label>
                     <select
                       value={type}
@@ -675,13 +676,13 @@ export function MachineFormModal({
                   {/* Vị trí xưởng */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                      Vị trí xưởng (Location)
+                      {tr("Vị trí xưởng (Location)")}
                     </label>
                     <input
                       type="text"
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
-                      placeholder="VD: Trạm OP10 - Phân xưởng 1"
+                      placeholder={tr("VD: Trạm OP10 - Phân xưởng 1")}
                       disabled={isSubmitting}
                       className="w-full h-10 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-colors"
                     />
@@ -690,7 +691,7 @@ export function MachineFormModal({
                   {/* Trạng thái quản lý */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                      Trạng thái quản lý thiết bị
+                      {tr("Trạng thái quản lý thiết bị")}
                     </label>
                     <div className="grid grid-cols-2 gap-2">
                       <button
@@ -703,7 +704,7 @@ export function MachineFormModal({
                         }`}
                       >
                         <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                        <span>Active (Đang dùng)</span>
+                        <span>{tr("Active (Đang dùng)")}</span>
                       </button>
 
                       <button
@@ -716,7 +717,7 @@ export function MachineFormModal({
                         }`}
                       >
                         <span className="w-2 h-2 rounded-full bg-slate-400" />
-                        <span>Inactive (Ngừng dùng)</span>
+                        <span>{tr("Inactive (Ngừng dùng)")}</span>
                       </button>
                     </div>
                   </div>
@@ -725,13 +726,13 @@ export function MachineFormModal({
                 {/* Hàng 4: Mô tả kỹ thuật */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Mô tả kỹ thuật & Ghi chú vận hành
+                    {tr("Mô tả kỹ thuật & Ghi chú vận hành")}
                   </label>
                   <textarea
                     rows={3}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Nhập mô tả tóm tắt về chức năng, phạm vi ứng dụng và đặc điểm thiết bị..."
+                    placeholder={tr("Nhập mô tả tóm tắt về chức năng, phạm vi ứng dụng và đặc điểm thiết bị...")}
                     disabled={isSubmitting}
                     className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-colors resize-none"
                   />
@@ -741,9 +742,7 @@ export function MachineFormModal({
                 <div className="flex items-start gap-2 p-3 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 text-blue-800 dark:text-blue-300 text-xs">
                   <Info className="w-4 h-4 shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
                   <p>
-                    <strong>Lưu ý công nghiệp:</strong> Trạng thái quản lý (Active/Inactive) phân định
-                    thiết bị có đang trong biên chế sản xuất hay không. Trạng thái vận hành thực tế
-                    (Đang chạy / Cảnh báo / Dừng máy) được hệ thống giám sát IoT tự động tính toán từ cảm biến.
+                    <strong>{tr("Lưu ý công nghiệp:")}</strong> {tr("Trạng thái quản lý (Active/Inactive) phân định thiết bị có đang trong biên chế sản xuất hay không. Trạng thái vận hành thực tế (Đang chạy / Cảnh báo / Dừng máy) được hệ thống giám sát IoT tự động tính toán từ cảm biến.")}
                   </p>
                 </div>
               </div>
@@ -758,14 +757,14 @@ export function MachineFormModal({
                     {imagePreview ? (
                       <img
                         src={imagePreview}
-                        alt="Preview máy"
+                        alt={tr("Preview máy")}
                         className="w-full h-full object-contain"
                       />
                     ) : (
                       <MachineImage
                         machineId={machine?.id}
                         machineCode={code || machine?.code}
-                        alt={name || 'Thiết bị'}
+                        alt={name || tr("Thiết bị")}
                         className="w-full h-full object-contain"
                         showFallbackLabel
                       />
@@ -781,20 +780,19 @@ export function MachineFormModal({
                   <div className="flex-1 space-y-2 text-center sm:text-left">
                     <div className="flex items-center justify-center sm:justify-start gap-2">
                       <span className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200">
-                        {code || machine?.code || 'CHƯA CÓ MÃ'}
+                        {code || machine?.code || tr("CHƯA CÓ MÃ")}
                       </span>
                       <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
-                        {imagePreview ? 'Ảnh tải lên' : 'Ảnh CAD tiêu chuẩn'}
+                        {imagePreview ? tr("Ảnh tải lên") : tr("Ảnh CAD tiêu chuẩn")}
                       </span>
                     </div>
 
                     <h4 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">
-                      {name || 'Thiết bị chưa đặt tên'}
+                      {name || tr("Thiết bị chưa đặt tên")}
                     </h4>
 
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                      Ảnh này sẽ được hiển thị đồng bộ tại Sơ đồ dây chuyền, Giám sát Thiết bị,
-                      Machine Detail và Bảng CHECK SHEET.
+                      {tr("Ảnh này sẽ được hiển thị đồng bộ tại Sơ đồ dây chuyền, Giám sát Thiết bị, Machine Detail và Bảng CHECK SHEET.")}
                     </p>
 
                     {/* Các nút thao tác ảnh */}
@@ -806,7 +804,7 @@ export function MachineFormModal({
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 text-xs font-bold transition-all cursor-pointer shadow-2xs"
                       >
                         <Upload className="w-3.5 h-3.5" />
-                        <span>{imagePreview ? 'Thay đổi ảnh' : 'Tải ảnh lên'}</span>
+                        <span>{imagePreview ? tr("Thay đổi ảnh") : tr("Tải ảnh lên")}</span>
                       </button>
 
                       {imagePreview && (
@@ -817,7 +815,7 @@ export function MachineFormModal({
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs font-bold transition-all cursor-pointer shadow-2xs"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
-                          <span>Gỡ ảnh</span>
+                          <span>{tr("Gỡ ảnh")}</span>
                         </button>
                       )}
                     </div>
@@ -852,13 +850,13 @@ export function MachineFormModal({
                 <div className="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-800/40 space-y-2 text-xs text-slate-600 dark:text-slate-300">
                   <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                     <Info className="w-4 h-4 text-blue-600" />
-                    <span>Quy chuẩn tệp hình ảnh công nghiệp DENSO:</span>
+                    <span>{tr("Quy chuẩn tệp hình ảnh công nghiệp DENSO:")}</span>
                   </div>
                   <ul className="list-disc pl-5 space-y-1 text-slate-500 dark:text-slate-400">
-                    <li>Hỗ trợ định dạng ảnh raster: <strong>PNG, JPG, JPEG, WEBP</strong>.</li>
-                    <li>Khuyến khích sử dụng ảnh <strong>PNG nền trong suốt (transparent)</strong> hoặc CAD 3D rendered.</li>
-                    <li>Dung lượng tệp tối đa: <strong>5.0 MB</strong> cho mỗi thiết bị.</li>
-                    <li>Độ phân giải tối ưu: Chiều ngang từ <strong>600px đến 1200px</strong>.</li>
+                    <li>{tr("Hỗ trợ định dạng ảnh raster:")} <strong>PNG, JPG, JPEG, WEBP</strong>.</li>
+                    <li>{tr("Khuyến khích sử dụng ảnh")} <strong>{tr("PNG nền trong suốt (transparent)")}</strong> {tr("hoặc CAD 3D rendered.")}</li>
+                    <li>{tr("Dung lượng tệp tối đa:")} <strong>5.0 MB</strong> {tr("cho mỗi thiết bị.")}</li>
+                    <li>{tr("Độ phân giải tối ưu: Chiều ngang từ")} <strong>{tr("600px đến 1200px")}</strong>.</li>
                   </ul>
                 </div>
               </div>
@@ -872,7 +870,7 @@ export function MachineFormModal({
                   {/* Hãng sản xuất */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                      Hãng sản xuất (Manufacturer)
+                      {tr("Hãng sản xuất (Manufacturer)")}
                     </label>
                     <input
                       type="text"
@@ -887,7 +885,7 @@ export function MachineFormModal({
                   {/* Model máy */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                      Model thiết bị
+                      {tr("Model thiết bị")}
                     </label>
                     <input
                       type="text"
@@ -905,7 +903,7 @@ export function MachineFormModal({
                   {/* Số serial */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                      Số Serial (S/N)
+                      {tr("Số Serial (S/N)")}
                     </label>
                     <input
                       type="text"
@@ -920,7 +918,7 @@ export function MachineFormModal({
                   {/* Ngày đưa vào sử dụng */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                      Ngày đưa vào sử dụng (Commissioning)
+                      {tr("Ngày đưa vào sử dụng (Commissioning)")}
                     </label>
                     <input
                       type="date"
@@ -935,13 +933,13 @@ export function MachineFormModal({
                 {/* Hàng 3: Công suất định mức */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Thông số công suất / Tải trọng định mức
+                    {tr("Thông số công suất / Tải trọng định mức")}
                   </label>
                   <input
                     type="text"
                     value={ratedPower}
                     onChange={(e) => setRatedPower(e.target.value)}
-                    placeholder="VD: 500 Tấn, 45 kW, 220V - 50Hz, 3.2 bar..."
+                    placeholder={tr("VD: 500 Tấn, 45 kW, 220V - 50Hz, 3.2 bar...")}
                     disabled={isSubmitting}
                     className="w-full h-10 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-colors"
                   />
@@ -950,13 +948,13 @@ export function MachineFormModal({
                 {/* Hàng 4: Ghi chú kỹ thuật */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Ghi chú kỹ thuật & Đặc điểm bảo trì
+                    {tr("Ghi chú kỹ thuật & Đặc điểm bảo trì")}
                   </label>
                   <textarea
                     rows={2}
                     value={technicalNotes}
                     onChange={(e) => setTechnicalNotes(e.target.value)}
-                    placeholder="Lịch bảo dưỡng định kỳ, yêu cầu dầu mỡ bôi trơn, tiêu chuẩn kiểm định..."
+                    placeholder={tr("Lịch bảo dưỡng định kỳ, yêu cầu dầu mỡ bôi trơn, tiêu chuẩn kiểm định...")}
                     disabled={isSubmitting}
                     className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-colors resize-none"
                   />
@@ -967,21 +965,21 @@ export function MachineFormModal({
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                       <Cpu className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                      <span>Trạm PLC thu thập tín hiệu</span>
+                      <span>{tr("Trạm PLC thu thập tín hiệu")}</span>
                     </span>
                     <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                      Cấu hình độc lập
+                      {tr("Cấu hình độc lập")}
                     </span>
                   </div>
 
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     {machine?.plc ? (
                       <>
-                        Đang liên kết với PLC <strong>{machine.plc.name}</strong> ({machine.plc.protocol}
+                        {tr("Đang liên kết với PLC")} <strong>{machine.plc.name}</strong> ({machine.plc.protocol}
                         {(machine.plc as any).ipAddress ? ` @ ${(machine.plc as any).ipAddress}:${(machine.plc as any).port}` : ''})
                       </>
                     ) : (
-                      'Chưa gán trạm PLC trực tiếp. Thiết bị nhận dữ liệu từ trạm PLC chung của dây chuyền.'
+                      tr("Chưa gán trạm PLC trực tiếp. Thiết bị nhận dữ liệu từ trạm PLC chung của dây chuyền.")
                     )}
                   </p>
                 </div>
@@ -999,7 +997,7 @@ export function MachineFormModal({
               disabled={isSubmitting || isUploadingImage}
               className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 font-bold text-xs sm:text-sm transition-colors cursor-pointer disabled:opacity-50"
             >
-              Hủy bỏ
+              {tr("Hủy bỏ")}
             </button>
 
             <div className="flex items-center gap-2">
@@ -1016,17 +1014,17 @@ export function MachineFormModal({
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Đang lưu...</span>
+                    <span>{tr("Đang lưu...")}</span>
                   </>
                 ) : mode === 'create' ? (
                   <>
                     <Plus className="w-4 h-4" />
-                    <span>Tạo thiết bị</span>
+                    <span>{tr("Tạo thiết bị")}</span>
                   </>
                 ) : (
                   <>
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>Lưu thay đổi</span>
+                    <span>{tr("Lưu thay đổi")}</span>
                   </>
                 )}
               </button>

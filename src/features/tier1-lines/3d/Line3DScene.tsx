@@ -19,6 +19,7 @@ import {
 import { createMachine3D, Machine3DObject } from './machine3DModels';
 import { createProductionEnvironment } from './ProductionFlow3D';
 import { Eye } from 'lucide-react';
+import { tr } from '../../../i18n/tr';
 
 interface StationFlowData {
   id: string;
@@ -259,7 +260,7 @@ export function Line3DScene({
           machineCode: liveData?.actualCode || cfg.defaultMachineCode,
           name: liveData?.name || cfg.name,
           status: liveData?.status || 'OK',
-          statusLabel: liveData?.statusLabel || 'Đang chạy',
+          statusLabel: liveData?.statusLabel || tr("Đang chạy"),
           screenX,
           screenY,
           visible: isVisible,
@@ -477,7 +478,7 @@ export function Line3DScene({
                   setTooltipPos(null);
                 }}
                 className={`flex items-center gap-2 px-2.5 py-1 rounded-full border shadow-lg backdrop-blur-md transition-all cursor-pointer ${pillBorderClass}`}
-                title={`Nhấn để mở Machine Detail & CHECK SHEET cho máy ${badge.machineCode} (${badge.name})`}
+                title={tr("Nhấn để mở Machine Detail & CHECK SHEET cho máy {0} ({1})", badge.machineCode, badge.name)}
               >
                 {/* Chấm tròn trạng thái */}
                 <span className="relative flex h-2 w-2">
@@ -529,7 +530,7 @@ export function Line3DScene({
           <div className="mt-2 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400 font-medium">
             <span className="flex items-center gap-1 text-blue-400">
               <Eye className="w-3 h-3" />
-              <span>Xem chi tiết máy</span>
+              <span>{tr("Xem chi tiết máy")}</span>
             </span>
             <span className="font-mono text-slate-500">Click to open</span>
           </div>
@@ -538,11 +539,11 @@ export function Line3DScene({
 
       {/* 4. Thanh hướng dẫn thao tác 3D (Navigation Hint) */}
       <div className="absolute bottom-2.5 left-3 pointer-events-none flex items-center gap-2 text-[10px] font-mono text-slate-600 dark:text-slate-400 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xs px-2.5 py-1 rounded-lg border border-slate-200/80 dark:border-slate-800 shadow-2xs">
-        <span>🖱️ Chuột trái: Xoay</span>
+        <span>{tr("🖱️ Chuột trái: Xoay")}</span>
         <span>•</span>
-        <span>Cuộn: Zoom</span>
+        <span>{tr("Cuộn: Zoom")}</span>
         <span>•</span>
-        <span>Chuột phải: Di chuyển</span>
+        <span>{tr("Chuột phải: Di chuyển")}</span>
       </div>
 
       {/* 5. Ghi chú tính chất mô hình */}

@@ -4,6 +4,30 @@
  */
 import { useTranslation } from 'react-i18next';
 import { SUPPORTED_LANGUAGES, type AppLanguage } from '../../i18n';
+import { useMonitoringStore, NAV_RESTORE_KEY } from '../../stores/useMonitoringStore';
+
+/**
+ * Đổi ngôn ngữ: lưu lựa chọn + vị trí màn hình hiện tại rồi tải lại trang,
+ * để mọi chuỗi (kể cả dữ liệu mô phỏng khai báo sẵn) được dịch đồng bộ.
+ */
+function switchLanguage(lng: AppLanguage, change: (l: string) => unknown) {
+  try {
+    const st = useMonitoringStore.getState();
+    sessionStorage.setItem(
+      NAV_RESTORE_KEY,
+      JSON.stringify({
+        selectedLineId: st.selectedLineId,
+        selectedMachineId: st.selectedMachineId,
+        dashboardViewLevel: st.dashboardViewLevel,
+        activeTab: st.activeTab,
+        activeNavGroup: st.activeNavGroup,
+      }),
+    );
+  } catch {
+    /* bỏ qua */
+  }
+  Promise.resolve(change(lng)).finally(() => window.location.reload());
+}
 
 export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
   const { t, i18n } = useTranslation();
@@ -22,7 +46,7 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
             key={lng}
             type="button"
             aria-pressed={active}
-            onClick={() => i18n.changeLanguage(lng)}
+            onClick={() => { if (!active) switchLanguage(lng, (l) => i18n.changeLanguage(l)); }}
             className={[
               'rounded-md font-semibold transition-colors cursor-pointer leading-none whitespace-nowrap',
               compact ? 'px-1.5 py-1 text-[10px]' : 'px-2 py-1.5 text-[11px]',

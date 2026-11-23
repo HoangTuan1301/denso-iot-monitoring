@@ -165,7 +165,7 @@ export function Header() {
       )}
 
       {/* ---- Góc trái: Breadcrumb phân tầng thông minh ---- */}
-      <div className="flex items-center gap-1.5 text-xs sm:text-sm select-none">
+      <div className="flex min-w-0 items-center gap-1.5 overflow-hidden whitespace-nowrap text-xs sm:text-sm select-none">
         {activeTab === 'dashboard' && dashboardViewLevel !== 'factory_layout' ? (
           <div className="flex items-center gap-1.5 whitespace-nowrap">
             <button
@@ -240,7 +240,7 @@ export function Header() {
           <button
             onClick={handleTriggerEmergency}
             title={t("header.emergencyTitle")}
-            className="flex items-center gap-1.5 rounded-full border border-rose-500/40 bg-rose-500/10 px-3 py-1 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 active:scale-95 transition-all cursor-pointer shadow-xs"
+            className="flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border border-rose-500/40 bg-rose-500/10 px-3 py-1 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 active:scale-95 transition-all cursor-pointer shadow-xs"
           >
             <Flame className="h-3.5 w-3.5 text-rose-500 animate-pulse" />
             <span className="hidden sm:inline">{t("header.emergency")}</span>
@@ -254,7 +254,7 @@ export function Header() {
             type="button"
             onClick={handleRestoreEmergency}
             title={t("header.restoreTitle")}
-            className="flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 active:scale-95 transition-all cursor-pointer shadow-xs animate-in fade-in"
+            className="flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 active:scale-95 transition-all cursor-pointer shadow-xs animate-in fade-in"
           >
             <RotateCcw className="h-3.5 w-3.5 text-emerald-500" />
             <span className="hidden sm:inline">{t("header.restoreIncident")}</span>
@@ -267,7 +267,7 @@ export function Header() {
           onClick={() => toggleRealtime()}
           title={t("header.streamTitle")}
           className={[
-            "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-mono transition-colors cursor-pointer",
+            "flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-mono transition-colors cursor-pointer",
             isRealtimeActive
               ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold hover:bg-emerald-500/20"
               : "border-slate-300 dark:border-factory-border bg-slate-100 dark:bg-factory-surface text-slate-600 dark:text-slate-400 hover:border-slate-400",
@@ -290,7 +290,7 @@ export function Header() {
               : t("header.wsOffline")
           }
           className={[
-            "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-mono transition-colors select-none",
+            "flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-mono transition-colors select-none",
             isWsConnected
               ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium"
               : "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium",
@@ -304,7 +304,7 @@ export function Header() {
           />
           <Radio className="h-3 w-3 shrink-0" />
           <span className="hidden md:inline">
-            {isWsConnected ? "WS: Live" : "WS: Reconnecting"}
+            <span className="hidden 2xl:inline">{isWsConnected ? "WS: Live" : "WS: Reconnecting"}</span><span className="2xl:hidden">WS</span>
           </span>
         </div>
 

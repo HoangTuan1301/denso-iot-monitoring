@@ -17,6 +17,7 @@ import {
 } from 'recharts';
 import { AlertTriangle, Activity } from 'lucide-react';
 import { AITrendPoint } from '../types/ai';
+import { tr } from '../../../i18n/tr';
 
 interface AITrendChartProps {
   data: AITrendPoint[];
@@ -80,26 +81,26 @@ export const AITrendChart: React.FC<AITrendChartProps> = ({
       return (
         <div className="bg-slate-900/95 text-white p-3 rounded-lg shadow-xl border border-slate-700 text-xs backdrop-blur-xs">
           <div className="font-semibold text-slate-300 border-b border-slate-700 pb-1 mb-1.5 flex items-center justify-between gap-4">
-            <span>Thời điểm: {point.timestamp}</span>
+            <span>{tr("Thời điểm:")} {point.timestamp}</span>
             {point.isAnomaly && (
               <span className="px-1.5 py-0.5 rounded text-[10px] bg-rose-500/30 text-rose-300 border border-rose-500/50 font-bold">
-                BẤT THƯỜNG AI
+                {tr("BẤT THƯỜNG AI")}
               </span>
             )}
           </div>
           <div className="space-y-1">
             <div className="flex items-center justify-between gap-4">
-              <span className="text-slate-400">Giá trị:</span>
+              <span className="text-slate-400">{tr("Giá trị:")}</span>
               <span className="font-bold text-sm text-emerald-400">
                 {point.value} {point.unit}
               </span>
             </div>
             <div className="flex items-center justify-between gap-4 text-amber-400">
-              <span>Ngưỡng Cảnh báo:</span>
+              <span>{tr("Ngưỡng Cảnh báo:")}</span>
               <span>{point.warningMax} {point.unit}</span>
             </div>
             <div className="flex items-center justify-between gap-4 text-rose-400">
-              <span>Ngưỡng Nguy hiểm:</span>
+              <span>{tr("Ngưỡng Nguy hiểm:")}</span>
               <span>{point.criticalMax} {point.unit}</span>
             </div>
             {point.note && (
@@ -122,11 +123,11 @@ export const AITrendChart: React.FC<AITrendChartProps> = ({
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-emerald-600" />
             <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-              Xu hướng Thông số Cảm biến
+              {tr("Xu hướng Thông số Cảm biến")}
             </h4>
             {hasAnomaly && (
               <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/70 dark:text-rose-400">
-                <AlertTriangle className="w-2.5 h-2.5" /> Có dị biệt
+                <AlertTriangle className="w-2.5 h-2.5" /> {tr("Có dị biệt")}
               </span>
             )}
           </div>
@@ -139,7 +140,7 @@ export const AITrendChart: React.FC<AITrendChartProps> = ({
         <div className="flex flex-wrap items-center gap-2">
           {availableMetrics && onSelectMetric && (
             <select
-              aria-label="Chọn thông số đo lường"
+              aria-label={tr("Chọn thông số đo lường")}
               value={metricCode}
               onChange={(e) => onSelectMetric(e.target.value)}
               className="text-xs font-semibold px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer"
@@ -263,20 +264,20 @@ export const AITrendChart: React.FC<AITrendChartProps> = ({
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-0.5 bg-emerald-500" />
-            Quan trắc
+            {tr("Quan trắc")}
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-0.5 bg-amber-500 border-dashed" />
-            Cảnh báo ({limits.warning} {unit})
+            {tr("Cảnh báo (")}{limits.warning} {unit})
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-0.5 bg-rose-500" />
-            Nguy hiểm ({limits.critical} {unit})
+            {tr("Nguy hiểm (")}{limits.critical} {unit})
           </span>
         </div>
 
         <div className="text-right">
-          Hiện hành: <strong className={isCurrentlyBreached ? 'text-rose-600 font-bold' : 'text-slate-800 dark:text-slate-200'}>{latestValue} {unit}</strong>
+          {tr("Hiện hành:")} <strong className={isCurrentlyBreached ? 'text-rose-600 font-bold' : 'text-slate-800 dark:text-slate-200'}>{latestValue} {unit}</strong>
         </div>
       </div>
     </div>

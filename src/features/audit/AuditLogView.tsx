@@ -21,6 +21,7 @@ import {
 import { apiClient } from '../../services/api';
 import { socketClient } from '../../services/socket';
 import { AuditLogEntry } from '../../types/audit';
+import { tr } from '../../i18n/tr';
 
 export function AuditLogView() {
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
@@ -43,11 +44,11 @@ export function AuditLogView() {
           id: 'AUD-20260929-001',
           userId: 'usr-admin-01',
           userEmail: 'admin@denso.com',
-          userName: 'Hoàng Minh Hải',
+          userName: tr("Hoàng Minh Hải"),
           employeeId: 'DNS-1001',
           action: 'UPDATE_THRESHOLD',
           target: 'MTR-STP-01-TMP',
-          details: 'Cập nhật ngưỡng nhiệt độ máy dập: Warning Max: 68°C, Critical Max: 80°C',
+          details: tr("Cập nhật ngưỡng nhiệt độ máy dập: Warning Max: 68°C, Critical Max: 80°C"),
           ipAddress: '192.168.1.15',
           timestamp: '2026-09-29T08:15:22.000Z',
         },
@@ -55,11 +56,11 @@ export function AuditLogView() {
           id: 'AUD-20260929-002',
           userId: 'usr-admin-01',
           userEmail: 'admin@denso.com',
-          userName: 'Hoàng Minh Hải',
+          userName: tr("Hoàng Minh Hải"),
           employeeId: 'DNS-1001',
           action: 'TOGGLE_PLC',
           target: 'PLC-STATION-01',
-          details: 'Khởi động lại kết nối truyền thông Modbus/TCP Siemens S7-1500',
+          details: tr("Khởi động lại kết nối truyền thông Modbus/TCP Siemens S7-1500"),
           ipAddress: '192.168.1.15',
           timestamp: '2026-09-29T08:30:10.000Z',
         },
@@ -67,11 +68,11 @@ export function AuditLogView() {
           id: 'AUD-20260929-003',
           userId: 'usr-operator-01',
           userEmail: 'user@denso.com',
-          userName: 'Trần Quang Huy',
+          userName: tr("Trần Quang Huy"),
           employeeId: 'DNS-1024',
           action: 'ACKNOWLEDGE_ALARM',
           target: 'ALM-20260927-001',
-          details: 'Tiếp nhận xử lý cảnh báo quá nhiệt ổ bi băng tải MC-CVY-01',
+          details: tr("Tiếp nhận xử lý cảnh báo quá nhiệt ổ bi băng tải MC-CVY-01"),
           ipAddress: '192.168.1.42',
           timestamp: '2026-09-29T09:05:40.000Z',
         },
@@ -79,11 +80,11 @@ export function AuditLogView() {
           id: 'AUD-20260929-004',
           userId: 'usr-admin-01',
           userEmail: 'admin@denso.com',
-          userName: 'Hoàng Minh Hải',
+          userName: tr("Hoàng Minh Hải"),
           employeeId: 'DNS-1001',
           action: 'CREATE_USER',
           target: 'user@denso.com',
-          details: 'Tạo tài khoản Operator mới: Trần Quang Huy (Mã NV: DNS-1024)',
+          details: tr("Tạo tài khoản Operator mới: Trần Quang Huy (Mã NV: DNS-1024)"),
           ipAddress: '192.168.1.15',
           timestamp: '2026-09-29T09:20:00.000Z',
         },
@@ -109,15 +110,15 @@ export function AuditLogView() {
   // Xuất file Audit Log sang CSV UTF-8 có BOM
   const handleExportCSV = () => {
     const headers = [
-      'Mã Log',
-      'Thời Điểm',
-      'Mã Nhân Viên',
-      'Họ Và Tên',
+      tr("Mã Log"),
+      tr("Thời Điểm"),
+      tr("Mã Nhân Viên"),
+      tr("Họ Và Tên"),
       'Email',
-      'Hành Động',
-      'Đối Tượng Tác Động',
-      'Chi Tiết Thay Đổi',
-      'Địa Chỉ IP',
+      tr("Hành Động"),
+      tr("Đối Tượng Tác Động"),
+      tr("Chi Tiết Thay Đổi"),
+      tr("Địa Chỉ IP"),
     ];
 
     const rows = logs.map((l) => [
@@ -167,14 +168,14 @@ export function AuditLogView() {
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 rounded text-xs font-bold bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 border border-indigo-500/30">
-              TRUY VẾT BẢO MẬT
+              {tr("TRUY VẾT BẢO MẬT")}
             </span>
             <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-              Nhật Ký Thao Tác & Truy Vết Sự Cố (Audit Logs)
+              {tr("Nhật Ký Thao Tác & Truy Vết Sự Cố (Audit Logs)")}
             </h1>
           </div>
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-            Ghi nhận tự động lịch sử thao tác của Admin & Nhân viên: sửa ngưỡng, bật/tắt trạm PLC, xử lý cảnh báo và đăng nhập.
+            {tr("Ghi nhận tự động lịch sử thao tác của Admin & Nhân viên: sửa ngưỡng, bật/tắt trạm PLC, xử lý cảnh báo và đăng nhập.")}
           </p>
         </div>
 
@@ -186,7 +187,7 @@ export function AuditLogView() {
             startContent={<RefreshCw className="w-3.5 h-3.5" />}
             onPress={loadAuditLogs}
           >
-            Làm mới
+            {tr("Làm mới")}
           </Button>
 
           <Button
@@ -195,7 +196,7 @@ export function AuditLogView() {
             startContent={<Download className="w-4 h-4" />}
             onPress={handleExportCSV}
           >
-            Xuất File Audit Log (CSV/Excel)
+            {tr("Xuất File Audit Log (CSV/Excel)")}
           </Button>
         </div>
       </div>
@@ -206,7 +207,7 @@ export function AuditLogView() {
         <div className="bg-red-50/70 dark:bg-rose-950/20 border-l-4 border-red-500 border border-red-100 dark:border-rose-900/30 rounded-xl p-4 flex items-center justify-between shadow-xs">
           <div>
             <p className="text-[11px] font-bold text-red-600 dark:text-red-400 uppercase tracking-wider">
-              Sự cố & Khẩn cấp
+              {tr("Sự cố & Khẩn cấp")}
             </p>
             <p className="font-mono text-3xl font-black text-red-600 dark:text-red-400 mt-1">
               {alarmAudit}
@@ -221,7 +222,7 @@ export function AuditLogView() {
         <div className="bg-amber-50/70 dark:bg-amber-950/20 border-l-4 border-amber-500 border border-amber-100 dark:border-amber-900/30 rounded-xl p-4 flex items-center justify-between shadow-xs">
           <div>
             <p className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
-              Cấu hình & PLC
+              {tr("Cấu hình & PLC")}
             </p>
             <p className="font-mono text-3xl font-black text-amber-600 dark:text-amber-400 mt-1">
               {configAudit}
@@ -236,7 +237,7 @@ export function AuditLogView() {
         <div className="bg-blue-50/70 dark:bg-blue-950/20 border-l-4 border-blue-500 border border-blue-100 dark:border-blue-900/30 rounded-xl p-4 flex items-center justify-between shadow-xs">
           <div>
             <p className="text-[11px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
-              Đăng nhập / Ra
+              {tr("Đăng nhập / Ra")}
             </p>
             <p className="font-mono text-3xl font-black text-blue-600 dark:text-blue-400 mt-1">
               {authAudit}
@@ -251,7 +252,7 @@ export function AuditLogView() {
         <div className="bg-slate-50 dark:bg-slate-900/40 border-l-4 border-slate-400 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-xs">
           <div>
             <p className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-              Tổng nhật ký
+              {tr("Tổng nhật ký")}
             </p>
             <p className="font-mono text-3xl font-black text-slate-800 dark:text-slate-100 mt-1">
               {totalAudit}
@@ -268,7 +269,7 @@ export function AuditLogView() {
         <div className="flex-1">
           <Input
             size="sm"
-            placeholder="Tìm theo nhân viên, hành động, đối tượng, nội dung..."
+            placeholder={tr("Tìm theo nhân viên, hành động, đối tượng, nội dung...")}
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
             startContent={<Search className="w-4 h-4 text-slate-400" />}
@@ -285,18 +286,18 @@ export function AuditLogView() {
           <select
             value={selectedActionFilter}
             onChange={(e) => setSelectedActionFilter(e.target.value)}
-            aria-label="Lọc theo Hành động"
+            aria-label={tr("Lọc theo Hành động")}
             className="w-full bg-white dark:bg-factory-bg border border-slate-200 dark:border-factory-border text-slate-800 dark:text-slate-200 rounded-xl text-xs h-9.5 px-3 outline-none cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 transition-colors shadow-xs"
           >
-            <option value="all">Tất cả Hành động</option>
-            <option value="UPDATE_THRESHOLD">UPDATE_THRESHOLD (Sửa ngưỡng)</option>
-            <option value="TOGGLE_PLC">TOGGLE_PLC (Bật/Tắt PLC)</option>
-            <option value="ACKNOWLEDGE_ALARM">ACKNOWLEDGE_ALARM (Nhận sửa)</option>
-            <option value="RESOLVE_ALARM">RESOLVE_ALARM (Hoàn thành sự cố)</option>
-            <option value="LOGIN">LOGIN (Đăng nhập)</option>
-            <option value="LOGOUT">LOGOUT (Đăng xuất)</option>
-            <option value="CREATE_USER">CREATE_USER (Tạo nhân viên)</option>
-            <option value="TRIGGER_EMERGENCY">TRIGGER_EMERGENCY (Giả lập sự cố)</option>
+            <option value="all">{tr("Tất cả Hành động")}</option>
+            <option value="UPDATE_THRESHOLD">{tr("UPDATE_THRESHOLD (Sửa ngưỡng)")}</option>
+            <option value="TOGGLE_PLC">{tr("TOGGLE_PLC (Bật/Tắt PLC)")}</option>
+            <option value="ACKNOWLEDGE_ALARM">{tr("ACKNOWLEDGE_ALARM (Nhận sửa)")}</option>
+            <option value="RESOLVE_ALARM">{tr("RESOLVE_ALARM (Hoàn thành sự cố)")}</option>
+            <option value="LOGIN">{tr("LOGIN (Đăng nhập)")}</option>
+            <option value="LOGOUT">{tr("LOGOUT (Đăng xuất)")}</option>
+            <option value="CREATE_USER">{tr("CREATE_USER (Tạo nhân viên)")}</option>
+            <option value="TRIGGER_EMERGENCY">{tr("TRIGGER_EMERGENCY (Giả lập sự cố)")}</option>
           </select>
         </div>
       </div>
@@ -307,11 +308,11 @@ export function AuditLogView() {
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="bg-slate-100/90 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold uppercase text-[11px] tracking-wider py-3.5 border-b border-slate-200 dark:border-slate-700">
-                <th className="py-3.5 px-3">THỜI GIAN & MÃ</th>
-                <th className="py-3.5 px-2">NHÂN VIÊN (THỰC HIỆN)</th>
-                <th className="py-3.5 px-2">HÀNH ĐỘNG</th>
-                <th className="py-3.5 px-2">ĐỐI TƯỢNG</th>
-                <th className="py-3.5 px-3">CHI TIẾT THAY ĐỔI</th>
+                <th className="py-3.5 px-3">{tr("THỜI GIAN & MÃ")}</th>
+                <th className="py-3.5 px-2">{tr("NHÂN VIÊN (THỰC HIỆN)")}</th>
+                <th className="py-3.5 px-2">{tr("HÀNH ĐỘNG")}</th>
+                <th className="py-3.5 px-2">{tr("ĐỐI TƯỢNG")}</th>
+                <th className="py-3.5 px-3">{tr("CHI TIẾT THAY ĐỔI")}</th>
                 <th className="py-3.5 px-3 font-mono text-right">IP ADDRESS</th>
               </tr>
             </thead>
@@ -319,13 +320,13 @@ export function AuditLogView() {
               {isLoading ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
-                    Đang tải dữ liệu nhật ký...
+                    {tr("Đang tải dữ liệu nhật ký...")}
                   </td>
                 </tr>
               ) : logs.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
-                    Không tìm thấy bản ghi Audit Log nào phù hợp.
+                    {tr("Không tìm thấy bản ghi Audit Log nào phù hợp.")}
                   </td>
                 </tr>
               ) : (

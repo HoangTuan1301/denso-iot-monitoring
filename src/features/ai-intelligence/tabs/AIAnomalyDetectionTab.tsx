@@ -39,6 +39,7 @@ import {
 import { AIProcessedMachine, extractMetricTrendPoints } from '../adapters/aiTelemetryAdapter';
 import { AIAnomalyEvent } from '../types/ai';
 import { useAIStore } from '../stores/useAIStore';
+import { tr } from '../../../i18n/tr';
 
 interface AIAnomalyDetectionTabProps {
   allMachines: AIProcessedMachine[];
@@ -128,18 +129,18 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
         <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
           <Info className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
           <span className="font-medium">
-            Thuật toán thống kê Z-score phân tích chuỗi thời gian telemetry để phát hiện sớm các dấu hiệu bất thường.
+            {tr("Thuật toán thống kê Z-score phân tích chuỗi thời gian telemetry để phát hiện sớm các dấu hiệu bất thường.")}
           </span>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-[11px]">
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-medium text-slate-700 dark:text-slate-300">
-            Phương pháp: <strong>Z-score</strong>
+            {tr("Phương pháp:")} <strong>Z-score</strong>
           </span>
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-medium text-slate-700 dark:text-slate-300">
-            Ngưỡng: <strong>&plusmn;3&sigma;</strong>
+            {tr("Ngưỡng:")} <strong>&plusmn;3&sigma;</strong>
           </span>
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 font-semibold">
-            Cách ly với CSDL &amp; PLC vật lý
+            {tr("Cách ly với CSDL & PLC vật lý")}
           </span>
         </div>
       </div>
@@ -156,13 +157,13 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
             </div>
             <div>
               <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                Thiết bị đang giám sát
+                {tr("Thiết bị đang giám sát")}
               </span>
               <div className="flex items-baseline gap-1.5">
                 <span className="text-2xl font-black text-slate-900 dark:text-white">
                   {stats.total}
                 </span>
-                <span className="text-xs font-medium text-slate-500">máy</span>
+                <span className="text-xs font-medium text-slate-500">{tr("máy")}</span>
               </div>
             </div>
           </div>
@@ -176,14 +177,14 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
             </div>
             <div>
               <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                Trạng thái bình thường
+                {tr("Trạng thái bình thường")}
               </span>
               <div className="flex items-baseline gap-1.5">
                 <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
                   {stats.normal}
                 </span>
                 <span className="text-xs font-medium text-slate-500">
-                  máy ({stats.normalPct}%)
+                  {tr("máy (")}{stats.normalPct}%)
                 </span>
               </div>
             </div>
@@ -198,14 +199,14 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
             </div>
             <div>
               <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                Đang cảnh báo
+                {tr("Đang cảnh báo")}
               </span>
               <div className="flex items-baseline gap-1.5">
                 <span className="text-2xl font-black text-amber-600 dark:text-amber-400">
                   {stats.warning}
                 </span>
                 <span className="text-xs font-medium text-slate-500">
-                  máy ({stats.warningPct}%)
+                  {tr("máy (")}{stats.warningPct}%)
                 </span>
               </div>
             </div>
@@ -224,14 +225,14 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
             </div>
             <div>
               <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                Bất thường nghiêm trọng
+                {tr("Bất thường nghiêm trọng")}
               </span>
               <div className="flex items-baseline gap-1.5">
                 <span className="text-2xl font-black text-rose-600 dark:text-rose-400">
                   {stats.critical}
                 </span>
                 <span className="text-xs font-medium text-slate-500">
-                  máy ({stats.criticalPct}%)
+                  {tr("máy (")}{stats.criticalPct}%)
                 </span>
               </div>
             </div>
@@ -247,7 +248,7 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
           {/* Chọn Thiết bị */}
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-              Thiết bị:
+              {tr("Thiết bị:")}
             </span>
             <select
               value={currentMachine.machineId}
@@ -259,7 +260,7 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
             >
               {allMachines.map((m) => (
                 <option key={m.machineId} value={m.machineId}>
-                  {m.machineCode} — {m.machineName} {m.isNoData ? '(Chưa có dữ liệu)' : ''}
+                  {m.machineCode} — {m.machineName} {m.isNoData ? tr("(Chưa có dữ liệu)") : ''}
                 </option>
               ))}
             </select>
@@ -269,7 +270,7 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
           {currentMachine && !currentMachine.isNoData && currentMachine.rawMetrics.length > 0 && (
             <div className="flex items-center gap-2">
               <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                Thông số:
+                {tr("Thông số:")}
               </span>
               <select
                 value={currentMetric?.id || ''}
@@ -290,7 +291,7 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
         <div className="flex items-center gap-2 self-end lg:self-auto">
           <div className="flex items-center gap-1.5">
             <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-              Khoảng thời gian:
+              {tr("Khoảng thời gian:")}
             </span>
             <div className="flex items-center bg-slate-100 dark:bg-slate-900 p-0.5 rounded-lg border border-slate-200/80 dark:border-slate-700">
               {(['6h', '12h', '24h', '7d'] as const).map((r) => (
@@ -304,7 +305,7 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  {r === '7d' ? '7 ngày' : r}
+                  {r === '7d' ? tr("7 ngày") : r}
                 </button>
               ))}
             </div>
@@ -315,7 +316,7 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-xs cursor-pointer transition-colors"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            <span>Cập nhật</span>
+            <span>{tr("Cập nhật")}</span>
           </button>
         </div>
       </div>
@@ -332,12 +333,12 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-teal-600 dark:text-teal-400" />
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    Xu hướng {currentMetric?.name || 'Thông số'} ({currentMachine.machineCode})
+                    {tr("Xu hướng")} {currentMetric?.name || tr("Thông số")} ({currentMachine.machineCode})
                   </h3>
                   <Info className="w-3.5 h-3.5 text-slate-400" />
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Diễn biến {currentMetric?.name?.toLowerCase() || 'thông số'} theo thời gian và các điểm bất thường được phát hiện
+                  {tr("Diễn biến")} {currentMetric?.name?.toLowerCase() || tr("thông số")} {tr("theo thời gian và các điểm bất thường được phát hiện")}
                 </p>
               </div>
             </div>
@@ -346,23 +347,23 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
             <div className="flex flex-wrap items-center gap-4 text-[11px] mb-3 text-slate-600 dark:text-slate-300">
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-0.5 bg-teal-500" />
-                <span>{currentMetric?.name || 'Giá trị'} ({currentMetric?.unit})</span>
+                <span>{currentMetric?.name || tr("Giá trị")} ({currentMetric?.unit})</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full border border-amber-500 bg-amber-100" />
-                <span>Điểm cảnh báo</span>
+                <span>{tr("Điểm cảnh báo")}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full border border-rose-500 bg-rose-100" />
-                <span>Điểm bất thường</span>
+                <span>{tr("Điểm bất thường")}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-0.5 border-t border-dashed border-amber-500" />
-                <span>Ngưỡng cảnh báo: {currentMetric?.warningMax ?? 70} {currentMetric?.unit}</span>
+                <span>{tr("Ngưỡng cảnh báo:")} {currentMetric?.warningMax ?? 70} {currentMetric?.unit}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-0.5 border-t border-dashed border-rose-500" />
-                <span>Ngưỡng nguy hiểm: {currentMetric?.criticalMax ?? 80} {currentMetric?.unit}</span>
+                <span>{tr("Ngưỡng nguy hiểm:")} {currentMetric?.criticalMax ?? 80} {currentMetric?.unit}</span>
               </div>
             </div>
 
@@ -370,8 +371,8 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
             <div className="w-full h-[260px]">
               {currentMachine.isNoData ? (
                 <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
-                  <p className="text-xs font-bold text-slate-500">Thiết bị chưa có dữ liệu quan trắc</p>
-                  <p className="text-[11px] text-slate-400 mt-1">Chưa thể sinh biểu đồ cảm biến cho máy {currentMachine.machineCode}</p>
+                  <p className="text-xs font-bold text-slate-500">{tr("Thiết bị chưa có dữ liệu quan trắc")}</p>
+                  <p className="text-[11px] text-slate-400 mt-1">{tr("Chưa thể sinh biểu đồ cảm biến cho máy")} {currentMachine.machineCode}</p>
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
@@ -403,13 +404,13 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
                       y={currentMetric?.warningMax ? Number(currentMetric.warningMax) : 70}
                       stroke="#F59E0B"
                       strokeDasharray="4 4"
-                      label={{ value: 'Cảnh báo', fill: '#D97706', fontSize: 10, position: 'insideTopRight' }}
+                      label={{ value: tr("Cảnh báo"), fill: '#D97706', fontSize: 10, position: 'insideTopRight' }}
                     />
                     <ReferenceLine
                       y={currentMetric?.criticalMax ? Number(currentMetric.criticalMax) : 80}
                       stroke="#EF4444"
                       strokeDasharray="4 4"
-                      label={{ value: 'Nguy hiểm', fill: '#DC2626', fontSize: 10, position: 'insideTopRight' }}
+                      label={{ value: tr("Nguy hiểm"), fill: '#DC2626', fontSize: 10, position: 'insideTopRight' }}
                     />
                     <Line
                       type="monotone"
@@ -447,7 +448,7 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
           <div>
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/60 pb-3 mb-3">
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                Chi tiết sự kiện bất thường
+                {tr("Chi tiết sự kiện bất thường")}
               </h3>
               {anomalies.length > 0 && (
                 <div className="flex items-center gap-1.5 text-xs text-slate-500">
@@ -484,37 +485,37 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
                 }`}>
                   <AlertOctagon className="w-4 h-4 shrink-0" />
                   <span>
-                    Sự kiện: {activeAnomaly.severity === 'CRITICAL' ? 'Bất thường nghiêm trọng' : 'Cảnh báo mức cao'}
+                    {tr("Sự kiện:")} {activeAnomaly.severity === 'CRITICAL' ? tr("Bất thường nghiêm trọng") : tr("Cảnh báo mức cao")}
                   </span>
                 </div>
 
                 {/* Danh sách thông số đo */}
                 <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Thời điểm phát hiện:</span>
+                    <span className="text-slate-400">{tr("Thời điểm phát hiện:")}</span>
                     <strong className="font-mono">{activeAnomaly.timestamp}</strong>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Giá trị đo được:</span>
+                    <span className="text-slate-400">{tr("Giá trị đo được:")}</span>
                     <strong className="font-mono text-rose-600">
                       {activeAnomaly.value} {activeAnomaly.unit}
                     </strong>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Ngưỡng vượt:</span>
+                    <span className="text-slate-400">{tr("Ngưỡng vượt:")}</span>
                     <strong className="font-mono">
                       {activeAnomaly.criticalThreshold} {activeAnomaly.unit} (+{activeAnomaly.deviationPercent}%)
                     </strong>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Mức độ nghiêm trọng:</span>
+                    <span className="text-slate-400">{tr("Mức độ nghiêm trọng:")}</span>
                     <span className="px-2 py-0.2 rounded text-[10px] font-bold bg-rose-100 text-rose-700">
-                      {activeAnomaly.severity === 'CRITICAL' ? 'Cao' : 'Cảnh báo'}
+                      {activeAnomaly.severity === 'CRITICAL' ? tr("Cao") : tr("Cảnh báo")}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Trạng thái xử lý:</span>
-                    <span className="text-slate-500 font-medium">Chưa xử lý</span>
+                    <span className="text-slate-400">{tr("Trạng thái xử lý:")}</span>
+                    <span className="text-slate-500 font-medium">{tr("Chưa xử lý")}</span>
                   </div>
                 </div>
 
@@ -522,27 +523,27 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 space-y-2">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-teal-700 dark:text-teal-400">
                     <Cpu className="w-3.5 h-3.5" />
-                    <span>AI Insight (Nhận định của AI)</span>
+                    <span>{tr("AI Insight (Nhận định của AI)")}</span>
                   </div>
                   <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
                     {activeAnomaly.ruleExplanation}
                   </p>
                   <ul className="text-[11px] text-slate-500 dark:text-slate-400 space-y-1 list-disc pl-4">
-                    <li>Mài mòn bạc đạn cơ khí khớp trục (Khả năng: ~72%)</li>
-                    <li>Lỏng khớp nối bu-lông chân đế (Khả năng: ~18%)</li>
-                    <li>Xung lực va chạm trong chu kỳ ép (Khả năng: ~10%)</li>
+                    <li>{tr("Mài mòn bạc đạn cơ khí khớp trục (Khả năng: ~72%)")}</li>
+                    <li>{tr("Lỏng khớp nối bu-lông chân đế (Khả năng: ~18%)")}</li>
+                    <li>{tr("Xung lực va chạm trong chu kỳ ép (Khả năng: ~10%)")}</li>
                   </ul>
                   <div className="pt-1.5 border-t border-slate-200 dark:border-slate-800 text-[11px]">
-                    <span className="font-bold text-slate-700 dark:text-slate-300">Đề xuất: </span>
+                    <span className="font-bold text-slate-700 dark:text-slate-300">{tr("Đề xuất:")} </span>
                     <span className="text-slate-500 dark:text-slate-400">
-                      Kiểm tra bạc đạn và độ siết khớp nối, vệ sinh và bôi trơn theo quy trình.
+                      {tr("Kiểm tra bạc đạn và độ siết khớp nối, vệ sinh và bôi trơn theo quy trình.")}
                     </span>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="py-12 text-center text-slate-400 text-xs">
-                Không có sự kiện bất thường nào đang kích hoạt
+                {tr("Không có sự kiện bất thường nào đang kích hoạt")}
               </div>
             )}
           </div>
@@ -555,29 +556,29 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
       <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-700/80 shadow-xs">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-            Danh sách Sự kiện bất thường ({anomalies.length} sự kiện)
+            {tr("Danh sách Sự kiện bất thường (")}{anomalies.length} {tr("sự kiện)")}
           </h3>
-          <span className="text-xs text-slate-400">Tự động cập nhật từ cảm biến</span>
+          <span className="text-xs text-slate-400">{tr("Tự động cập nhật từ cảm biến")}</span>
         </div>
 
         {anomalies.length === 0 ? (
           <div className="py-8 text-center text-xs text-slate-400">
-            Hệ thống ổn định. Không ghi nhận sự kiện vi phạm ngưỡng cảnh báo.
+            {tr("Hệ thống ổn định. Không ghi nhận sự kiện vi phạm ngưỡng cảnh báo.")}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">
               <thead className="bg-slate-50 dark:bg-slate-900/60 text-slate-500 font-semibold border-b border-slate-100 dark:border-slate-800">
                 <tr>
-                  <th className="py-2.5 px-3">Thời gian</th>
-                  <th className="py-2.5 px-3">Thiết bị</th>
-                  <th className="py-2.5 px-3">Thông số</th>
-                  <th className="py-2.5 px-3">Giá trị đo</th>
-                  <th className="py-2.5 px-3">Ngưỡng</th>
-                  <th className="py-2.5 px-3">Mức độ</th>
-                  <th className="py-2.5 px-3">Nhận định nhanh</th>
-                  <th className="py-2.5 px-3">Trạng thái</th>
-                  <th className="py-2.5 px-3 text-right">Chi tiết</th>
+                  <th className="py-2.5 px-3">{tr("Thời gian")}</th>
+                  <th className="py-2.5 px-3">{tr("Thiết bị")}</th>
+                  <th className="py-2.5 px-3">{tr("Thông số")}</th>
+                  <th className="py-2.5 px-3">{tr("Giá trị đo")}</th>
+                  <th className="py-2.5 px-3">{tr("Ngưỡng")}</th>
+                  <th className="py-2.5 px-3">{tr("Mức độ")}</th>
+                  <th className="py-2.5 px-3">{tr("Nhận định nhanh")}</th>
+                  <th className="py-2.5 px-3">{tr("Trạng thái")}</th>
+                  <th className="py-2.5 px-3 text-right">{tr("Chi tiết")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -596,13 +597,13 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                         a.severity === 'CRITICAL' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
                       }`}>
-                        {a.severity === 'CRITICAL' ? 'Cao' : 'Cảnh báo'}
+                        {a.severity === 'CRITICAL' ? tr("Cao") : tr("Cảnh báo")}
                       </span>
                     </td>
                     <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400 max-w-[200px] truncate">
                       {a.ruleExplanation}
                     </td>
-                    <td className="py-2.5 px-3 text-slate-500">Chưa xử lý</td>
+                    <td className="py-2.5 px-3 text-slate-500">{tr("Chưa xử lý")}</td>
                     <td className="py-2.5 px-3 text-right">
                       <button
                         type="button"
@@ -611,7 +612,7 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
                           setSelectedMachineId(a.machineId);
                         }}
                         className="p-1 rounded text-slate-400 hover:text-teal-600 cursor-pointer"
-                        title="Xem chi tiết"
+                        title={tr("Xem chi tiết")}
                       >
                         <Eye className="w-4 h-4" />
                       </button>

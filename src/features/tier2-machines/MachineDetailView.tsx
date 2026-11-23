@@ -32,6 +32,7 @@ import { useTranslation } from 'react-i18next';
 import { EmbeddedCheckSheet } from './detail/EmbeddedCheckSheet';
 import { MachineDocuments } from './detail/MachineDocuments';
 import { UnipulsePanel } from './detail/UnipulsePanel';
+import { tr } from '../../i18n/tr';
 
 interface MachineDetailViewProps {
   machineId: string;
@@ -77,11 +78,10 @@ export function MachineDetailView({
         </div>
         <div>
           <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-            Chưa tìm thấy thiết bị ({machineId})
+            {tr("Chưa tìm thấy thiết bị (")}{machineId})
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
-            Mã thiết bị chưa được liên kết với dây chuyền hoặc chưa có trong danh mục CSDL.
-            Hệ thống hiển thị trạng thái N/A an toàn, không sử dụng dữ liệu giả.
+            {tr("Mã thiết bị chưa được liên kết với dây chuyền hoặc chưa có trong danh mục CSDL. Hệ thống hiển thị trạng thái N/A an toàn, không sử dụng dữ liệu giả.")}
           </p>
         </div>
         <button
@@ -90,7 +90,7 @@ export function MachineDetailView({
           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Quay lại Dây chuyền</span>
+          <span>{tr("Quay lại Dây chuyền")}</span>
         </button>
       </div>
     );
@@ -105,7 +105,7 @@ export function MachineDetailView({
             type="button"
             onClick={onBackToLine}
             className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 dark:border-factory-border bg-slate-50 dark:bg-factory-surface text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 transition-colors cursor-pointer"
-            title="Quay lại Sơ đồ Dây chuyền"
+            title={tr("Quay lại Sơ đồ Dây chuyền")}
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -123,12 +123,12 @@ export function MachineDetailView({
               {resolved.isSimulated && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
                   <Sparkles className="w-3 h-3" />
-                  <span>Dữ liệu Mô phỏng</span>
+                  <span>{tr("Dữ liệu Mô phỏng")}</span>
                 </span>
               )}
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Chi tiết thiết bị trong dây chuyền {parentLine?.name || machine.lineName || 'LN-PRS-01 – Dập & Hàn'}
+              {tr("Chi tiết thiết bị trong dây chuyền")} {parentLine?.name || machine.lineName || tr("LN-PRS-01 – Dập & Hàn")}
             </p>
           </div>
         </div>
@@ -149,7 +149,7 @@ export function MachineDetailView({
             className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-factory-border bg-slate-50 dark:bg-factory-surface text-slate-700 dark:text-slate-300 hover:bg-slate-100 font-semibold text-xs transition-colors cursor-pointer"
           >
             <Download className="w-4 h-4" />
-            <span className="hidden sm:inline">Xuất dữ liệu</span>
+            <span className="hidden sm:inline">{tr("Xuất dữ liệu")}</span>
           </button>
         </div>
       </div>
@@ -171,7 +171,7 @@ export function MachineDetailView({
             )}
           </div>
           <div className="min-w-0">
-            <p className="text-[11px] text-slate-400 font-medium">Trạng thái vận hành</p>
+            <p className="text-[11px] text-slate-400 font-medium">{tr("Trạng thái vận hành")}</p>
             <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
               <span className={`text-sm font-black ${resolved.operatingStatusColor}`}>
                 {resolved.operatingStatus} ({resolved.operatingStatusLabel})
@@ -193,7 +193,7 @@ export function MachineDetailView({
             style={{ color: resolved.healthScoreColor }}
           />
           <div className="min-w-0">
-            <p className="text-[11px] text-slate-400 font-medium">Mức độ an toàn</p>
+            <p className="text-[11px] text-slate-400 font-medium">{tr("Mức độ an toàn")}</p>
             <p className="text-sm font-mono font-black mt-0.5" style={{ color: resolved.healthScoreColor }}>
               {resolved.healthScore != null ? `${resolved.healthScore.toFixed(1)}%` : 'N/A'}
               {resolved.healthScore != null && resolved.healthScore >= 90 && (
@@ -207,9 +207,9 @@ export function MachineDetailView({
         <div className="p-4 rounded-xl border border-slate-200/90 dark:border-factory-border bg-white dark:bg-factory-card shadow-xs flex items-center gap-3">
           <Clock className="w-6 h-6 text-blue-600 shrink-0" />
           <div className="min-w-0">
-            <p className="text-[11px] text-slate-400 font-medium">Thời gian hoạt động</p>
+            <p className="text-[11px] text-slate-400 font-medium">{tr("Thời gian hoạt động")}</p>
             <p className="text-sm font-mono font-black text-slate-900 dark:text-white mt-0.5">
-              {machine.uptimeHours != null ? `${machine.uptimeHours} giờ (Ca 1)` : '6.7 giờ (Ca 1)'}
+              {machine.uptimeHours != null ? tr("{0} giờ (Ca 1)", machine.uptimeHours) : tr("6.7 giờ (Ca 1)")}
             </p>
           </div>
         </div>
@@ -218,9 +218,9 @@ export function MachineDetailView({
         <div className="p-4 rounded-xl border border-slate-200/90 dark:border-factory-border bg-white dark:bg-factory-card shadow-xs flex items-center gap-3">
           <Calendar className="w-6 h-6 text-purple-600 shrink-0" />
           <div className="min-w-0">
-            <p className="text-[11px] text-slate-400 font-medium">Bảo dưỡng tiếp theo</p>
+            <p className="text-[11px] text-slate-400 font-medium">{tr("Bảo dưỡng tiếp theo")}</p>
             <p className="text-sm font-mono font-bold text-slate-900 dark:text-white mt-0.5">
-              {machine.lastMaintenance || '31/01/2026 (7 ngày)'}
+              {machine.lastMaintenance || tr("31/01/2026 (7 ngày)")}
             </p>
           </div>
         </div>
@@ -232,7 +232,7 @@ export function MachineDetailView({
         <div className="lg:col-span-5 p-5 rounded-2xl border border-slate-200/90 dark:border-factory-border bg-white dark:bg-factory-card shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Thông tin kỹ thuật thiết bị
+              {tr("Thông tin kỹ thuật thiết bị")}
             </h3>
             <span className="text-[10px] font-mono font-bold bg-slate-100 dark:bg-factory-surface px-2 py-0.5 rounded text-slate-600 dark:text-slate-400">
               {machine.code || machine.id}
@@ -256,47 +256,47 @@ export function MachineDetailView({
               {machine.name}
             </p>
             <p className="text-[11px] text-slate-400 mt-0.5 text-center">
-              Hệ thống cảm biến IoT đa điểm chuẩn kết nối Modbus TCP / OPC-UA
+              {tr("Hệ thống cảm biến IoT đa điểm chuẩn kết nối Modbus TCP / OPC-UA")}
             </p>
           </div>
 
           {/* Danh sách thuộc tính */}
           <div className="divide-y divide-slate-100 dark:divide-factory-border text-xs">
             <div className="py-2 flex items-center justify-between">
-              <span className="text-slate-400">Mã thiết bị:</span>
+              <span className="text-slate-400">{tr("Mã thiết bị:")}</span>
               <strong className="font-mono text-slate-900 dark:text-white">{machine.code || machine.id}</strong>
             </div>
             <div className="py-2 flex items-center justify-between">
-              <span className="text-slate-400">Tên thiết bị:</span>
+              <span className="text-slate-400">{tr("Tên thiết bị:")}</span>
               <span className="font-semibold text-slate-800 dark:text-slate-200">{machine.name}</span>
             </div>
             <div className="py-2 flex items-center justify-between">
-              <span className="text-slate-400">Dây chuyền:</span>
-              <span className="text-slate-800 dark:text-slate-200">{parentLine?.name || machine.lineName || 'LN-PRS-01 – Dập & Hàn'}</span>
+              <span className="text-slate-400">{tr("Dây chuyền:")}</span>
+              <span className="text-slate-800 dark:text-slate-200">{parentLine?.name || machine.lineName || tr("LN-PRS-01 – Dập & Hàn")}</span>
             </div>
             <div className="py-2 flex items-center justify-between">
-              <span className="text-slate-400">Hãng / Model:</span>
+              <span className="text-slate-400">{tr("Hãng / Model:")}</span>
               <span className="font-mono text-slate-800 dark:text-slate-200">
                 {machine.manufacturer ? `${machine.manufacturer} / ${machine.model || 'Standard'}` : (machine.model || 'DENSO / CT-500')}
               </span>
             </div>
             {machine.serialNumber && (
               <div className="py-2 flex items-center justify-between">
-                <span className="text-slate-400">Số Serial:</span>
+                <span className="text-slate-400">{tr("Số Serial:")}</span>
                 <span className="font-mono text-slate-800 dark:text-slate-200">{machine.serialNumber}</span>
               </div>
             )}
             <div className="py-2 flex items-center justify-between">
-              <span className="text-slate-400">Vị trí lắp đặt:</span>
-              <span className="text-slate-800 dark:text-slate-200">{machine.location || 'Khu vực công đoạn'}</span>
+              <span className="text-slate-400">{tr("Vị trí lắp đặt:")}</span>
+              <span className="text-slate-800 dark:text-slate-200">{machine.location || tr("Khu vực công đoạn")}</span>
             </div>
             <div className="py-2 flex items-center justify-between">
-              <span className="text-slate-400">Ngày đưa vào sử dụng:</span>
+              <span className="text-slate-400">{tr("Ngày đưa vào sử dụng:")}</span>
               <span className="font-mono text-slate-800 dark:text-slate-200">{machine.installationDate || '01/03/2023'}</span>
             </div>
             {machine.ratedPower && (
               <div className="py-2 flex items-center justify-between">
-                <span className="text-slate-400">Công suất định mức:</span>
+                <span className="text-slate-400">{tr("Công suất định mức:")}</span>
                 <span className="font-mono text-slate-800 dark:text-slate-200">{machine.ratedPower}</span>
               </div>
             )}
@@ -310,10 +310,10 @@ export function MachineDetailView({
         <div className="lg:col-span-7 p-5 rounded-2xl border border-slate-200/90 dark:border-factory-border bg-white dark:bg-factory-card shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Thông số vận hành (Realtime Telemetry)
+              {tr("Thông số vận hành (Realtime Telemetry)")}
             </h3>
             <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full">
-              Chu kỳ cập nhật 1s
+              {tr("Chu kỳ cập nhật 1s")}
             </span>
           </div>
 
@@ -322,10 +322,10 @@ export function MachineDetailView({
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-slate-100 dark:border-factory-border text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    <th className="py-2.5 px-2">Thông số</th>
-                    <th className="py-2.5 px-2 text-right">Giá trị hiện tại</th>
-                    <th className="py-2.5 px-2 text-center">Ngưỡng (Min – Max)</th>
-                    <th className="py-2.5 px-2 text-center">Trạng thái</th>
+                    <th className="py-2.5 px-2">{tr("Thông số")}</th>
+                    <th className="py-2.5 px-2 text-right">{tr("Giá trị hiện tại")}</th>
+                    <th className="py-2.5 px-2 text-center">{tr("Ngưỡng (Min – Max)")}</th>
+                    <th className="py-2.5 px-2 text-center">{tr("Trạng thái")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-factory-border">
@@ -347,11 +347,11 @@ export function MachineDetailView({
                         <td className="py-2.5 px-2 text-center">
                           {isCrit ? (
                             <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400">
-                              <AlertTriangle className="w-3 h-3" /> Nguy hiểm
+                              <AlertTriangle className="w-3 h-3" /> {tr("Nguy hiểm")}
                             </span>
                           ) : isWarn ? (
                             <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400">
-                              <AlertTriangle className="w-3 h-3" /> Cảnh báo
+                              <AlertTriangle className="w-3 h-3" /> {tr("Cảnh báo")}
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400">
@@ -368,10 +368,10 @@ export function MachineDetailView({
               <div className="py-8 text-center space-y-2">
                 <Info className="w-8 h-8 mx-auto text-slate-300 dark:text-slate-600" />
                 <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                  Thiết bị chưa được cấu hình Metric Mapping tại Tầng 3
+                  {tr("Thiết bị chưa được cấu hình Metric Mapping tại Tầng 3")}
                 </p>
                 <p className="text-[11px] text-slate-400">
-                  Hệ thống không hiển thị telemetry giả. Vui lòng thiết lập mapping tín hiệu cảm biến trong phần Cấu hình.
+                  {tr("Hệ thống không hiển thị telemetry giả. Vui lòng thiết lập mapping tín hiệu cảm biến trong phần Cấu hình.")}
                 </p>
               </div>
             )}

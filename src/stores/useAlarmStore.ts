@@ -7,6 +7,7 @@ import { create } from 'zustand';
 import { AlarmEvent, AlarmWorkflowStatus } from '../types/alarm';
 import { initialAlarms } from '../utils/mockData';
 import { apiClient } from '../services/api';
+import { tr } from '../i18n/tr';
 
 interface AlarmState {
   alarms: AlarmEvent[];
@@ -45,7 +46,7 @@ export const useAlarmStore = create<AlarmState>((set) => ({
     apiClient.recordAudit(
       'ACKNOWLEDGE_ALARM',
       alarmId,
-      `Nhân viên ${technicianName} đã tiếp nhận xử lý sự cố.`
+      tr("Nhân viên {0} đã tiếp nhận xử lý sự cố.", technicianName)
     );
     set((state) => ({
       alarms: state.alarms.map((alarm) =>
@@ -65,7 +66,7 @@ export const useAlarmStore = create<AlarmState>((set) => ({
     apiClient.recordAudit(
       'RESOLVE_ALARM',
       alarmId,
-      `Đã khắc phục hoàn tất sự cố. Ghi chú: ${resolutionNotes}`
+      tr("Đã khắc phục hoàn tất sự cố. Ghi chú: {0}", resolutionNotes)
     );
     set((state) => ({
       alarms: state.alarms.map((alarm) =>
@@ -81,7 +82,7 @@ export const useAlarmStore = create<AlarmState>((set) => ({
     }));
   },
 
-  resolveAllAlarms: (resolutionNotes = 'Đã khôi phục trạng thái chuẩn sau diễn tập.') => {
+  resolveAllAlarms: (resolutionNotes = tr("Đã khôi phục trạng thái chuẩn sau diễn tập.")) => {
     set((state) => ({
       alarms: state.alarms.map((alarm) =>
         alarm.status !== 'resolved'
@@ -96,14 +97,14 @@ export const useAlarmStore = create<AlarmState>((set) => ({
     }));
   },
 
-  resolveDemoAlarms: (resolutionNotes = 'Đã khôi phục sự cố diễn tập Demo.') => {
+  resolveDemoAlarms: (resolutionNotes = tr("Đã khôi phục sự cố diễn tập Demo.")) => {
     set((state) => ({
       alarms: state.alarms.map((alarm) => {
         const isDemoAlarm =
           alarm.isDemo === true ||
           alarm.id.startsWith('ALM-DEMO') ||
           alarm.source === 'DEMO' ||
-          alarm.message.includes('Sự cố giả lập');
+          (alarm.message.includes('Sự cố giả lập') || alarm.message.includes(tr('Sự cố giả lập')));
 
         if (isDemoAlarm && alarm.status !== 'resolved') {
           return {

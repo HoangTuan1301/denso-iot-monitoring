@@ -40,10 +40,8 @@ export function registerProductionRoutes(app, { authenticateToken, requireRole, 
     return { lines, machines };
   }
 
-  const machinesOf = (machines, lineId) =>
-    machines
-      .filter((m) => m.lineId === lineId)
-      .sort((a, b) => String(a.code || a.id).localeCompare(String(b.code || b.id)));
+  // Giữ nguyên thứ tự máy như API /api/machines trả về (trùng với cách giao diện đánh số OP10, OP20, ...)
+  const machinesOf = (machines, lineId) => machines.filter((m) => m.lineId === lineId);
 
   app.get('/api/production/settings', authenticateToken, async (req, res) => {
     res.json({ settings: await loadSettings() });
@@ -95,7 +93,7 @@ export function registerProductionRoutes(app, { authenticateToken, requireRole, 
 
   async function findLine(req, res) {
     const { lines, machines } = await loadLinesAndMachines();
-    const line = lines.find((l) => l.id === req.params.lineId);
+    const line = lines.find((l) => l.id === req.params.lineId || l.code === req.params.lineId);
     if (!line) {
       res.status(404).json({ message: 'Không tìm thấy dây chuyền.', errorCode: 'LINE_NOT_FOUND' });
       return null;

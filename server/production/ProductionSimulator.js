@@ -32,6 +32,9 @@ const LINE_PROFILES = {
   'LN-PNT-02': { planPerHour: 320, idealCycleSec: 10.8, orderCode: 'VN229700-7311', product: 'Vỏ sơn tĩnh điện' },
   'LN-ASM-03': { planPerHour: 360, idealCycleSec: 9.6, orderCode: 'VN229700-8102', product: 'Cụm lắp ráp hoàn thiện' },
 };
+// Tra hồ sơ theo mã line (VD: LN-PRS-01) trước, rồi tới id (VD: LINE-01)
+const profileOf = (lineLike) =>
+  LINE_PROFILES[lineLike.code] || LINE_PROFILES[lineLike.lineCode] || LINE_PROFILES[lineLike.id] || LINE_PROFILES[lineLike.lineId] || DEFAULT_PROFILE;
 const DEFAULT_PROFILE = { planPerHour: 300, idealCycleSec: 11.5, orderCode: 'VN229700-0000', product: 'Sản phẩm' };
 
 const LONG_STOP_CAUSES = [
@@ -141,7 +144,7 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
   const current = getCurrentShift(now);
   const day = date || current.date;
   const sh = Number(shift) || (date ? 1 : current.shift);
-  const profile = LINE_PROFILES[line.id] || DEFAULT_PROFILE;
+  const profile = profileOf(line);
   const rng = createRng(`${line.id}|${day}|${sh}`);
 
   const startMs = shiftStartUtcMs(day, sh);
@@ -265,6 +268,7 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
   return {
     simulated: true,
     lineId: line.id,
+    lineCode: line.code || line.id,
     lineName: line.name || line.id,
     date: day,
     shift: sh,
@@ -343,6 +347,7 @@ export function simulateProcessConditions({ line, days = 30, now = new Date() })
   return {
     simulated: true,
     lineId: line.id,
+    lineCode: line.code || line.id,
     days: n,
     dates,
     conditions,
@@ -360,7 +365,7 @@ export function simulateProcessConditions({ line, days = 30, now = new Date() })
  * @param {object} [opts.params] { otHours, reroutePct, orderQty }
  */
 export function simulateWhatIf({ shiftData, otherLines = [], params = {} }) {
-  const profile = LINE_PROFILES[shiftData.lineId] || DEFAULT_PROFILE;
+  const profile = profileOf(shiftData);
   const perMin = profile.planPerHour / 60;
   const planTotal = shiftData.output.planTotal;
   // Đơn hàng mặc định = 95% kế hoạch ca (để What-If có ý nghĩa khi line bị dừng)
@@ -428,7 +433,7 @@ export function simulateWhatIf({ shiftData, otherLines = [], params = {} }) {
   };
   const scenarios = [
     mk('BASELINE', 'Chờ sửa (Baseline)', 0, 0, round(shiftData.longStops.minutes / 60 + 1, 1)),
-    mk('REROUTE', `San tải sang ${bestOther ? bestOther.lineId : 'line khác'}`, rerouteGain, rerouteGain ? 300 + rerouteGain * 2 : 0, 1, {
+    mk('REROUTE', `San tải sang ${bestOther ? bestOther.lineCode : 'line khác'}`, rerouteGain, rerouteGain ? 300 + rerouteGain * 2 : 0, 1, {
       targetLineId: bestOther ? bestOther.lineId : null,
       reroutePct,
     }),
@@ -462,6 +467,7 @@ export function simulateWhatIf({ shiftData, otherLines = [], params = {} }) {
   return {
     simulated: true,
     lineId: shiftData.lineId,
+    lineCode: shiftData.lineCode,
     order: {
       code: profile.orderCode,
       product: profile.product,
@@ -500,6 +506,7 @@ export function buildFactoryOverview({ lineShifts, machines = [], lines = [] }) 
   const topDowntime = lineShifts
     .map((l) => ({
       lineId: l.lineId,
+      lineCode: l.lineCode,
       lineName: l.lineName,
       longStopMinutes: l.longStops.minutes,
       totalStopMinutes: l.longStops.minutes + l.shortStops.minutes,

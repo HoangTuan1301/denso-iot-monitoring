@@ -42,6 +42,7 @@ export interface HourlyOutput {
 export interface LineShiftProduction {
   simulated: boolean;
   lineId: string;
+  lineCode: string;
   lineName: string;
   date: string;
   shift: 1 | 2 | 3;
@@ -77,6 +78,7 @@ export interface FactoryProductionOverview {
   machines: { total: number; running: number; alarmStop: number; offline: number };
   topDowntime: Array<{
     lineId: string;
+    lineCode: string;
     lineName: string;
     longStopMinutes: number;
     totalStopMinutes: number;
@@ -98,6 +100,7 @@ export interface ProcessConditionSeries {
 export interface ProcessConditionsResponse {
   simulated: boolean;
   lineId: string;
+  lineCode: string;
   days: number;
   dates: Array<{ date: string; weekday: number }>;
   conditions: ProcessConditionSeries[];
@@ -124,6 +127,7 @@ export interface WhatIfScenario {
 export interface WhatIfResponse {
   simulated: boolean;
   lineId: string;
+  lineCode: string;
   order: { code: string; product: string; requiredQty: number; dueAt: string };
   planQty: number;
   baselineQty: number;

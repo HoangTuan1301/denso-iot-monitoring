@@ -135,5 +135,21 @@
     "SPEED_QUALITY": "Giảm tốc & hàng lỗi",
     "LOW_OEE": "OEE thấp",
     "SHORT_STOP_COUNT": "Dừng ngắn × {{count}}"
+  },
+  "mapGuide": {
+    "title": "Hướng dẫn sử dụng sơ đồ mặt bằng",
+    "step1": "Nhấn vào dây chuyền (viền xanh) để xem chi tiết Line Overview",
+    "step2": "Chọn line trong Top 5 bên phải để mô phỏng What‑If",
+    "step3": "Rê chuột (hover) để xem thông tin chi tiết từng khu vực",
+    "safetyScale": "Thang màu mức độ an toàn",
+    "statusScale": "Thang màu trạng thái sản xuất",
+    "safe": "An toàn",
+    "watch": "Theo dõi",
+    "caution": "Cảnh báo",
+    "danger": "Nguy hiểm",
+    "unmonitored": "Chưa giám sát",
+    "runningHint": "OEE ≥ 82%, không dừng dài",
+    "warningHint": "Vừa dừng dài / OEE < 82%",
+    "alarmHint": "Đang dừng / OEE < 72%"
   }
 }

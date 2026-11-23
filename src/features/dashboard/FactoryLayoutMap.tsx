@@ -276,7 +276,8 @@ export function FactoryLayoutMap({
           {FACTORY_ZONES.map((zone) => {
             const isSelected = zone.id === selectedZoneId;
             const isConfigured = zone.isConfiguredLine;
-            const prod = productionZones?.[zone.id];
+            // Lớp trạng thái sản xuất chỉ áp dụng ở chế độ "Trạng thái"; chế độ "Mức độ an toàn" giữ nguyên như cũ
+            const prod = viewMode === 'status' ? productionZones?.[zone.id] : undefined;
             const prodStyle = prod ? PROD_STYLE[prod.status] : null;
             const fillColor = prodStyle?.fill || getZoneFillColor(zone);
             const strokeColor = isSelected ? getZoneStrokeColor(zone) : prodStyle?.stroke || getZoneStrokeColor(zone);
@@ -288,7 +289,7 @@ export function FactoryLayoutMap({
             const liveStatus = liveLine ? liveLine.status : 'UNMONITORED';
 
             // Màu chấm tròn trạng thái phân loại tập trung
-            const dotColor = prodStyle && prod?.status !== 'RUNNING'
+            const dotColor = prodStyle
               ? prodStyle.dot
               : viewMode === 'safety'
               ? getHealthScoreColor(liveScore)
@@ -506,6 +507,8 @@ export function FactoryLayoutMap({
                         >
                           {viewMode === 'safety'
                             ? `${liveScore != null ? liveScore.toFixed(1) : '96.8'}%`
+                            : prod
+                            ? `${prod.oee.toFixed(1)}%`
                             : liveLine?.operatingStatus === 'STOPPED'
                             ? 'STOP'
                             : liveStatus === 'CRITICAL'

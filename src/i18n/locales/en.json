@@ -1,0 +1,57 @@
+{
+  "common": {
+    "appName": "DENSO IoT System",
+    "appSubtitle": "Monitoring System",
+    "defaultUser": "User",
+    "simulatedData": "Simulated data"
+  },
+  "lang": {
+    "label": "Language",
+    "vi": "VI",
+    "en": "EN",
+    "ja": "日本語"
+  },
+  "nav": {
+    "groupConfig": "CONFIGURATION",
+    "groupMonitoring": "MONITORING",
+    "dashboard": "Factory Overview",
+    "devices": "Equipment Monitoring",
+    "alarms": "Alarms & Incidents",
+    "history": "Data History",
+    "ai": "AI Monitoring & Prediction",
+    "lines": "Lines & Equipment",
+    "metrics": "Parameter Catalog",
+    "thresholds": "Mapping & Alarm Thresholds",
+    "users": "Account Management",
+    "audit": "System Audit Log",
+    "qr": "QR Scan",
+    "settings": "Parameters & System",
+    "expand": "Expand navigation",
+    "collapse": "Collapse navigation"
+  },
+  "breadcrumb": {
+    "monitoring": "Monitoring",
+    "config": "Configuration",
+    "utilities": "Utilities",
+    "line": "Line {{code}}",
+    "machine": "Machine {{code}}"
+  },
+  "header": {
+    "emergency": "Simulate Incident",
+    "emergencyShort": "Incident",
+    "emergencyTitle": "Trigger a random over-threshold incident on one machine (admin demo only)",
+    "restore": "Restore",
+    "restoreNow": "Restore now",
+    "restoreTitle": "Restore all machines and safety scores to normal",
+    "restoredNotice": "The whole system has been restored to normal.",
+    "emergencyNotice": "Incident triggered at {{machine}}: {{metric}} spiked to {{value}} {{unit}}!",
+    "streamTitle": "Turn real-time updates on / off",
+    "wsOnline": "Real-time IoT WebSocket is online",
+    "wsOffline": "WebSocket disconnected or reconnecting...",
+    "refreshTitle": "Fetch sensor data now",
+    "toLight": "Switch to light theme",
+    "toDark": "Switch to dark theme",
+    "logout": "Sign out",
+    "restoreIncident": "Restore incident"
+  }
+}

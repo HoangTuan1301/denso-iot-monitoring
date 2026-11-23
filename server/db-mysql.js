@@ -323,6 +323,16 @@ export async function initDatabase() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
 
+    // 14d. Bảng cài đặt chung của ứng dụng (VD: ngưỡng phân loại dừng ngắn/dừng dài)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS app_settings (
+        setting_key VARCHAR(64) NOT NULL PRIMARY KEY,
+        setting_value TEXT NOT NULL,
+        updated_by VARCHAR(128) NULL,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
     // 15. Seed Metric Catalog nếu trống
     const [metricRows] = await pool.query('SELECT COUNT(*) as count FROM metric_catalog');
     if (metricRows[0].count === 0) {
@@ -3162,7 +3172,31 @@ export async function setCollectionSchedule(mappingId, data, user = null, ipAddr
   }
 }
 
+/* =========================================================================
+ * APP SETTINGS (cài đặt chung dạng key/value JSON)
+ * ========================================================================= */
+export async function getAppSetting(key, fallback = null) {
+  const [rows] = await pool.query('SELECT setting_value FROM app_settings WHERE setting_key = ?', [key]);
+  if (!rows.length) return fallback;
+  try {
+    return JSON.parse(rows[0].setting_value);
+  } catch {
+    return fallback;
+  }
+}
+
+export async function setAppSetting(key, value, updatedBy = null) {
+  await pool.query(
+    `INSERT INTO app_settings (setting_key, setting_value, updated_by) VALUES (?, ?, ?)
+     ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_by = VALUES(updated_by)`,
+    [key, JSON.stringify(value), updatedBy]
+  );
+  return value;
+}
+
 export const mysqlDb = {
+  getAppSetting,
+  setAppSetting,
   initDatabase,
   closeDatabase,
   getPool,

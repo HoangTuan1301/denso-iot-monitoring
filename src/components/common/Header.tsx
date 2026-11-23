@@ -10,23 +10,26 @@ import { useMonitoringStore } from "../../stores/useMonitoringStore";
 import { useAuthStore }       from "../../stores/useAuthStore";
 import { useThemeStore }      from "../../stores/useThemeStore";
 import { socketClient }       from "../../services/socket";
+import { useTranslation }     from "react-i18next";
+import { LanguageSwitcher }   from "./LanguageSwitcher";
 
 /* ------------------------------------------------------------------ */
 /* Bản đồ tiêu đề breadcrumb theo tab                                  */
 /* ------------------------------------------------------------------ */
+// group/page là key i18n (breadcrumb.* và nav.*)
 const BREADCRUMBS: Record<string, { group: string; page: string }> = {
-  dashboard:  { group: "Giám sát",  page: "Dashboard Tổng quan" },
-  devices:    { group: "Giám sát",  page: "Giám sát Thiết bị" },
-  lines:      { group: "Cấu hình",  page: "Dây chuyền & Thiết bị" },
-  metrics:    { group: "Cấu hình",  page: "Danh mục Thông số" },
-  thresholds: { group: "Cấu hình",  page: "Mapping & Ngưỡng cảnh báo" },
-  users:      { group: "Cấu hình",  page: "Quản lý Tài khoản" },
-  audit:      { group: "Cấu hình",  page: "Nhật ký Hệ thống" },
-  alarms:     { group: "Giám sát",  page: "Cảnh báo & Sự cố" },
-  history:    { group: "Giám sát",  page: "Lịch sử Dữ liệu" },
-  ai:         { group: "Giám sát",  page: "AI Giám sát & Dự đoán" },
-  qr:         { group: "Tiện ích",  page: "Quét mã QR" },
-  settings:   { group: "Cấu hình",  page: "Danh mục Thông số & Hệ thống" },
+  dashboard:  { group: "breadcrumb.monitoring", page: "nav.dashboard" },
+  devices:    { group: "breadcrumb.monitoring", page: "nav.devices" },
+  lines:      { group: "breadcrumb.config",     page: "nav.lines" },
+  metrics:    { group: "breadcrumb.config",     page: "nav.metrics" },
+  thresholds: { group: "breadcrumb.config",     page: "nav.thresholds" },
+  users:      { group: "breadcrumb.config",     page: "nav.users" },
+  audit:      { group: "breadcrumb.config",     page: "nav.audit" },
+  alarms:     { group: "breadcrumb.monitoring", page: "nav.alarms" },
+  history:    { group: "breadcrumb.monitoring", page: "nav.history" },
+  ai:         { group: "breadcrumb.monitoring", page: "nav.ai" },
+  qr:         { group: "breadcrumb.utilities",  page: "nav.qr" },
+  settings:   { group: "breadcrumb.config",     page: "nav.settings" },
 };
 
 /* ------------------------------------------------------------------ */
@@ -52,6 +55,7 @@ export function Header() {
   } = useMonitoringStore();
   const { currentUser, logout, setAvatarUrl } = useAuthStore();
   const { theme, toggleTheme }  = useThemeStore();
+  const { t }                   = useTranslation();
 
   const [timeStr, setTimeStr]       = useState("");
   const [demoNotice, setDemoNotice] = useState<string | null>(null);
@@ -97,13 +101,13 @@ export function Header() {
 
   const currentBreadcrumb =
     activeTab === "devices" || (activeTab === "lines" && activeNavGroup === "monitoring")
-      ? { group: "Giám sát", page: "Giám sát Thiết bị" }
+      ? { group: "breadcrumb.monitoring", page: "nav.devices" }
       : BREADCRUMBS[activeTab] ?? BREADCRUMBS.dashboard;
   const { group, page } = currentBreadcrumb;
   const userRole        = (currentUser?.role || "OPERATOR").toUpperCase();
   const isAdmin         = userRole === "ADMIN";
 
-  const displayName     = currentUser?.fullName || currentUser?.name || "Người dùng";
+  const displayName     = currentUser?.fullName || currentUser?.name || t("common.defaultUser");
   const initials        = displayName
     .split(" ")
     .filter(Boolean)
@@ -121,7 +125,12 @@ export function Header() {
     if (triggered) {
       setHasActiveEmergency(true);
       setDemoNotice(
-        `Đã kích hoạt sự cố tại ${triggered.machineName}: ${triggered.metricName} tăng vọt ${triggered.value} ${triggered.unit}!`
+        t("header.emergencyNotice", {
+          machine: triggered.machineName,
+          metric: triggered.metricName,
+          value: triggered.value,
+          unit: triggered.unit,
+        })
       );
       setTimeout(() => setDemoNotice(null), 8000);
     }
@@ -131,7 +140,7 @@ export function Header() {
   const handleRestoreEmergency = () => {
     resetEmergencyDemo();
     setHasActiveEmergency(false);
-    setDemoNotice("Đã khôi phục toàn bộ hệ thống về trạng thái chuẩn.");
+    setDemoNotice(t("header.restoredNotice"));
     setTimeout(() => setDemoNotice(null), 3000);
   };
 
@@ -150,7 +159,7 @@ export function Header() {
             onClick={handleRestoreEmergency}
             className="ml-2 px-2.5 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-[11px] font-bold cursor-pointer transition-colors"
           >
-            Khôi phục ngay
+            {t("header.restoreNow")}
           </button>
         </div>
       )}
@@ -166,14 +175,14 @@ export function Header() {
               }}
               className="text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 font-medium transition-colors cursor-pointer"
             >
-              Dashboard Tổng quan
+              {t("nav.dashboard")}
             </button>
 
             <span className="text-slate-400 dark:text-slate-500">&gt;</span>
 
             {dashboardViewLevel === 'line_overview' && (
               <span className="font-bold text-slate-900 dark:text-white">
-                Dây chuyền {lines.find((l) => l.id === selectedLineId || l.code === selectedLineId)?.code || selectedLineId || 'LN-PRS-01'}
+                {t("breadcrumb.line", { code: lines.find((l) => l.id === selectedLineId || l.code === selectedLineId)?.code || selectedLineId || 'LN-PRS-01' })}
               </span>
             )}
 
@@ -183,11 +192,11 @@ export function Header() {
                   onClick={() => setDashboardViewLevel('line_overview')}
                   className="text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 font-medium transition-colors cursor-pointer"
                 >
-                  Dây chuyền {lines.find((l) => l.id === selectedLineId || l.code === selectedLineId)?.code || selectedLineId || 'LN-PRS-01'}
+                  {t("breadcrumb.line", { code: lines.find((l) => l.id === selectedLineId || l.code === selectedLineId)?.code || selectedLineId || 'LN-PRS-01' })}
                 </button>
                 <span className="text-slate-400 dark:text-slate-500">&gt;</span>
                 <span className="font-bold text-slate-900 dark:text-white">
-                  Máy {lines.flatMap((l) => l.machines || []).find((m) => m.id === selectedMachineId || m.code === selectedMachineId)?.code || selectedMachineId || 'OP50'}
+                  {t("breadcrumb.machine", { code: lines.flatMap((l) => l.machines || []).find((m) => m.id === selectedMachineId || m.code === selectedMachineId)?.code || selectedMachineId || 'OP50' })}
                 </span>
               </>
             )}
@@ -198,14 +207,14 @@ export function Header() {
                   onClick={() => setDashboardViewLevel('line_overview')}
                   className="text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 font-medium transition-colors cursor-pointer hidden md:inline"
                 >
-                  Dây chuyền {lines.find((l) => l.id === selectedLineId || l.code === selectedLineId)?.code || selectedLineId || 'LN-PRS-01'}
+                  {t("breadcrumb.line", { code: lines.find((l) => l.id === selectedLineId || l.code === selectedLineId)?.code || selectedLineId || 'LN-PRS-01' })}
                 </button>
                 <span className="text-slate-400 dark:text-slate-500 hidden md:inline">&gt;</span>
                 <button
                   onClick={() => setDashboardViewLevel('machine_detail')}
                   className="text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 font-medium transition-colors cursor-pointer"
                 >
-                  Máy {lines.flatMap((l) => l.machines || []).find((m) => m.id === selectedMachineId || m.code === selectedMachineId)?.code || selectedMachineId || 'OP50'}
+                  {t("breadcrumb.machine", { code: lines.flatMap((l) => l.machines || []).find((m) => m.id === selectedMachineId || m.code === selectedMachineId)?.code || selectedMachineId || 'OP50' })}
                 </button>
                 <span className="text-slate-400 dark:text-slate-500">&gt;</span>
                 <span className="font-bold text-blue-600 dark:text-blue-400">
@@ -216,9 +225,9 @@ export function Header() {
           </div>
         ) : (
           <div className="flex items-center gap-1.5">
-            <span className="text-slate-500 dark:text-slate-400 font-medium">{group}</span>
+            <span className="text-slate-500 dark:text-slate-400 font-medium">{t(group)}</span>
             <span className="text-slate-400 dark:text-slate-500 font-normal">/</span>
-            <span className="font-bold text-slate-900 dark:text-white">{page}</span>
+            <span className="font-bold text-slate-900 dark:text-white">{t(page)}</span>
           </div>
         )}
       </div>
@@ -230,12 +239,12 @@ export function Header() {
         {isAdmin && (
           <button
             onClick={handleTriggerEmergency}
-            title="Kích hoạt sự cố vượt ngưỡng khẩn cấp ngẫu nhiên ở một máy (Dành riêng cho Admin demo)"
+            title={t("header.emergencyTitle")}
             className="flex items-center gap-1.5 rounded-full border border-rose-500/40 bg-rose-500/10 px-3 py-1 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 active:scale-95 transition-all cursor-pointer shadow-xs"
           >
             <Flame className="h-3.5 w-3.5 text-rose-500 animate-pulse" />
-            <span className="hidden sm:inline">Giả lập Sự cố</span>
-            <span className="sm:hidden">Sự cố</span>
+            <span className="hidden sm:inline">{t("header.emergency")}</span>
+            <span className="sm:hidden">{t("header.emergencyShort")}</span>
           </button>
         )}
 
@@ -244,19 +253,19 @@ export function Header() {
           <button
             type="button"
             onClick={handleRestoreEmergency}
-            title="Khôi phục ngay toàn bộ máy và điểm an toàn về trạng thái chuẩn"
+            title={t("header.restoreTitle")}
             className="flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 active:scale-95 transition-all cursor-pointer shadow-xs animate-in fade-in"
           >
             <RotateCcw className="h-3.5 w-3.5 text-emerald-500" />
-            <span className="hidden sm:inline">Khôi phục Sự cố</span>
-            <span className="sm:hidden">Khôi phục</span>
+            <span className="hidden sm:inline">{t("header.restoreIncident")}</span>
+            <span className="sm:hidden">{t("header.restore")}</span>
           </button>
         )}
 
         {/* Pill Stream — Bật / Tắt cập nhật tự động */}
         <button
           onClick={() => toggleRealtime()}
-          title="Bật / Tắt cập nhật số liệu thời gian thực"
+          title={t("header.streamTitle")}
           className={[
             "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-mono transition-colors cursor-pointer",
             isRealtimeActive
@@ -277,8 +286,8 @@ export function Header() {
         <div
           title={
             isWsConnected
-              ? "WebSocket Real-time IoT đang trực tuyến (port 5000 /ws)"
-              : "WebSocket đang ngắt kết nối hoặc đang kết nối lại..."
+              ? t("header.wsOnline")
+              : t("header.wsOffline")
           }
           className={[
             "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-mono transition-colors select-none",
@@ -298,6 +307,9 @@ export function Header() {
             {isWsConnected ? "WS: Live" : "WS: Reconnecting"}
           </span>
         </div>
+
+        {/* Chọn ngôn ngữ VI / EN / 日本語 */}
+        <LanguageSwitcher />
 
         {/* User Profile Pill with Avatar (Chỉ hiển thị thông tin, không cho phép Upload đổi ảnh tại đây) */}
         <div
@@ -336,7 +348,7 @@ export function Header() {
         {/* Refresh thủ công */}
         <button
           onClick={() => simulateTick()}
-          title="Lấy dữ liệu cảm biến ngay lập tức"
+          title={t("header.refreshTitle")}
           className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 dark:border-factory-border bg-slate-100 dark:bg-factory-surface text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 transition-colors cursor-pointer"
         >
           <RefreshCw className="h-3.5 w-3.5" />
@@ -345,7 +357,7 @@ export function Header() {
         {/* Nút Theme — Mặt trời / Mặt trăng */}
         <button
           onClick={toggleTheme}
-          title={theme === "dark" ? "Chuyển sang giao diện Sáng" : "Chuyển sang giao diện Tối"}
+          title={theme === "dark" ? t("header.toLight") : t("header.toDark")}
           className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 dark:border-factory-border bg-slate-100 dark:bg-factory-surface text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 transition-colors cursor-pointer"
         >
           {theme === "dark" ? (
@@ -358,7 +370,7 @@ export function Header() {
         {/* Nút Đăng xuất */}
         <button
           onClick={() => logout()}
-          title="Đăng xuất khỏi phiên làm việc"
+          title={t("header.logout")}
           className="flex h-8 w-8 items-center justify-center rounded-full border border-rose-200 dark:border-rose-900/40 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-colors cursor-pointer"
         >
           <LogOut className="h-3.5 w-3.5" />

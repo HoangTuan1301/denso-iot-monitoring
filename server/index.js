@@ -13,6 +13,7 @@ import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import multer from 'multer';
 import { WebSocketServer, WebSocket } from 'ws';
 import * as mysqlDb from './db-mysql.js';
@@ -21,13 +22,23 @@ import { TelemetryEngine } from './telemetry/TelemetryEngine.js';
 import { ResilientBatchBuffer } from './telemetry/ResilientBatchBuffer.js';
 import { FileIngestionService } from './ingestion/FileIngestionService.js';
 import { defaultProfileRegistry } from './ingestion/FileProfileRegistry.js';
+import { registerProductionRoutes } from './production/productionRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 5000;
-const JWT_SECRET = process.env.JWT_SECRET || 'denso-iot-enterprise-secret-key-2026';
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'denso-iot-refresh-secret-key-2026';
+// [SECURITY] Không dùng secret mặc định viết cứng (repo công khai => ai cũng tự ký được token ADMIN).
+// Thiếu biến môi trường thì sinh secret ngẫu nhiên cho mỗi lần khởi động: an toàn, nhưng mọi phiên
+// đăng nhập sẽ hết hạn khi server khởi động lại. Hãy đặt JWT_SECRET / JWT_REFRESH_SECRET trên Render.
+function resolveSecret(envName) {
+  const value = process.env[envName];
+  if (value && value.length >= 16) return value;
+  console.warn(`[SECURITY] Thiếu ${envName} (hoặc quá ngắn). Đang dùng secret ngẫu nhiên tạm thời — hãy cấu hình biến môi trường này.`);
+  return crypto.randomBytes(48).toString('hex');
+}
+const JWT_SECRET = resolveSecret('JWT_SECRET');
+const JWT_REFRESH_SECRET = resolveSecret('JWT_REFRESH_SECRET');
 
 const app = express();
 app.use(cors());
@@ -248,19 +259,24 @@ app.post('/api/auth/login', async (req, res) => {
     const normalizedEmail = email.trim().toLowerCase();
     let user = null;
     let isDbSuccess = false;
+    let dbUnavailable = !isDbConnected;
 
     // 1. Cố gắng xác thực với CSDL MySQL
-    try {
-      user = await mysqlDb.getUserByEmail(normalizedEmail);
-      if (user) {
-        isDbSuccess = true;
+    if (!dbUnavailable) {
+      try {
+        user = await mysqlDb.getUserByEmail(normalizedEmail);
+        if (user) {
+          isDbSuccess = true;
+        }
+      } catch (dbErr) {
+        dbUnavailable = true;
+        console.warn(`[Login Auth] CSDL MySQL không phản hồi: ${dbErr.message}. Chuyển sang xác thực bộ nhớ dự phòng.`);
       }
-    } catch (dbErr) {
-      console.warn(`[Login Auth] CSDL MySQL không phản hồi: ${dbErr.message}. Chuyển sang xác thực bộ nhớ dự phòng.`);
     }
 
-    // 2. Nếu MySQL chưa kết nối được hoặc không tìm thấy, kiểm tra tài khoản fallback
-    if (!user) {
+    // 2. [SECURITY] Tài khoản dự phòng CHỈ dùng khi MySQL thật sự không truy cập được.
+    //    Khi CSDL hoạt động bình thường mà không có email này => từ chối, không "lách" qua tài khoản mặc định.
+    if (!user && dbUnavailable) {
       const fallback = fallbackUsers.find((u) => u.email === normalizedEmail);
       if (fallback && (await bcrypt.compare(password, fallback.passwordHash))) {
         user = {
@@ -2262,6 +2278,9 @@ app.get('/', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// API dữ liệu sản xuất (mô phỏng): OEE, dừng máy, sản lượng, điều kiện gia công, What-If
+registerProductionRoutes(app, { authenticateToken, requireRole, mysqlDb, isDbConnected: () => isDbConnected });
 
 app.get('/api/health', (req, res) => {
   res.json({

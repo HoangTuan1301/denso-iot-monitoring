@@ -6,6 +6,13 @@
 
 import { AuthResponse, UserProfile } from '../types/auth';
 import { AuditLogEntry } from '../types/audit';
+import type {
+  ProductionSettings,
+  FactoryProductionOverview,
+  LineShiftProduction,
+  ProcessConditionsResponse,
+  WhatIfResponse,
+} from '../types/production';
 import { ProductionLine, MachineComponent } from '../types/hierarchy';
 import {
   MetricCatalogItem,
@@ -699,5 +706,42 @@ export const apiClient = {
     if (params?.machineId) searchParams.append('machineId', params.machineId);
     const qs = searchParams.toString();
     return request(`/api/ingestion/conflicts${qs ? `?${qs}` : ''}`);
+  },
+
+  // --- Production (dữ liệu sản xuất mô phỏng: OEE, dừng máy, sản lượng, What-If) ---
+  async getProductionSettings(): Promise<{ settings: ProductionSettings }> {
+    return request('/api/production/settings');
+  },
+
+  async updateProductionSettings(settings: ProductionSettings): Promise<{ settings: ProductionSettings }> {
+    return request('/api/production/settings', { method: 'PUT', body: JSON.stringify(settings) });
+  },
+
+  async getProductionOverview(): Promise<FactoryProductionOverview> {
+    return request('/api/production/overview');
+  },
+
+  async getLineProduction(lineId: string, params?: { date?: string; shift?: 1 | 2 | 3 }): Promise<LineShiftProduction> {
+    const sp = new URLSearchParams();
+    if (params?.date) sp.append('date', params.date);
+    if (params?.shift) sp.append('shift', String(params.shift));
+    const qs = sp.toString();
+    return request(`/api/production/lines/${encodeURIComponent(lineId)}${qs ? `?${qs}` : ''}`);
+  },
+
+  async getLineProcessConditions(lineId: string, days = 30): Promise<ProcessConditionsResponse> {
+    return request(`/api/production/lines/${encodeURIComponent(lineId)}/conditions?days=${days}`);
+  },
+
+  async getLineWhatIf(
+    lineId: string,
+    params?: { otHours?: number; reroutePct?: number; orderQty?: number }
+  ): Promise<WhatIfResponse> {
+    const sp = new URLSearchParams();
+    if (params?.otHours !== undefined) sp.append('otHours', String(params.otHours));
+    if (params?.reroutePct !== undefined) sp.append('reroutePct', String(params.reroutePct));
+    if (params?.orderQty !== undefined) sp.append('orderQty', String(params.orderQty));
+    const qs = sp.toString();
+    return request(`/api/production/lines/${encodeURIComponent(lineId)}/what-if${qs ? `?${qs}` : ''}`);
   },
 };

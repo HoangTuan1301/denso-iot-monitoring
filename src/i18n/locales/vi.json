@@ -1,0 +1,57 @@
+{
+  "common": {
+    "appName": "DENSO IoT System",
+    "appSubtitle": "Hệ Thống Giám Sát",
+    "defaultUser": "Người dùng",
+    "simulatedData": "Dữ liệu mô phỏng"
+  },
+  "lang": {
+    "label": "Ngôn ngữ",
+    "vi": "VI",
+    "en": "EN",
+    "ja": "日本語"
+  },
+  "nav": {
+    "groupConfig": "NHÓM CẤU HÌNH",
+    "groupMonitoring": "NHÓM GIÁM SÁT",
+    "dashboard": "Dashboard Tổng quan",
+    "devices": "Giám sát Thiết bị",
+    "alarms": "Cảnh báo & Sự cố",
+    "history": "Lịch sử Dữ liệu",
+    "ai": "AI Giám sát & Dự đoán",
+    "lines": "Dây chuyền & Thiết bị",
+    "metrics": "Danh mục Thông số",
+    "thresholds": "Mapping & Ngưỡng cảnh báo",
+    "users": "Quản lý Tài khoản",
+    "audit": "Nhật ký Hệ thống",
+    "qr": "Quét mã QR",
+    "settings": "Danh mục Thông số & Hệ thống",
+    "expand": "Mở rộng thanh điều hướng",
+    "collapse": "Thu gọn thanh điều hướng"
+  },
+  "breadcrumb": {
+    "monitoring": "Giám sát",
+    "config": "Cấu hình",
+    "utilities": "Tiện ích",
+    "line": "Dây chuyền {{code}}",
+    "machine": "Máy {{code}}"
+  },
+  "header": {
+    "emergency": "Giả lập Sự cố",
+    "emergencyShort": "Sự cố",
+    "emergencyTitle": "Kích hoạt sự cố vượt ngưỡng khẩn cấp ngẫu nhiên ở một máy (Dành riêng cho Admin demo)",
+    "restore": "Khôi phục",
+    "restoreNow": "Khôi phục ngay",
+    "restoreTitle": "Khôi phục ngay toàn bộ máy và điểm an toàn về trạng thái chuẩn",
+    "restoredNotice": "Đã khôi phục toàn bộ hệ thống về trạng thái chuẩn.",
+    "emergencyNotice": "Đã kích hoạt sự cố tại {{machine}}: {{metric}} tăng vọt {{value}} {{unit}}!",
+    "streamTitle": "Bật / Tắt cập nhật số liệu thời gian thực",
+    "wsOnline": "WebSocket Real-time IoT đang trực tuyến",
+    "wsOffline": "WebSocket đang ngắt kết nối hoặc đang kết nối lại...",
+    "refreshTitle": "Lấy dữ liệu cảm biến ngay lập tức",
+    "toLight": "Chuyển sang giao diện Sáng",
+    "toDark": "Chuyển sang giao diện Tối",
+    "logout": "Đăng xuất khỏi phiên làm việc",
+    "restoreIncident": "Khôi phục Sự cố"
+  }
+}

@@ -23,6 +23,7 @@ import { useMonitoringStore, NavigationTab } from "../../stores/useMonitoringSto
 import { useAlarmStore } from "../../stores/useAlarmStore";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface NavItem {
   id: NavigationTab;
@@ -40,6 +41,7 @@ export function Sidebar() {
   const { alarms }                  = useAlarmStore();
   const { currentUser }             = useAuthStore();
   const [collapsed, setCollapsed]   = useState(false);
+  const { t }                       = useTranslation();
 
   const pendingCount = alarms.filter((a) => a.status !== "resolved").length;
   const userRole     = (currentUser?.role || "OPERATOR").toUpperCase();
@@ -50,25 +52,25 @@ export function Sidebar() {
   const configItems: NavItem[] = [];
 
   if (isAdmin || isMaintenance) {
-    configItems.push({ id: "lines", group: "config", label: "Dây chuyền & Thiết bị", icon: GitBranch });
-    configItems.push({ id: "metrics", group: "config", label: "Danh mục Thông số", icon: Gauge });
-    configItems.push({ id: "thresholds", group: "config", label: "Mapping & Ngưỡng cảnh báo", icon: ArrowLeftRight });
+    configItems.push({ id: "lines", group: "config", label: t("nav.lines"), icon: GitBranch });
+    configItems.push({ id: "metrics", group: "config", label: t("nav.metrics"), icon: Gauge });
+    configItems.push({ id: "thresholds", group: "config", label: t("nav.thresholds"), icon: ArrowLeftRight });
   }
 
   if (isAdmin) {
-    configItems.push({ id: "users", group: "config", label: "Quản lý Tài khoản", icon: Users });
+    configItems.push({ id: "users", group: "config", label: t("nav.users"), icon: Users });
   }
 
   if (isAdmin || isMaintenance) {
-    configItems.push({ id: "audit", group: "config", label: "Nhật ký Hệ thống", icon: ShieldCheck });
+    configItems.push({ id: "audit", group: "config", label: t("nav.audit"), icon: ShieldCheck });
   }
 
   const monitoringItems: NavItem[] = [
-    { id: "dashboard",  group: "monitoring", label: "Dashboard Tổng quan", icon: LayoutDashboard },
-    { id: "devices",    group: "monitoring", label: "Giám sát Thiết bị",   icon: Cpu },
-    { id: "alarms",     group: "monitoring", label: "Cảnh báo & Sự cố",    icon: Bell, badgeCount: pendingCount },
-    { id: "history",    group: "monitoring", label: "Lịch sử Dữ liệu",     icon: History },
-    { id: "ai",         group: "monitoring", label: "AI Giám sát & Dự đoán", icon: BrainCircuit },
+    { id: "dashboard",  group: "monitoring", label: t("nav.dashboard"), icon: LayoutDashboard },
+    { id: "devices",    group: "monitoring", label: t("nav.devices"), icon: Cpu },
+    { id: "alarms",     group: "monitoring", label: t("nav.alarms"), icon: Bell, badgeCount: pendingCount },
+    { id: "history",    group: "monitoring", label: t("nav.history"), icon: History },
+    { id: "ai",         group: "monitoring", label: t("nav.ai"), icon: BrainCircuit },
   ];
 
   /* -------- Render 1 button menu -------- */
@@ -178,12 +180,12 @@ export function Sidebar() {
                   DENSO IoT System
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                  Hệ Thống Giám Sát
+                  {t("common.appSubtitle")}
                 </p>
               </div>
             </div>
           ) : (
-            <Tooltip content="DENSO IoT System • Hệ Thống Giám Sát" placement="right">
+            <Tooltip content={`DENSO IoT System • ${t("common.appSubtitle")}`} placement="right">
               <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-white dark:bg-slate-900 border border-red-500/30 shadow-sm shadow-red-500/10">
                 <span className="font-black italic text-xl tracking-tighter text-[#E60012] select-none leading-none pr-0.5">
                   D
@@ -193,7 +195,7 @@ export function Sidebar() {
           )}
 
           {/* Nút Toggle thu gọn/mở rộng */}
-          <Tooltip content={collapsed ? "Mở rộng thanh điều hướng" : "Thu gọn thanh điều hướng"} placement={collapsed ? "right" : "bottom"}>
+          <Tooltip content={collapsed ? t("nav.expand") : t("nav.collapse")} placement={collapsed ? "right" : "bottom"}>
             <button
               onClick={() => setCollapsed(!collapsed)}
               aria-label="Toggle Sidebar"
@@ -214,10 +216,10 @@ export function Sidebar() {
 
         {/* -------- MENU NHÓM -------- */}
         <nav className="px-3 py-5 space-y-6">
+          <NavGroup title={t("nav.groupMonitoring")} items={monitoringItems} />
           {configItems.length > 0 && (
-            <NavGroup title="NHÓM CẤU HÌNH" items={configItems} />
+            <NavGroup title={t("nav.groupConfig")} items={configItems} />
           )}
-          <NavGroup title="NHÓM GIÁM SÁT" items={monitoringItems} />
         </nav>
       </div>
     </aside>

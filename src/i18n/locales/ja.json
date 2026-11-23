@@ -1,0 +1,57 @@
+{
+  "common": {
+    "appName": "DENSO IoT System",
+    "appSubtitle": "監視システム",
+    "defaultUser": "ユーザー",
+    "simulatedData": "シミュレーションデータ"
+  },
+  "lang": {
+    "label": "言語",
+    "vi": "VI",
+    "en": "EN",
+    "ja": "日本語"
+  },
+  "nav": {
+    "groupConfig": "設定",
+    "groupMonitoring": "監視",
+    "dashboard": "工場ダッシュボード",
+    "devices": "設備監視",
+    "alarms": "アラーム・異常",
+    "history": "データ履歴",
+    "ai": "AI監視・予知",
+    "lines": "ライン・設備",
+    "metrics": "パラメータ一覧",
+    "thresholds": "マッピング・警報しきい値",
+    "users": "アカウント管理",
+    "audit": "システム監査ログ",
+    "qr": "QRスキャン",
+    "settings": "パラメータ・システム",
+    "expand": "ナビゲーションを展開",
+    "collapse": "ナビゲーションを折りたたむ"
+  },
+  "breadcrumb": {
+    "monitoring": "監視",
+    "config": "設定",
+    "utilities": "ツール",
+    "line": "ライン {{code}}",
+    "machine": "設備 {{code}}"
+  },
+  "header": {
+    "emergency": "異常シミュレーション",
+    "emergencyShort": "異常",
+    "emergencyTitle": "任意の設備でしきい値超過の異常をランダムに発生させます（管理者デモ専用）",
+    "restore": "復旧",
+    "restoreNow": "今すぐ復旧",
+    "restoreTitle": "全設備と安全スコアを正常状態に戻します",
+    "restoredNotice": "システム全体を正常状態に復旧しました。",
+    "emergencyNotice": "{{machine}} で異常発生：{{metric}} が {{value}} {{unit}} に急上昇！",
+    "streamTitle": "リアルタイム更新のオン／オフ",
+    "wsOnline": "リアルタイムIoT WebSocket 接続中",
+    "wsOffline": "WebSocket 切断中または再接続中...",
+    "refreshTitle": "センサーデータを今すぐ取得",
+    "toLight": "ライトテーマに切替",
+    "toDark": "ダークテーマに切替",
+    "logout": "ログアウト",
+    "restoreIncident": "異常を復旧"
+  }
+}

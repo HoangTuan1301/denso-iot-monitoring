@@ -279,6 +279,50 @@ export async function initDatabase() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
 
+    // 14b. Bảng nhật ký File Ingestion (trước đây chỉ có trong scripts/run_migration_test_db.js,
+    // nên DB trên cloud chưa có bảng => /api/ingestion/files trả về lỗi 500).
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS ingested_files_log (
+        id VARCHAR(64) NOT NULL,
+        file_hash CHAR(64) NOT NULL,
+        file_name VARCHAR(255) NOT NULL,
+        file_size BIGINT NOT NULL,
+        machine_id VARCHAR(64) DEFAULT NULL,
+        total_records INT DEFAULT 0,
+        valid_records INT DEFAULT 0,
+        error_records INT DEFAULT 0,
+        conflict_records INT DEFAULT 0,
+        status ENUM('PROCESSING','COMMITTED','FAILED','DUPLICATE','PARTIAL') NOT NULL,
+        error_details TEXT,
+        exported_at DATETIME(3) DEFAULT NULL,
+        ingested_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3),
+        processed_at DATETIME(3) DEFAULT NULL,
+        PRIMARY KEY (id),
+        UNIQUE KEY uq_file_hash (file_hash),
+        KEY idx_machine_ingest (machine_id),
+        KEY idx_ingested_at (ingested_at DESC)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    // 14c. Bảng xung đột dữ liệu khi nạp file (dùng bởi /api/ingestion/conflicts)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS ingested_file_conflicts (
+        id VARCHAR(64) NOT NULL,
+        file_id VARCHAR(64) NOT NULL,
+        machine_id VARCHAR(64) NOT NULL,
+        mapping_code VARCHAR(100) NOT NULL,
+        data_no INT DEFAULT NULL,
+        measured_at DATETIME(3) NOT NULL,
+        existing_value DECIMAL(10,2) NOT NULL,
+        incoming_value DECIMAL(10,2) NOT NULL,
+        resolution ENUM('REJECTED','PENDING_REVIEW','ACCEPTED') DEFAULT 'REJECTED',
+        detected_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3),
+        PRIMARY KEY (id),
+        KEY idx_conflict_file (file_id),
+        KEY idx_conflict_machine (machine_id, mapping_code)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
     // 15. Seed Metric Catalog nếu trống
     const [metricRows] = await pool.query('SELECT COUNT(*) as count FROM metric_catalog');
     if (metricRows[0].count === 0) {

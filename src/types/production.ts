@@ -37,6 +37,8 @@ export interface HourlyOutput {
   actual: number | null;
   status: 'done' | 'running' | 'future';
   stopMinutes: number;
+  shortStopCount: number;
+  longStop: { causeCode: string; op: string; durationMin: number } | null;
   note: string | null;
 }
 

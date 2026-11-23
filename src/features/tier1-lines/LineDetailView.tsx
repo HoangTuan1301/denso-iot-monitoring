@@ -16,7 +16,6 @@ import { useState, useMemo, lazy, Suspense } from 'react';
 import {
   ArrowLeft,
   Activity,
-  ShieldCheck,
   Cpu,
   AlertTriangle,
   CheckCircle2,
@@ -26,10 +25,6 @@ import {
   Thermometer,
   Zap,
   RefreshCw,
-  Calendar,
-  Award,
-  Factory,
-  PlayCircle,
   StopCircle,
   Clock,
   Layers,
@@ -38,10 +33,13 @@ import {
 import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useMonitoringStore } from '../../stores/useMonitoringStore';
 import { useAlarmStore } from '../../stores/useAlarmStore';
-import { getHealthScoreColor } from '../dashboard/factoryMapConfig';
 import { resolveMachineMonitoringState } from '../../utils/machineStatusResolver';
 import { MachineImage } from '../../config/machineImages';
 import { Line1PhotorealisticView } from './Line1PhotorealisticView';
+import { LineProductionKpis } from './production/LineProductionKpis';
+import { LineOutputMonitor } from './production/LineOutputMonitor';
+import { ProcessConditionsTable } from './production/ProcessConditionsTable';
+import { useLineShift, useProcessConditions } from './production/useLineProduction';
 import { Line2PhotorealisticView } from './Line2PhotorealisticView';
 import { Line3PhotorealisticView } from './Line3PhotorealisticView';
 // [PERF] Three.js (~600KB) chỉ tải khi người dùng bật chế độ 3D
@@ -102,6 +100,12 @@ export function LineDetailView({
       currentLine?.id === 'LINE-03'
     );
   }, [lineId, currentLine]);
+
+  // Dữ liệu sản xuất (mô phỏng) theo ca: KPI, giám sát sản lượng, điều kiện gia công 30 ngày
+  const [selectedShift, setSelectedShift] = useState<1 | 2 | 3 | null>(null);
+  const lineCodeForProduction = currentLine?.code || lineId || null;
+  const lineShift = useLineShift(lineCodeForProduction, selectedShift ?? undefined, undefined);
+  const conditions = useProcessConditions(lineCodeForProduction, 30);
 
   // Trạng thái chuyển đổi chế độ xem 2D / 3D (Mặc định 2D an toàn)
   const [viewMode3D, setViewMode3D] = useState<'2d' | '3d'>('2d');
@@ -181,149 +185,6 @@ export function LineDetailView({
       { name: 'Dừng máy', value: machineStats.critical, color: '#EF4444' },
     ];
   }, [machineStats]);
-
-  // Chỉ số OEE, Availability, Performance, Quality đồng bộ theo công thức toán học:
-  // OEE = (Availability / 100) * (Performance / 100) * (Quality / 100) * 100
-  const kpis = useMemo(() => {
-    let availability = 98.0;
-    let performance = 96.2;
-    let quality = 99.3;
-    let target = 90.0;
-    let targetOutput = 10000;
-    let actualOutput = 9850;
-
-    if (currentLine?.code === 'LN-PNT-02' || currentLine?.id === 'LN-PNT-02') {
-      availability = 96.5;
-      performance = 94.2;
-      quality = 98.8;
-      target = 90.0;
-      targetOutput = 8000;
-      actualOutput = 7600;
-    } else if (currentLine?.code === 'LN-ASM-03' || currentLine?.id === 'LN-ASM-03') {
-      availability = 92.4;
-      performance = 90.5;
-      quality = 97.6;
-      target = 85.0;
-      targetOutput = 5000;
-      actualOutput = 4400;
-    }
-
-    const oee = Number(((availability / 100) * (performance / 100) * (quality / 100) * 100).toFixed(1));
-    const oeeDiff = Number((oee - target).toFixed(1));
-    const outputPct = Number(((actualOutput / targetOutput) * 100).toFixed(1));
-
-    return {
-      availability,
-      performance,
-      quality,
-      oee,
-      target,
-      oeeDiff,
-      targetOutput,
-      actualOutput,
-      outputPct,
-    };
-  }, [currentLine]);
-
-  // HOTFIX ƯU TIÊN 2: Chuẩn hóa và đồng bộ màu Trạng thái dây chuyền
-  const lineStatusInfo = useMemo(() => {
-    const rawStatus = (currentLine?.status || 'RUNNING').toUpperCase();
-
-    if (rawStatus === 'CRITICAL' || rawStatus === 'ERROR') {
-      return {
-        text: 'CRITICAL',
-        color: '#DC2626',
-        textColor: 'text-rose-600 dark:text-rose-400',
-        bgColor: 'bg-rose-50 dark:bg-rose-950/40',
-        borderColor: 'border-rose-200/80 dark:border-rose-800/60',
-        iconType: 'critical',
-      };
-    }
-    if (rawStatus === 'WARNING') {
-      return {
-        text: 'WARNING',
-        color: '#EAB308',
-        textColor: 'text-amber-600 dark:text-amber-400',
-        bgColor: 'bg-amber-50 dark:bg-amber-950/40',
-        borderColor: 'border-amber-200/80 dark:border-amber-800/60',
-        iconType: 'warning',
-      };
-    }
-    if (rawStatus === 'STOPPED') {
-      return {
-        text: 'STOPPED',
-        color: '#64748B',
-        textColor: 'text-slate-600 dark:text-slate-400',
-        bgColor: 'bg-slate-100 dark:bg-slate-800',
-        borderColor: 'border-slate-200 dark:border-slate-700',
-        iconType: 'stopped',
-      };
-    }
-    if (rawStatus === 'OFFLINE' || rawStatus === 'UNKNOWN') {
-      return {
-        text: 'OFFLINE',
-        color: '#94A3B8',
-        textColor: 'text-slate-500 dark:text-slate-400',
-        bgColor: 'bg-slate-50 dark:bg-slate-800/50',
-        borderColor: 'border-slate-200 dark:border-slate-700',
-        iconType: 'offline',
-      };
-    }
-    // Mặc định: RUNNING / NORMAL
-    return {
-      text: 'RUNNING',
-      color: '#16A34A',
-      textColor: 'text-emerald-600 dark:text-emerald-400',
-      bgColor: 'bg-emerald-50 dark:bg-emerald-950/40',
-      borderColor: 'border-emerald-200/80 dark:border-emerald-800/60',
-      iconType: 'running',
-    };
-  }, [currentLine]);
-
-  // HOTFIX ƯU TIÊN 3: Đồng bộ màu Line Health theo ngưỡng phân loại tập trung
-  const rawSafetyScore = currentLine && currentLine.safetyScore != null ? Number(currentLine.safetyScore) : null;
-  const healthColor = getHealthScoreColor(rawSafetyScore);
-
-  const healthStyle = useMemo(() => {
-    if (rawSafetyScore == null) {
-      return {
-        textColor: 'text-slate-600 dark:text-slate-400',
-        bgColor: 'bg-slate-100 dark:bg-slate-800',
-        borderColor: 'border-slate-200 dark:border-slate-700',
-        trendColor: 'text-slate-400',
-      };
-    }
-    if (rawSafetyScore >= 90) {
-      return {
-        textColor: 'text-emerald-600 dark:text-emerald-400',
-        bgColor: 'bg-emerald-50 dark:bg-emerald-950/40',
-        borderColor: 'border-emerald-200/80 dark:border-emerald-800/60',
-        trendColor: 'text-emerald-600 dark:text-emerald-400',
-      };
-    }
-    if (rawSafetyScore >= 80) {
-      return {
-        textColor: 'text-amber-600 dark:text-amber-400',
-        bgColor: 'bg-amber-50 dark:bg-amber-950/40',
-        borderColor: 'border-amber-200/80 dark:border-amber-800/60',
-        trendColor: 'text-amber-600 dark:text-amber-400',
-      };
-    }
-    if (rawSafetyScore >= 70) {
-      return {
-        textColor: 'text-orange-600 dark:text-orange-400',
-        bgColor: 'bg-orange-50 dark:bg-orange-950/40',
-        borderColor: 'border-orange-200/80 dark:border-orange-800/60',
-        trendColor: 'text-orange-600 dark:text-orange-400',
-      };
-    }
-    return {
-      textColor: 'text-rose-600 dark:text-rose-400',
-      bgColor: 'bg-rose-50 dark:bg-rose-950/40',
-      borderColor: 'border-rose-200/80 dark:border-rose-800/60',
-      trendColor: 'text-rose-600 dark:text-rose-400',
-    };
-  }, [rawSafetyScore]);
 
   // Danh sách các công đoạn luồng chuyền (OP10..OP60)
   const flowStations = useMemo(() => {
@@ -414,9 +275,6 @@ export function LineDetailView({
     );
   }
 
-  // Chu vi vòng tròn OEE: 2 * PI * 14 ~= 87.96
-  const oeeCircumference = 87.96;
-  const oeeStrokeDash = (kpis.oee / 100) * oeeCircumference;
 
   return (
     <div className="space-y-4 animate-in fade-in duration-150">
@@ -444,206 +302,8 @@ export function LineDetailView({
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* 2. HÀNG THÔNG TIN TỔNG QUAN (4 CARDS: TRẠNG THÁI | OEE | HEALTH | SẢN LƯỢNG) */}
-      {/* ========================================================================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        {/* Card 1: Trạng thái dây chuyền (Đồng bộ icon & nhãn theo trạng thái) */}
-        <div className="bg-white dark:bg-factory-card p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center gap-3.5 h-[105px]">
-          <div className={`w-12 h-12 rounded-full ${lineStatusInfo.bgColor} ${lineStatusInfo.textColor} flex items-center justify-center shrink-0 border ${lineStatusInfo.borderColor}`}>
-            {lineStatusInfo.iconType === 'critical' ? (
-              <AlertTriangle className="w-7 h-7" />
-            ) : lineStatusInfo.iconType === 'warning' ? (
-              <AlertTriangle className="w-7 h-7" />
-            ) : lineStatusInfo.iconType === 'stopped' ? (
-              <StopCircle className="w-7 h-7" />
-            ) : lineStatusInfo.iconType === 'offline' ? (
-              <Activity className="w-7 h-7" />
-            ) : (
-              <PlayCircle className="w-7 h-7" />
-            )}
-          </div>
-          <div className="min-w-0">
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-              Trạng thái dây chuyền
-            </p>
-            <p className={`text-lg font-black font-mono tracking-wide mt-0.5 ${lineStatusInfo.textColor}`}>
-              {lineStatusInfo.text}
-            </p>
-          </div>
-        </div>
-
-        {/* Card 2: Ô OEE Dạng Donut Gauge (Cùng hàng, ngay bên phải Trạng thái) */}
-        <div className="bg-white dark:bg-factory-card p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between h-[105px] relative">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
-              OEE
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3.5 my-auto">
-            {/* Vòng tròn Donut OEE SVG */}
-            <div className="relative w-14 h-14 shrink-0 flex items-center justify-center">
-              <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                <circle
-                  cx="18"
-                  cy="18"
-                  r="14"
-                  fill="none"
-                  stroke="#E2E8F0"
-                  strokeWidth="3.6"
-                />
-                <circle
-                  cx="18"
-                  cy="18"
-                  r="14"
-                  fill="none"
-                  stroke="#16A34A"
-                  strokeWidth="3.6"
-                  strokeDasharray={`${oeeStrokeDash} ${oeeCircumference}`}
-                  strokeLinecap="round"
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="font-mono font-black text-xs text-slate-900 dark:text-white leading-none">
-                  {kpis.oee}%
-                </span>
-                <span className="text-[7.5px] font-bold text-slate-400 leading-tight mt-0.5">
-                  OEE
-                </span>
-              </div>
-            </div>
-
-            {/* Mục tiêu & chênh lệch */}
-            <div className="space-y-0.5 text-xs">
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                Mục tiêu: <strong className="text-slate-800 dark:text-slate-200 font-mono">{kpis.target}%</strong>
-              </p>
-              <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-0.5">
-                <span>▲</span>
-                <span>+{kpis.oeeDiff}% so với hôm qua</span>
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3: Mức độ an toàn (Line Health) (Đồng bộ icon và màu theo ngưỡng) */}
-        <div className="bg-white dark:bg-factory-card p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center gap-3.5 h-[105px]">
-          <div
-            className={`w-12 h-12 rounded-full ${healthStyle.bgColor} flex items-center justify-center shrink-0 border ${healthStyle.borderColor}`}
-            style={{ color: healthColor }}
-          >
-            <ShieldCheck className="w-6 h-6" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-              Mức độ an toàn (Line Health)
-            </p>
-            <div className="flex items-baseline gap-2 mt-0.5">
-              <span className="text-2xl font-black font-mono leading-none" style={{ color: healthColor }}>
-                {rawSafetyScore != null ? `${rawSafetyScore.toFixed(1)}%` : 'N/A'}
-              </span>
-              <span className={`text-[11px] font-semibold ${healthStyle.trendColor}`}>
-                ▲ +1.2%
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 4: Sản lượng (hôm nay) */}
-        <div className="bg-white dark:bg-factory-card p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between h-[105px]">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Factory className="w-4 h-4 text-blue-600" />
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                Sản lượng (hôm nay)
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-baseline justify-between">
-            <span className="text-xl font-black font-mono text-slate-900 dark:text-white">
-              {kpis.actualOutput.toLocaleString()} <span className="text-xs text-slate-400 font-normal">/ {kpis.targetOutput.toLocaleString()} pcs</span>
-            </span>
-            <span className="text-xs font-bold font-mono text-emerald-600">
-              {kpis.outputPct}%
-            </span>
-          </div>
-
-          {/* Thanh tiến độ sản lượng */}
-          <div className="w-full bg-slate-100 dark:bg-factory-surface rounded-full h-1.5 overflow-hidden">
-            <div
-              className="bg-emerald-500 h-1.5 rounded-full transition-all"
-              style={{ width: `${Math.min(100, kpis.outputPct)}%` }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 3. HÀNG KPI: AVAILABILITY | PERFORMANCE | QUALITY                         */}
-      {/* ========================================================================= */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-        {/* Availability */}
-        <div className="bg-white dark:bg-factory-card p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-200/60 dark:border-blue-800/40">
-              <Calendar className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                Availability
-              </p>
-              <p className="text-2xl font-black font-mono text-slate-900 dark:text-white leading-none mt-1">
-                {kpis.availability}%
-              </p>
-            </div>
-          </div>
-          <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-            ▲ +1.2%
-          </span>
-        </div>
-
-        {/* Performance */}
-        <div className="bg-white dark:bg-factory-card p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-200/60 dark:border-blue-800/40">
-              <Gauge className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                Performance
-              </p>
-              <p className="text-2xl font-black font-mono text-slate-900 dark:text-white leading-none mt-1">
-                {kpis.performance}%
-              </p>
-            </div>
-          </div>
-          <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-            ▲ +2.1%
-          </span>
-        </div>
-
-        {/* Quality */}
-        <div className="bg-white dark:bg-factory-card p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-200/60 dark:border-blue-800/40">
-              <Award className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                Quality
-              </p>
-              <p className="text-2xl font-black font-mono text-slate-900 dark:text-white leading-none mt-1">
-                {kpis.quality}%
-              </p>
-            </div>
-          </div>
-          <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-            ▲ +0.3%
-          </span>
-        </div>
-      </div>
+      {/* 2. 4 THẺ KPI SẢN XUẤT: OEE · DỪNG NGẮN · DỪNG DÀI · SẢN LƯỢNG (theo ca đang chọn) */}
+      <LineProductionKpis data={lineShift.data} loading={lineShift.loading} />
 
       {/* ========================================================================= */}
       {/* 4. SƠ ĐỒ DÂY CHUYỀN & TRẠNG THÁI THIẾT BỊ (CHIẾM 100% CHIỀU RỘNG NỘI DUNG) */}
@@ -848,6 +508,12 @@ export function LineDetailView({
         )}
       </div>
       )}
+
+      {/* 4b. GIÁM SÁT SẢN LƯỢNG SẢN XUẤT (theo ca) */}
+      <LineOutputMonitor data={lineShift.data} loading={lineShift.loading} shift={selectedShift} onChangeShift={setSelectedShift} />
+
+      {/* 4c. THEO DÕI ĐIỀU KIỆN GIA CÔNG 30 NGÀY */}
+      <ProcessConditionsTable data={conditions.data} loading={conditions.loading} error={conditions.error} onRetry={conditions.reload} />
 
       {/* ========================================================================= */}
       {/* 5. LƯỚI 4 CARDS BÊN DƯỚI (LƯỚI 2 CỘT TRÊN DESKTOP: lg:grid-cols-2)        */}

@@ -261,6 +261,7 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
     // phút dừng rơi vào giờ này
     let stopMin = 0;
     let longNote = null;
+    let longStop = null;
     for (const e of happened) {
       const s = Math.max(e.at, hStart);
       const f = Math.min(e.at + e.dur, hEnd, elapsedMin);
@@ -268,6 +269,7 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
         stopMin += f - s;
         if (e.dur >= cfg.shortStopThresholdMin && !longNote) {
           longNote = `${e.cause.label} ${e.station.op} (${e.dur}')`;
+          longStop = { causeCode: e.cause.code, op: e.station.op, durationMin: e.dur };
         }
       }
     }
@@ -285,6 +287,8 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
       actual: actual === null ? null : Math.max(0, actual),
       status,
       stopMinutes: stopMin,
+      shortStopCount: shortCount,
+      longStop,
       note: longNote || (shortCount >= 3 ? `Dừng ngắn × ${shortCount}` : null),
     });
   }

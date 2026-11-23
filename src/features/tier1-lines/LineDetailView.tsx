@@ -12,7 +12,7 @@
  * - Xóa bỏ hoàn toàn biểu đồ xu hướng theo giờ và ô mã dây chuyền lặp lại
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, lazy, Suspense } from 'react';
 import {
   ArrowLeft,
   Activity,
@@ -44,7 +44,8 @@ import { MachineImage } from '../../config/machineImages';
 import { Line1PhotorealisticView } from './Line1PhotorealisticView';
 import { Line2PhotorealisticView } from './Line2PhotorealisticView';
 import { Line3PhotorealisticView } from './Line3PhotorealisticView';
-import { Line3DView } from './3d/Line3DView';
+// [PERF] Three.js (~600KB) chỉ tải khi người dùng bật chế độ 3D
+const Line3DView = lazy(() => import('./3d/Line3DView').then((m) => ({ default: m.Line3DView })));
 
 interface LineDetailViewProps {
   lineId: string;
@@ -727,11 +728,19 @@ export function LineDetailView({
 
         {/* NỘI DUNG SƠ ĐỒ: CHẾ ĐỘ 3D HOẶC 2D HIỆN TẠI */}
         {isLine1 && viewMode3D === '3d' ? (
-          <Line3DView
-            flowStations={flowStations}
-            onSelectMachine={onSelectMachine}
-            onSwitchTo2D={() => setViewMode3D('2d')}
-          />
+          <Suspense
+            fallback={
+              <div className="h-[420px] flex items-center justify-center rounded-xl bg-slate-100 dark:bg-factory-surface animate-pulse text-xs font-mono text-slate-500">
+                Đang tải mô hình 3D...
+              </div>
+            }
+          >
+            <Line3DView
+              flowStations={flowStations}
+              onSelectMachine={onSelectMachine}
+              onSwitchTo2D={() => setViewMode3D('2d')}
+            />
+          </Suspense>
         ) : (
           /* Luồng công đoạn OP10..OP60: Trải dài 100% chiều ngang, phân bố đều 2D */
           <div className="overflow-x-auto lg:overflow-x-visible py-1">

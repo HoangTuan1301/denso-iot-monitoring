@@ -153,9 +153,12 @@ export const apiClient = {
     return request<{ user: UserProfile }>('/api/auth/me');
   },
 
-  async logout(): Promise<void> {
+  async logout(token: string | null = tokenStorage.getAccessToken()): Promise<void> {
     // 1. Luôn xóa session ngay lập tức
     tokenStorage.clearSession();
+    // [PERF] Không còn token (phiên đã hết hạn / chưa đăng nhập) => không gọi server,
+    // tránh chuỗi request 401 /api/auth/logout vô ích.
+    if (!token) return;
     // 2. Báo server với timeout ngắn (2s) để không chặn luồng
     try {
       const controller = new AbortController();
@@ -163,7 +166,9 @@ export const apiClient = {
       const fullUrl = API_BASE_URL ? `${API_BASE_URL}/api/auth/logout` : '/api/auth/logout';
       await fetch(fullUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        // Gửi kèm Bearer token: route /api/auth/logout có authenticateToken,
+        // trước đây thiếu header này nên luôn bị 401 và không ghi được audit LOGOUT.
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         signal: controller.signal,
       }).catch(() => {});
       clearTimeout(timeoutId);

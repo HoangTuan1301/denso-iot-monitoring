@@ -14,10 +14,16 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom'],
-          'vendor-recharts': ['recharts'],
-          'vendor-icons': ['lucide-react'],
+        // [PERF] Dạng hàm để chia chunk theo đúng thư mục node_modules.
+        // Dạng object cũ khiến React bị gộp vào chunk recharts (vendor-react rỗng 0KB),
+        // làm trang Login buộc phải tải cả recharts ~580KB.
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (/[\\/]node_modules[\\/](react|react-dom|scheduler|clsx|react-is|prop-types|tiny-invariant|eventemitter3|use-sync-external-store)[\\/]/.test(id)) return 'vendor-react';
+          if (/[\\/]node_modules[\\/](recharts|d3-[^\\/]+|victory-vendor|recharts-scale)[\\/]/.test(id)) return 'vendor-recharts';
+          if (/[\\/]node_modules[\\/]three[\\/]/.test(id)) return 'vendor-three';
+          if (/[\\/]node_modules[\\/]lucide-react[\\/]/.test(id)) return 'vendor-icons';
+          return undefined;
         },
       },
     },

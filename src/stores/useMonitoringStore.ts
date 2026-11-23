@@ -1350,3 +1350,39 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
     }
   },
 }));
+
+// =========================================================================
+// [PERF] GỘP REQUEST TRÙNG (in-flight dedupe)
+// Nhiều nơi cùng gọi fetchLines/fetchMachines/fetchLatestTelemetry gần như đồng thời
+// (App khởi động, Dashboard mount, WebSocket reconnect...). Nếu một lời gọi với cùng
+// tham số đang chạy thì dùng lại Promise đó thay vì bắn thêm request mới lên server.
+// Lời gọi đến SAU khi request trước đã xong vẫn tải lại bình thường (không cache cũ).
+// =========================================================================
+function dedupeInFlight<A extends unknown[]>(
+  name: string,
+  fn: (...args: A) => Promise<void>
+): (...args: A) => Promise<void> {
+  const inFlight = new Map<string, Promise<void>>();
+  return (...args: A) => {
+    let key = name;
+    try {
+      key += JSON.stringify(args);
+    } catch {
+      /* tham số không serialize được => vẫn dùng key theo tên */
+    }
+    const running = inFlight.get(key);
+    if (running) return running;
+    const p = fn(...args).finally(() => inFlight.delete(key));
+    inFlight.set(key, p);
+    return p;
+  };
+}
+
+{
+  const s = useMonitoringStore.getState();
+  useMonitoringStore.setState({
+    fetchLines: dedupeInFlight('fetchLines', s.fetchLines),
+    fetchMachines: dedupeInFlight('fetchMachines', s.fetchMachines),
+    fetchLatestTelemetry: dedupeInFlight('fetchLatestTelemetry', s.fetchLatestTelemetry),
+  });
+}

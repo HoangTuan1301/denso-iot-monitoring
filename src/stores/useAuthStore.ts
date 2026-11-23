@@ -41,7 +41,7 @@ const defaultAdmin: UserProfile = {
 const savedUser = tokenStorage.getUser();
 const savedToken = tokenStorage.getAccessToken();
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   currentUser: savedUser || defaultAdmin,
   isAuthenticated: Boolean(savedToken && savedUser),
   token: savedToken,
@@ -108,6 +108,11 @@ export const useAuthStore = create<AuthState>((set) => ({
    * Đăng xuất xóa phiên làm việc ngay lập tức (Tức thì, không treo giao diện)
    */
   logout: async () => {
+    // [PERF] Lấy token TRƯỚC khi xóa để còn báo server; nếu đã đăng xuất rồi thì bỏ qua,
+    // tránh việc nhiều request 401 cùng lúc kích hoạt logout lặp lại nhiều lần.
+    const token = tokenStorage.getAccessToken();
+    if (!token && !get().isAuthenticated) return;
+
     // 1. Dọn dẹp session cục bộ ngay lập tức để UI chuyển về LoginPage tức thì
     tokenStorage.clearSession();
     set({
@@ -118,7 +123,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
 
     // 2. Báo server ở chế độ nền (không chờ đợi)
-    apiClient.logout().catch(() => {});
+    apiClient.logout(token).catch(() => {});
   },
 
   /**

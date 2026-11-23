@@ -4,19 +4,37 @@
  * Dashboard Tầng 1, Luồng & Thành phần Tầng 2, Cấu hình Ngưỡng & Trạm PLC, Nhật ký Cảnh báo & Sự cố
  */
 
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { MainLayout } from './layouts/MainLayout';
-import { LineOverviewDashboard } from './features/tier1-lines/LineOverviewDashboard';
-import { MachineListView } from './features/tier2-machines/MachineListView';
-import { DeviceMonitoringView } from './features/tier2-machines/DeviceMonitoringView';
-import { ThresholdConfigView } from './features/admin/ThresholdConfigView';
-import { UserManagementView } from './features/admin/UserManagementView';
-import { AuditLogView } from './features/audit/AuditLogView';
-import { AlarmLogView } from './features/alarms/AlarmLogView';
-import { MachineHistoryView } from './features/history/MachineHistoryView';
-import { MetricCatalogView } from './features/metrics/MetricCatalogView';
-import { AIIntelligenceView } from './features/ai-intelligence/AIIntelligenceView';
 import { LoginPage } from './features/auth/LoginPage';
+
+// [PERF] Code-splitting: mỗi phân hệ là một chunk riêng, chỉ tải khi mở tab tương ứng.
+// Trang Login vì vậy tải nhẹ hơn nhiều so với 1 bundle ~1.6MB như trước.
+const loadDashboard = () => import('./features/tier1-lines/LineOverviewDashboard');
+const LineOverviewDashboard = lazy(() => loadDashboard().then((m) => ({ default: m.LineOverviewDashboard })));
+const MachineListView = lazy(() => import('./features/tier2-machines/MachineListView').then((m) => ({ default: m.MachineListView })));
+const DeviceMonitoringView = lazy(() => import('./features/tier2-machines/DeviceMonitoringView').then((m) => ({ default: m.DeviceMonitoringView })));
+const ThresholdConfigView = lazy(() => import('./features/admin/ThresholdConfigView').then((m) => ({ default: m.ThresholdConfigView })));
+const UserManagementView = lazy(() => import('./features/admin/UserManagementView').then((m) => ({ default: m.UserManagementView })));
+const AuditLogView = lazy(() => import('./features/audit/AuditLogView').then((m) => ({ default: m.AuditLogView })));
+const AlarmLogView = lazy(() => import('./features/alarms/AlarmLogView').then((m) => ({ default: m.AlarmLogView })));
+const MachineHistoryView = lazy(() => import('./features/history/MachineHistoryView').then((m) => ({ default: m.MachineHistoryView })));
+const MetricCatalogView = lazy(() => import('./features/metrics/MetricCatalogView').then((m) => ({ default: m.MetricCatalogView })));
+const AIIntelligenceView = lazy(() => import('./features/ai-intelligence/AIIntelligenceView').then((m) => ({ default: m.AIIntelligenceView })));
+
+// Khung chờ hiển thị trong lúc tải chunk của phân hệ
+function ViewSkeleton() {
+  return (
+    <div className="space-y-4 animate-pulse" aria-busy="true" aria-label="Đang tải">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="h-28 rounded-2xl bg-slate-200/70 dark:bg-white/5" />
+        ))}
+      </div>
+      <div className="h-[420px] rounded-2xl bg-slate-200/70 dark:bg-white/5" />
+    </div>
+  );
+}
 import { useMonitoringStore } from './stores/useMonitoringStore';
 import { useAuthStore } from './stores/useAuthStore';
 import { useThemeStore, applyThemeClass } from './stores/useThemeStore';
@@ -52,6 +70,15 @@ export default function App() {
     checkAuth();
   }, [checkAuth]);
 
+  // [PERF] Tải trước chunk Dashboard ở nền trong lúc người dùng còn ở trang Login,
+  // để sau khi đăng nhập Dashboard hiện ra ngay.
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      loadDashboard().catch(() => {});
+    }, 300);
+    return () => window.clearTimeout(id);
+  }, []);
+
   // Tải dữ liệu ban đầu từ MySQL Backend khi người dùng đã xác thực
   useEffect(() => {
     if (isAuthenticated) {
@@ -63,7 +90,10 @@ export default function App() {
   }, [isAuthenticated, fetchLines, fetchMachines, fetchLatestTelemetry, fetchIngestionOverview]);
 
   // Kết nối WebSocket IoT Server và lắng nghe luồng telemetry + file ingestion
+  // [PERF] Chỉ kết nối khi đã đăng nhập: trước đây socket mở ngay ở trang Login và
+  // sự kiện "connected" kích hoạt 4 API cần token => 401 hàng loạt + logout lặp.
   useEffect(() => {
+    if (!isAuthenticated) return;
     socketClient.connect();
 
     const unsubTick = socketClient.on('iot_telemetry_tick', () => {
@@ -96,8 +126,16 @@ export default function App() {
     const unsubThresholdsUpdated = socketClient.on('thresholds_updated', () => fetchMachines());
 
     // Đồng bộ lại khi WebSocket phục hồi kết nối (Reconnect Synchronization)
+    // [PERF] Bỏ qua lần kết nối ĐẦU TIÊN vì dữ liệu ban đầu đã được tải ở effect phía trên
+    // (trước đây mỗi API bị gọi 2 lần khi vào Dashboard).
+    let hasConnectedOnce = false;
     const unsubStatus = socketClient.onStatusChange((connected) => {
-      if (connected) {
+      if (!connected) return;
+      if (!hasConnectedOnce) {
+        hasConnectedOnce = true;
+        return;
+      }
+      {
         fetchLines();
         fetchMachines();
         fetchLatestTelemetry();
@@ -119,6 +157,7 @@ export default function App() {
       socketClient.disconnect();
     };
   }, [
+    isAuthenticated,
     isRealtimeActive,
     simulateTick,
     handleLiveTelemetryPacket,
@@ -306,7 +345,7 @@ export default function App() {
           useMonitoringStore.getState().setDashboardViewLevel('factory_layout');
         }}
       >
-        {renderTabContent()}
+        <Suspense fallback={<ViewSkeleton />}>{renderTabContent()}</Suspense>
       </ErrorBoundary>
     </MainLayout>
   );

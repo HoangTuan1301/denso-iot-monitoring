@@ -262,7 +262,7 @@ app.post('/api/auth/login', async (req, res) => {
     // 2. Nếu MySQL chưa kết nối được hoặc không tìm thấy, kiểm tra tài khoản fallback
     if (!user) {
       const fallback = fallbackUsers.find((u) => u.email === normalizedEmail);
-      if (fallback && bcrypt.compareSync(password, fallback.passwordHash)) {
+      if (fallback && (await bcrypt.compare(password, fallback.passwordHash))) {
         user = {
           id: fallback.id,
           employeeId: fallback.employeeId,
@@ -282,7 +282,8 @@ app.post('/api/auth/login', async (req, res) => {
 
     // 3. Nếu lấy từ MySQL, kiểm tra mật khẩu đã hash trong DB
     if (isDbSuccess) {
-      const isMatch = bcrypt.compareSync(password, user.password);
+      // [PERF] Dùng bcrypt.compare bất đồng bộ để không chặn event loop của toàn server
+      const isMatch = await bcrypt.compare(password, user.password || '');
       if (!isMatch) {
         return res.status(401).json({ message: 'Email hoặc mật khẩu không chính xác.' });
       }
@@ -291,11 +292,12 @@ app.post('/api/auth/login', async (req, res) => {
         return res.status(403).json({ message: 'Tài khoản đã bị tạm khóa. Vui lòng liên hệ Admin.' });
       }
 
-      // Cập nhật lần đăng nhập cuối vào MySQL (nếu có lỗi ghi thì bỏ qua)
-      try {
-        await mysqlDb.updateUser(user.id, { lastLoginAt: new Date() });
-        const ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
-        await mysqlDb.addAuditLog({
+      // [PERF] Cập nhật lần đăng nhập cuối + ghi audit log chạy NỀN (không await),
+      // để người dùng nhận token ngay mà không phải chờ 2 lượt ghi MySQL.
+      const ipAddress = req.ip || req.socket?.remoteAddress || '127.0.0.1';
+      Promise.allSettled([
+        mysqlDb.updateUser(user.id, { lastLoginAt: new Date() }),
+        mysqlDb.addAuditLog({
           userId: user.id,
           userEmail: user.email,
           userName: user.fullName,
@@ -304,8 +306,12 @@ app.post('/api/auth/login', async (req, res) => {
           target: 'SYSTEM_AUTH',
           details: `Đăng nhập thành công với vai trò ${user.role} (MySQL Verified)`,
           ipAddress,
-        });
-      } catch {}
+        }),
+      ]).then((results) => {
+        results
+          .filter((r) => r.status === 'rejected')
+          .forEach((r) => console.warn('[Login Auth] Ghi nền thất bại:', r.reason?.message));
+      });
     }
 
     const tokenPayload = {

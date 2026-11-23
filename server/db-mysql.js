@@ -1063,12 +1063,13 @@ export async function getMetrics({
         FROM metric_mappings mm
         WHERE mm.metric_id = m.id
       ) AS assignedMachineIds,
+      -- [PERF] usageCount trước đây quét toàn bộ machine_telemetry_history bằng LIKE '%...%'
+      -- (không dùng được index, chậm dần theo dung lượng lịch sử). Nay tính từ metric_mappings
+      -- (có index idx_mappings_metric): số máy đang được gán metric này.
       (
-        SELECT COUNT(DISTINCT h.machineId)
-        FROM machine_telemetry_history h
-        WHERE h.metricId LIKE CONCAT('%', m.code, '%') 
-           OR h.metricName LIKE CONCAT('%', m.name, '%')
-           OR h.metricId = m.id
+        SELECT COUNT(DISTINCT mm.machine_id)
+        FROM metric_mappings mm
+        WHERE mm.metric_id = m.id
       ) AS usageCount
     FROM metric_catalog m
     WHERE ${whereSql}
@@ -1149,12 +1150,13 @@ export async function getMetricById(id) {
         FROM metric_mappings mm
         WHERE mm.metric_id = m.id
       ) AS assignedMachineIds,
+      -- [PERF] usageCount trước đây quét toàn bộ machine_telemetry_history bằng LIKE '%...%'
+      -- (không dùng được index, chậm dần theo dung lượng lịch sử). Nay tính từ metric_mappings
+      -- (có index idx_mappings_metric): số máy đang được gán metric này.
       (
-        SELECT COUNT(DISTINCT h.machineId)
-        FROM machine_telemetry_history h
-        WHERE h.metricId LIKE CONCAT('%', m.code, '%') 
-           OR h.metricName LIKE CONCAT('%', m.name, '%')
-           OR h.metricId = m.id
+        SELECT COUNT(DISTINCT mm.machine_id)
+        FROM metric_mappings mm
+        WHERE mm.metric_id = m.id
       ) AS usageCount
     FROM metric_catalog m
     WHERE m.id = ? OR m.code = ?

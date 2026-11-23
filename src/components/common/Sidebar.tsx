@@ -22,7 +22,9 @@ import { Tooltip } from "./Tooltip";
 import { useMonitoringStore, NavigationTab } from "../../stores/useMonitoringStore";
 import { useAlarmStore } from "../../stores/useAlarmStore";
 import { useAuthStore } from "../../stores/useAuthStore";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { X } from "lucide-react";
+import { useUiStore, useIsDesktop } from "../../stores/useUiStore";
 import { useTranslation } from "react-i18next";
 
 interface NavItem {
@@ -40,7 +42,22 @@ export function Sidebar() {
   const { activeTab, activeNavGroup, setActiveTab } = useMonitoringStore();
   const { alarms }                  = useAlarmStore();
   const { currentUser }             = useAuthStore();
-  const [collapsed, setCollapsed]   = useState(false);
+  const [collapsedPref, setCollapsed] = useState(false);
+  const isDesktop                   = useIsDesktop();
+  const { mobileNavOpen, setMobileNavOpen } = useUiStore();
+  // Trên điện thoại/máy tính bảng menu luôn hiển thị đầy đủ trong drawer
+  const collapsed                   = isDesktop && collapsedPref;
+
+  // Đóng drawer khi chuyển lên màn hình lớn; khóa cuộn nền khi drawer mở
+  useEffect(() => {
+    if (isDesktop && mobileNavOpen) setMobileNavOpen(false);
+  }, [isDesktop, mobileNavOpen, setMobileNavOpen]);
+  useEffect(() => {
+    if (isDesktop || !mobileNavOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMobileNavOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isDesktop, mobileNavOpen, setMobileNavOpen]);
   const { t }                       = useTranslation();
 
   const pendingCount = alarms.filter((a) => a.status !== "resolved").length;
@@ -86,7 +103,7 @@ export function Sidebar() {
 
     const inner = (
       <button
-        onClick={() => setActiveTab(item.id, item.group)}
+        onClick={() => { setActiveTab(item.id, item.group); setMobileNavOpen(false); }}
         className={[
           // === layout ===
           "w-full flex flex-row items-center gap-3 rounded-xl",
@@ -156,12 +173,24 @@ export function Sidebar() {
 
   /* -------- JSX -------- */
   return (
+    <>
+    {/* Lớp nền mờ phía sau drawer (điện thoại) */}
+    {!isDesktop && mobileNavOpen && (
+      <div
+        className="fixed inset-0 z-40 bg-slate-950/50 backdrop-blur-[1px]"
+        onClick={() => setMobileNavOpen(false)}
+        aria-hidden="true"
+      />
+    )}
     <aside
+      aria-hidden={!isDesktop && !mobileNavOpen ? true : undefined}
       className={[
-        "relative flex flex-col justify-between z-30 shrink-0 select-none",
+        "flex flex-col justify-between shrink-0 select-none overflow-y-auto",
         "border-r border-factory-sidebarBorder bg-factory-sidebar",
-        "transition-[width] duration-300 ease-in-out",
-        collapsed ? "w-[72px]" : "w-64",
+        isDesktop
+          ? ["relative z-30 transition-[width] duration-300 ease-in-out", collapsed ? "w-[72px]" : "w-64"].join(" ")
+          : ["fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] shadow-2xl transition-transform duration-300 ease-in-out",
+             mobileNavOpen ? "translate-x-0" : "-translate-x-full"].join(" "),
       ].join(" ")}
     >
       {/* -------- ĐỈNH: Logo + toggle -------- */}
@@ -197,7 +226,7 @@ export function Sidebar() {
           {/* Nút Toggle thu gọn/mở rộng */}
           <Tooltip content={collapsed ? t("nav.expand") : t("nav.collapse")} placement={collapsed ? "right" : "bottom"}>
             <button
-              onClick={() => setCollapsed(!collapsed)}
+              onClick={() => (isDesktop ? setCollapsed(!collapsedPref) : setMobileNavOpen(false))}
               aria-label="Toggle Sidebar"
               className={[
                 "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg cursor-pointer",
@@ -205,7 +234,9 @@ export function Sidebar() {
                 collapsed ? "absolute -right-3 top-4 bg-factory-card border border-factory-border shadow-sm rounded-full h-6 w-6 z-40" : "ml-1",
               ].join(" ")}
             >
-              {collapsed ? (
+              {!isDesktop ? (
+                <X className="h-4 w-4" />
+              ) : collapsed ? (
                 <ChevronRight className="h-3.5 w-3.5" />
               ) : (
                 <ChevronLeft className="h-4 w-4" />
@@ -223,5 +254,6 @@ export function Sidebar() {
         </nav>
       </div>
     </aside>
+    </>
   );
 }

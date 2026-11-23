@@ -143,3 +143,11 @@ div[data-slot="backdrop"] {
 div[data-slot="wrapper"] {
   z-index: 9999 !important;
 }
+
+/* ---- Điện thoại: bảng nhiều cột cuộn ngang thay vì bóp nhỏ cột ---- */
+@media (max-width: 767px) {
+  main .overflow-x-auto > table:has(th:nth-child(6)),
+  main .overflow-x-auto > table:has(td:nth-child(6)) {
+    min-width: 900px;
+  }
+}

@@ -5,7 +5,8 @@
  */
 
 import { useState, useEffect } from "react";
-import { Sun, Moon, RefreshCw, Flame, AlertOctagon, LogOut, Radio, RotateCcw } from "lucide-react";
+import { Sun, Moon, RefreshCw, Flame, AlertOctagon, LogOut, Radio, RotateCcw, Menu } from "lucide-react";
+import { useUiStore, useIsDesktop } from "../../stores/useUiStore";
 import { useMonitoringStore } from "../../stores/useMonitoringStore";
 import { useAuthStore }       from "../../stores/useAuthStore";
 import { useThemeStore }      from "../../stores/useThemeStore";
@@ -53,6 +54,8 @@ export function Header() {
     setSelectedLineId,
     activeEmergencyMetricId,
   } = useMonitoringStore();
+  const setMobileNavOpen = useUiStore((s) => s.setMobileNavOpen);
+  const isDesktop = useIsDesktop();
   const { currentUser, logout, setAvatarUrl } = useAuthStore();
   const { theme, toggleTheme }  = useThemeStore();
   const { t }                   = useTranslation();
@@ -145,7 +148,7 @@ export function Header() {
   };
 
   return (
-    <header className="relative flex h-[60px] shrink-0 items-center justify-between border-b border-factory-border bg-factory-card px-6 z-20">
+    <header className="relative flex h-[60px] shrink-0 items-center justify-between border-b border-factory-border bg-factory-card gap-2 px-3 sm:px-6 z-20">
 
       {/* ---- Thông báo Toast khi bấm Giả lập sự cố ---- */}
       {demoNotice && (
@@ -164,8 +167,18 @@ export function Header() {
         </div>
       )}
 
+      {/* ---- Nút mở menu (điện thoại / máy tính bảng) ---- */}
+      <button
+        type="button"
+        onClick={() => setMobileNavOpen(true)}
+        aria-label={t("nav.openMenu")}
+        className="lg:hidden flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-factory-border bg-slate-100 dark:bg-factory-surface text-slate-700 dark:text-slate-200 cursor-pointer"
+      >
+        <Menu className="h-4.5 w-4.5" />
+      </button>
+
       {/* ---- Góc trái: Breadcrumb phân tầng thông minh ---- */}
-      <div className="flex min-w-0 items-center gap-1.5 overflow-hidden whitespace-nowrap text-xs sm:text-sm select-none">
+      <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden whitespace-nowrap text-xs sm:text-sm select-none">
         {activeTab === 'dashboard' && dashboardViewLevel !== 'factory_layout' ? (
           <div className="flex items-center gap-1.5 whitespace-nowrap">
             <button
@@ -233,7 +246,7 @@ export function Header() {
       </div>
 
       {/* ---- Góc phải: các pill & nút ---- */}
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
 
         {/* Nút Giả Lập Sự Cố Khẩn Cấp (Chỉ hiển thị cho ADMIN) */}
         {isAdmin && (
@@ -243,8 +256,8 @@ export function Header() {
             className="flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border border-rose-500/40 bg-rose-500/10 px-3 py-1 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 active:scale-95 transition-all cursor-pointer shadow-xs"
           >
             <Flame className="h-3.5 w-3.5 text-rose-500 animate-pulse" />
-            <span className="hidden sm:inline">{t("header.emergency")}</span>
-            <span className="sm:hidden">{t("header.emergencyShort")}</span>
+            <span className="hidden xl:inline">{t("header.emergency")}</span>
+            <span className="hidden sm:inline xl:hidden">{t("header.emergencyShort")}</span>
           </button>
         )}
 
@@ -267,7 +280,7 @@ export function Header() {
           onClick={() => toggleRealtime()}
           title={t("header.streamTitle")}
           className={[
-            "flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-mono transition-colors cursor-pointer",
+            "hidden md:flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-mono transition-colors cursor-pointer",
             isRealtimeActive
               ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold hover:bg-emerald-500/20"
               : "border-slate-300 dark:border-factory-border bg-slate-100 dark:bg-factory-surface text-slate-600 dark:text-slate-400 hover:border-slate-400",
@@ -290,7 +303,7 @@ export function Header() {
               : t("header.wsOffline")
           }
           className={[
-            "flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-mono transition-colors select-none",
+            "hidden md:flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-mono transition-colors select-none",
             isWsConnected
               ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium"
               : "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium",
@@ -309,11 +322,11 @@ export function Header() {
         </div>
 
         {/* Chọn ngôn ngữ VI / EN / 日本語 */}
-        <LanguageSwitcher />
+        <LanguageSwitcher compact={!isDesktop} />
 
         {/* User Profile Pill with Avatar (Chỉ hiển thị thông tin, không cho phép Upload đổi ảnh tại đây) */}
         <div
-          className="flex items-center gap-2.5 rounded-full border border-slate-200 dark:border-factory-border bg-slate-100/80 dark:bg-factory-surface py-1 pl-1.5 pr-3 text-xs font-medium select-none shadow-xs"
+          className="flex shrink-0 items-center gap-2.5 rounded-full border border-slate-200 dark:border-factory-border bg-slate-100/80 dark:bg-factory-surface p-0.5 md:py-1 md:pl-1.5 md:pr-3 text-xs font-medium select-none shadow-xs"
         >
           <div className="relative h-7 w-7 rounded-full overflow-hidden bg-emerald-500 text-white font-bold flex items-center justify-center shrink-0 shadow-xs border border-white/40 dark:border-slate-700">
             {currentUser?.avatarUrl ? (
@@ -329,10 +342,10 @@ export function Header() {
               <span className="text-[11px] font-bold">{initials}</span>
             )}
           </div>
-          <span className="font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[140px]">
+          <span className="hidden md:inline font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[140px]">
             {displayName}
           </span>
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold uppercase tracking-wider border border-emerald-500/20">
+          <span className="hidden md:inline text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold uppercase tracking-wider border border-emerald-500/20">
             {userRole}
           </span>
         </div>
@@ -343,13 +356,13 @@ export function Header() {
         </span>
 
         {/* Divider */}
-        <div className="h-5 w-px bg-slate-200 dark:bg-factory-border" />
+        <div className="hidden sm:block h-5 w-px bg-slate-200 dark:bg-factory-border" />
 
         {/* Refresh thủ công */}
         <button
           onClick={() => simulateTick()}
           title={t("header.refreshTitle")}
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 dark:border-factory-border bg-slate-100 dark:bg-factory-surface text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 transition-colors cursor-pointer"
+          className="hidden sm:flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 dark:border-factory-border bg-slate-100 dark:bg-factory-surface text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 transition-colors cursor-pointer"
         >
           <RefreshCw className="h-3.5 w-3.5" />
         </button>

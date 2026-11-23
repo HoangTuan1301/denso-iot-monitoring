@@ -340,6 +340,7 @@ export default function App() {
   return (
     <MainLayout>
       <ErrorBoundary
+        key={activeTab}
         fallbackTitle={tr("Sự cố hiển thị phân hệ giám sát")}
         onReset={() => {
           setActiveTab('dashboard');

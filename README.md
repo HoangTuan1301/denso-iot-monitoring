@@ -1,214 +1,228 @@
 # DENSO IoT Monitoring System – KaiLink
 
-## 1. Giới thiệu
+Hệ thống web giám sát nhà máy thông minh cho bài thi **DENSO Hackathon**: theo dõi sản lượng, thời gian dừng máy, tình trạng thiết bị và đề xuất phương án "cứu đơn hàng" theo thời gian thực.
 
-DENSO IoT Monitoring System – KaiLink là một nền tảng **giám sát dây chuyền sản xuất thông minh** được thiết kế cho các nhà máy DENSO. Hệ thống thu thập, xử lý và hiển thị dữ liệu thời gian thực từ các thiết bị PLC, máy móc và cảm biến trên dây chuyền, đồng thời cung cấp các công cụ quản trị, cảnh báo và phân tích an toàn.
+- **Web demo:** https://denso-iot-monitoring-on6l.vercel.app
+- **API (backend):** https://denso-iot-monitoring.onrender.com — kiểm tra nhanh tại `/api/health`
+- **Ngôn ngữ giao diện:** Tiếng Việt · English · 日本語
+- **Thiết bị:** máy tính, máy tính bảng và điện thoại (menu dạng trượt trên màn hình < 1024px)
 
-## 2. Mục tiêu & bài toán
-
-- **Giám sát toàn bộ trạng thái** của dây chuyền (line) và máy móc (machine) trong thời gian thực.
-- **Cảnh báo ngưỡng** (warning / critical) dựa trên các quy tắc kinh doanh (Business Rules) đã xác định.
-- **Tính điểm an toàn** (Safety Score) cho từng dây chuyền.
-- **Quản lý người dùng** với phân quyền RBAC (ADMIN, OPERATOR, MAINTENANCE).
-- **Hỗ trợ nhập dữ liệu** từ file CSV (tùy chọn) và mô phỏng dữ liệu khi không có kết nối PLC thực.
-
-## 3. Các chức năng thực tế
-
-| Chức năng | Mô tả | Ghi chú |
-|-----------|------|---------|
-| Đăng nhập / Đăng ký | Xác thực JWT, refresh token. | Dùng `bcryptjs` để lưu mật khẩu băm. |
-| Quản lý người dùng | CRUD người dùng, phân quyền. | |
-| Quản lý dây chuyền & máy móc | Xem danh sách, chi tiết, cập nhật trạng thái. | |
-| Dashboard thời gian thực | Biểu đồ, bản đồ mặt bằng, hiển thị trạng thái thiết bị qua WebSocket (`/ws`). | |
-| Cảnh báo ngưỡng | Áp dụng các quy tắc (BR‑01 … BR‑15) để đánh giá trạng thái và gửi thông báo. | |
-| Nhập file CSV (tùy chọn) | Giám sát thư mục, phân tích và đưa dữ liệu vào hệ thống khi `ENABLE_FILE_INGESTION=true`. | |
-| Tính điểm an toàn | Dựa trên số lượng warning / critical, tính điểm (%) cho mỗi dây chuyền. | |
-| API RESTful | Cung cấp các endpoint cho frontend và các hệ thống tích hợp khác. | |
-
-## 4. Công nghệ sử dụng
-
-- **Frontend**: React 18, Vite 6, TypeScript, TailwindCSS, Zustand, Framer Motion, Three.js (đồ họa 3D), `@heroui/react`.
-- **Backend**: Node.js (ESM), Express 5, TypeScript, MySQL2 (promise), JWT (`jsonwebtoken`), Multer (upload ảnh), WebSocket (`ws`).
-- **Database**: MySQL 8 (schema được tạo tự động khi server khởi động).
-- **Công cụ hỗ trợ**: `concurrently` (chạy backend + frontend cùng lúc), `dotenv` (quản lý biến môi trường), `bcryptjs` (băm mật khẩu).
-
-## 5. Kiến trúc tổng quan
-
-```
-+-------------------+        +--------------------+        +-------------------+
-|   Frontend (Vite) | <----> |   Backend (Express) | <----> |   MySQL Database |
-+-------------------+        +--------------------+        +-------------------+
-        ^                      ^                ^
-        | WebSocket (/ws)      |                |  (auto‑create tables)
-        +----------------------+                |
-                                                 |
-                                         +-----------------+
-                                         |  File Ingestion |
-                                         +-----------------+
-```
-- **Frontend** giao tiếp với backend qua HTTP (REST) và WebSocket (`/ws`).
-- **Backend** expose các endpoint, thực hiện xác thực JWT, quản lý RBAC, kết nối MySQL và khởi tạo schema nếu chưa tồn tại.
-- **Database** chứa các bảng: `users`, `production_lines`, `machines`, `audit_logs`, `plc_stations` (được tạo trong `server/db-mysql.js`).
-
-## 6. Cấu trúc thư mục source code
-
-```
-.
-├─ .env.example               # mẫu cấu hình môi trường
-├─ .gitignore                 # ignore node_modules, dist, .env …
-├─ index.html                 # entry HTML cho Vite
-├─ package.json               # scripts, dependencies
-├─ tsconfig.json / tsconfig.node.json
-├─ vite.config.ts
-├─ postcss.config.js
-├─ tailwind.config.js
-├─ vercel.json                # cấu hình Deploy trên Vercel (nếu dùng)
-├─ docs/                      # tài liệu dự án (SRS, runbook, diagram)
-├─ src/                       # mã nguồn frontend
-│   ├─ components/            # React components
-│   ├─ pages/                 # các route / page
-│   ├─ hooks/                 # custom hooks
-│   ├─ stores/                # Zustand stores
-│   ├─ services/              # API services
-│   ├─ utils/                 # helper utils (mockData.ts, plcConverter.ts, …)
-│   └─ index.tsx              # entry point React
-├─ tests/                     # bộ kiểm thử (Jest / Cypress scripts)
-├─ server/                    # backend Node.js
-│   ├─ index.js               # entry point server
-│   ├─ db-mysql.js            # khởi tạo DB, pool, seed
-│   ├─ ingestion/ …           # file ingestion service (optional)
-│   ├─ telemetry/ …           # WebSocket telemetry engine
-│   └─ uploads/               # thư mục lưu avatar & machine ảnh
-└─ ...
-```
-
-## 7. Yêu cầu môi trường cài đặt
-
-| Yêu cầu | Phiên bản đề xuất |
-|----------|------------------|
-| Node.js | >= 20 (LTS) |
-| npm      | >= 10 |
-| MySQL    | 8.x (hoặc MariaDB tương thích) |
-| Git      | bất kỳ |
-| (Optional) Docker | để chạy MySQL trong container |
-
-## 8. Cài đặt dependencies
-
-```bash
-# Tại thư mục gốc của dự án
-npm install
-```
-Lệnh này sẽ cài đặt **cả frontend** và **backend** vì `package.json` chứa các dependency cho cả hai.
-
-## 9. Cấu hình biến môi trường
-
-1. Sao chép file mẫu:
-   ```bash
-   cp .env.example .env
-   ```
-2. Mở `.env` và chỉnh sửa các giá trị:
-   - `PORT` – cổng backend (mặc định 5000).
-   - `JWT_SECRET`, `JWT_REFRESH_SECRET` – khóa ký JWT (đặt giá trị ngẫu nhiên trong môi trường production).
-   - `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` – thông tin kết nối MySQL.
-   - `VITE_API_URL` và `VITE_WS_URL` (không bắt buộc trong chế độ dev, dùng khi build production).
-   - `ENABLE_FILE_INGESTION` – `true` nếu muốn bật tính năng đọc CSV.
-   - `FILE_INGESTION_WATCH_DIR` – đường dẫn thư mục quan sát khi bật ingestion.
-
-> **Lưu ý**: Không được commit `.env` có chứa thông tin nhạy cảm.
-
-## 10. Chạy frontend & backend trên localhost
-
-### Chạy toàn bộ stack (đề xuất)
-```bash
-npm run dev
-```
-- Lệnh này sử dụng `concurrently` để khởi động **backend** (`npm:server`) và **frontend Vite** (`npm:vite`).
-- Backend sẽ lắng nghe trên `http://localhost:5000`.
-- Frontend dev server thường chạy trên `http://localhost:5173` và sẽ proxy các request API tới backend.
-
-### Chạy riêng rẽ
-- **Chỉ backend**:
-  ```bash
-  npm run server   # tương đương: node server/index.js
-  ```
-- **Chỉ frontend**:
-  ```bash
-  npm run vite     # khởi động Vite dev server
-  ```
-- **Build & preview (production)**:
-  ```bash
-  npm run build    # tạo thư mục dist
-  npm run preview  # chạy server tĩnh để kiểm tra bản build
-  ```
-
-## 11. Chuẩn bị MySQL
-
-1. **Tạo database** (nếu chưa có):
-   ```sql
-   CREATE DATABASE denso_iot CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-   ```
-2. **Tạo người dùng** (nếu không dùng `root`):
-   ```sql
-   CREATE USER 'denso_user'@'%' IDENTIFIED BY 'your_password';
-   GRANT ALL PRIVILEGES ON denso_iot.* TO 'denso_user'@'%';
-   FLUSH PRIVILEGES;
-   ```
-3. Đảm bảo MySQL cho phép kết nối từ `localhost` (hoặc địa chỉ trong `DB_HOST`).
-4. Khi server khởi động, **`server/db-mysql.js` sẽ tự tạo các bảng** (`users`, `production_lines`, `machines`, `audit_logs`, `plc_stations`) nếu chúng chưa tồn tại và **seed** dữ liệu mặc định cho người dùng, dây chuyền và máy móc.
-
-## 12. Cơ chế khởi tạo database & giới hạn đã xác minh
-
-- `initDatabase()` (trong `server/db-mysql.js`) thực hiện:
-  1. **Tạo database** (chỉ khi không sử dụng SSL). Nếu MySQL không cho phép tạo database, lệnh sẽ bị bỏ qua và server sẽ tiếp tục kết nối tới database đã tồn tại.
-  2. **Tạo connection pool** và log thành công.
-  3. **Tạo các bảng** bằng câu lệnh `CREATE TABLE IF NOT EXISTS …` – do đó, nếu bảng đã tồn tại, không thay đổi cấu trúc.
-  4. **Seed dữ liệu** – chỉ khi bảng `users` hoặc `production_lines` **trống**. Nếu bảng đã có dữ liệu, seed sẽ không được thực hiện.
-- **Giới hạn**:
-  - Không có hệ thống migration versioning; mọi thay đổi schema phải được cập nhật thủ công trong file `db-mysql.js`.
-  - Khi **SSL** được bật (đối với dịch vụ Aiven/PlanetScale), việc tạo database tự động bị bỏ qua – người dùng phải tạo database và các bảng trước.
-  - Các bảng **không** bao gồm các thực thể phụ (ví dụ: lịch sử sensor chi tiết) nếu chúng không được định nghĩa trong `db-mysql.js`.
-
-## 13. Các lệnh build và kiểm thử hiện có
-
-| Lệnh | Mô tả |
-|------|------|
-| `npm run dev` | Chạy backend + frontend trong môi trường development. |
-| `npm run server` | Chỉ khởi động backend. |
-| `npm run vite` | Chỉ khởi động frontend dev server. |
-| `npm run build` | Kiểm tra TypeScript (`tsc --noEmit`) rồi tạo bundle production (`vite build`). |
-| `npm run preview` | Chạy server tĩnh để xem bản build. |
-| *(Không có script `test` trong `package.json`)* – các file test nằm trong thư mục `tests/` và được chạy bằng công cụ tùy chỉnh (Jest / Mocha) được cấu hình trong dự án con. Người nhận có thể thêm script `test` nếu muốn. |
-
-## 14. Hướng dẫn triển khai và đường dẫn demo
-
-> **Lưu ý**: Dự án có file `vercel.json` nên có thể triển khai trên Vercel bằng cách liên kết repository và thiết lập biến môi trường tương tự `.env`.
-
-1. **Build** frontend: `npm run build` → thư mục `dist/`.
-2. **Deploy** `dist/` lên bất kỳ static host** nào** (Vercel, Netlify, CloudFront…).
-3. **Deploy** backend (Node.js) lên server có MySQL (Heroku, Railway, Render, VPS...).
-4. Khi deploy, thiết lập biến môi trường `VITE_API_URL` và `VITE_WS_URL` sao cho frontend có thể gọi API và WebSocket tới backend.
-
-Nếu muốn chạy **demo nhanh** trên localhost, chỉ cần thực hiện các bước trong mục **10** và **11**.
-
-## 15. Hướng dẫn sử dụng các chức năng chính
-
-| Chức năng | Cách truy cập | Ghi chú |
-|-----------|----------------|--------|
-| Đăng nhập | `POST /api/auth/login` (frontend: trang Login) | Trả về `accessToken` và `refreshToken`. |
-| Xem Dashboard | URL `/dashboard` (frontend) | Kết nối WebSocket `/ws` để nhận dữ liệu thời gian thực. |
-| Quản lý người dùng | Menu **Quản trị → Người dùng** (frontend) | Chỉ ADMIN mới được quyền. |
-| Quản lý dây chuyền | Menu **Quản trị → Dây chuyền** (frontend) | CRUD dây chuyền, tính safety score. |
-| Quản lý máy móc | Menu **Quản trị → Máy móc** (frontend) | CRUD máy móc, gán vào dây chuyền. |
-| Xem chi tiết máy | Menu **Máy móc → Chi tiết** (frontend) | Hiển thị trạng thái, QR code, lịch sử cảnh báo. |
-| Cảnh báo ngưỡng | UI hiển thị **badge** màu vàng / đỏ dựa trên `evaluateMetricStatus` (được triển khai trong `src/utils/plcConverter.ts`). |
-| Nhập file CSV (tùy chọn) | Khi `ENABLE_FILE_INGESTION=true`, đặt file CSV vào thư mục được cấu hình (`FILE_INGESTION_WATCH_DIR`). Hệ thống sẽ tự parse và ghi vào CSDL. |
-
-## 16. Thông tin nhóm phát triển
-
-- **Dự án**: DENSO IoT Monitoring System – KaiLink
-- **Người chịu trách nhiệm chính**: *không công khai* (thông tin sẽ được bổ sung bởi nhóm trưởng).
-- **Liên hệ**: *địa chỉ email hoặc kênh Slack sẽ được cung cấp khi bàn giao.*
+> ⚠️ Backend chạy gói miễn phí của Render nên **ngủ sau ~15 phút không dùng**. Lần mở đầu tiên có thể mất 30–60 giây. Nhóm dùng cron-job.org gọi `/api/health` định kỳ để giữ server thức.
 
 ---
 
-*File README này được tạo dựa trên mã nguồn hiện có. Vui lòng kiểm tra lại các phần liên quan tới môi trường triển khai và thông tin liên hệ trước khi phát hành.*
+## 1. Chức năng chính
+
+### 1.1 Giám sát (màn hình chính)
+
+| Màn hình | Nội dung |
+|---|---|
+| **Dashboard tổng quan** | KPI nhà máy (OEE = A × P × Q, số dây chuyền, số máy, trạng thái, máy offline) · **Sơ đồ mặt bằng nhà máy** 87 khu vực, tô màu theo *trạng thái sản xuất* (mặc định) hoặc *mức độ an toàn* · **Top 5 dây chuyền dừng dài nhất** trong ca · **Mô phỏng What-If** (Chờ sửa / San tải sang line khác / Tăng ca OT / Thay linh kiện giao ca) · **Thác tổn thất** sản lượng · khuyến nghị và xuất báo cáo |
+| **Chi tiết dây chuyền** | KPI ca (OEE, dừng ngắn チョコ停, dừng dài ドカ停, sản lượng) · sơ đồ dây chuyền 2D/3D, bấm vào máy để mở chi tiết · **Giám sát sản lượng** theo giờ (kế hoạch – thực tế – dự báo cuối ca, chọn Ca 1/2/3) · **Bảng điều kiện gia công 30 ngày** (đánh dấu ô ngoài quy cách, xuất Excel) |
+| **Chi tiết máy** | Trạng thái, thông số realtime, thông tin kỹ thuật · **Check sheet đầu/cuối ca** nằm ngay trong trang (ghi nhận, tự chấm OK/NG theo ngưỡng, xuất CSV) · **Tài liệu máy** (bản vẽ, chương trình, khác — tải lên/tải xuống) · **Dữ liệu CSV Unipulse** |
+| **Giám sát thiết bị** | Danh sách máy dạng thẻ/bảng, lọc theo dây chuyền, trạng thái, nguồn dữ liệu, mã QR |
+| **Cảnh báo & sự cố** | Nhật ký cảnh báo, quy trình 3 bước *Chờ tiếp nhận → Đang xử lý → Đã giải quyết*, xuất CSV/Excel |
+| **Lịch sử dữ liệu** | Tra cứu telemetry theo ca/ngày/giờ/máy, xuất Excel · CSV · JSON |
+| **AI giám sát & dự đoán** | Tổng quan sức khỏe thiết bị, phát hiện bất thường (Z-score), dự đoán bảo trì, trợ lý AI KaiLink — **chạy bằng kịch bản mô phỏng**, không gọi mô hình AI bên ngoài |
+
+### 1.2 Cấu hình (ADMIN / MAINTENANCE)
+
+Dây chuyền & thiết bị (gán trạm PLC) · Danh mục thông số · Mapping & ngưỡng cảnh báo, lịch thu thập · Quản lý tài khoản (chỉ ADMIN) · Nhật ký hệ thống (audit log).
+
+### 1.3 Phân quyền
+
+| Vai trò | Quyền |
+|---|---|
+| `ADMIN` | Toàn quyền, quản lý tài khoản, đổi cài đặt sản xuất |
+| `MAINTENANCE` | Cấu hình dây chuyền/thông số, tải lên/xóa tài liệu máy, xem audit log |
+| `OPERATOR` | Xem giám sát, ghi nhận check sheet, xử lý cảnh báo |
+
+### 1.4 Dữ liệu mô phỏng — cần biết khi demo
+
+Dữ liệu **sản xuất** (sản lượng, OEE, dừng máy, What-If, điều kiện gia công 30 ngày, Unipulse) được **mô phỏng tất định** ở backend (`server/production/ProductionSimulator.js`): cùng dây chuyền + ngày + ca luôn ra cùng kết quả, theo giờ Việt Nam (UTC+7). Mọi phản hồi loại này có `simulated: true` và giao diện ghi chú "Dữ liệu mô phỏng".
+
+- Ca làm việc: **Ca 1** 06:00–14:00 · **Ca 2** 14:00–22:00 · **Ca 3** 22:00–06:00.
+- Ngưỡng phân biệt dừng ngắn / dừng dài mặc định **10 phút**, lưu trong bảng `app_settings`, đổi qua `PUT /api/production/settings` (ADMIN).
+- Ngoài 3 dây chuyền thật trong CSDL (`LN-PRS-01`, `LN-PNT-02`, `LN-ASM-03`), hệ thống thêm **2 dây chuyền ảo** `LN-AT-04`, `LN-AFM-05` để đủ Top 5.
+- Bảng Unipulse đang dùng dữ liệu giả lập; khi có file CSV mẫu thật sẽ đổi cột cho khớp.
+
+Danh sách dây chuyền, máy, thông số, ngưỡng, check sheet, tài liệu, tài khoản, audit log là **dữ liệu thật trong MySQL**.
+
+---
+
+## 2. Công nghệ
+
+- **Frontend:** React 18, Vite 6, TypeScript, Tailwind CSS, Zustand, Recharts, Three.js (mô hình 3D), HeroUI, lucide-react, i18next.
+- **Backend:** Node.js (ESM), Express 5, mysql2, JWT (`jsonwebtoken`), `bcryptjs`, Multer (upload), WebSocket (`ws`).
+- **CSDL:** MySQL 8 (production dùng Aiven MySQL, SSL). Bảng được tạo tự động khi server khởi động.
+- **Triển khai:** Vercel (frontend) + Render (backend), tự deploy khi push lên nhánh `main`.
+
+```
+ Trình duyệt ──HTTPS──▶ Vercel (React build)
+     │
+     ├── REST /api/*  ──▶ Render (Express) ──▶ Aiven MySQL
+     └── WebSocket /ws ─▶       │
+                                 └─ ProductionSimulator (dữ liệu sản xuất mô phỏng)
+```
+
+Khi chạy trên `*.vercel.app`, frontend tự trỏ API về Render (`src/services/api.ts → getApiBaseUrl`). Có thể ghi đè bằng `VITE_API_URL` / `VITE_WS_URL`.
+
+---
+
+## 3. Cấu trúc thư mục
+
+```
+.
+├─ index.html, vite.config.ts, tailwind.config.js, tsconfig*.json, vercel.json
+├─ .env.example                  # mẫu biến môi trường
+├─ server/                       # Backend
+│  ├─ index.js                   # Express + WebSocket, auth, API chính
+│  ├─ db-mysql.js                # kết nối MySQL, tạo bảng, seed dữ liệu
+│  ├─ production/                # API sản xuất mô phỏng + chi tiết máy
+│  │  ├─ ProductionSimulator.js  #   bộ mô phỏng sản lượng / dừng máy / What-If / Unipulse
+│  │  ├─ productionRoutes.js     #   /api/production/*
+│  │  └─ machineRoutes.js        #   tài liệu máy, check sheet, Unipulse
+│  ├─ telemetry/                 # TelemetryEngine, PLC adapter (Mock / Modbus TCP), WebSocket
+│  └─ ingestion/                 # đọc file CSV log (tùy chọn)
+├─ src/                          # Frontend
+│  ├─ App.tsx, main.tsx, index.css
+│  ├─ layouts/MainLayout.tsx     # khung Sidebar + Header + nội dung
+│  ├─ components/common/         # Header, Sidebar, LanguageSwitcher, ErrorBoundary…
+│  ├─ features/
+│  │  ├─ dashboard/              # Dashboard, sơ đồ nhà máy, Top 5, What-If (production/)
+│  │  ├─ tier1-lines/            # chi tiết dây chuyền, sơ đồ 2D/3D, sản lượng, điều kiện gia công
+│  │  ├─ tier2-machines/         # giám sát thiết bị, chi tiết máy (detail/: check sheet, tài liệu, Unipulse)
+│  │  ├─ alarms/ history/ ai-intelligence/ metrics/ admin/ audit/ auth/
+│  ├─ i18n/                      # đa ngôn ngữ (xem mục 6)
+│  ├─ services/api.ts            # gọi API + dịch dữ liệu theo ngôn ngữ
+│  ├─ stores/                    # Zustand: monitoring, auth, alarm, theme, ui
+│  ├─ types/ utils/ config/
+├─ scripts/                      # script tiện ích (backup DB, chụp màn hình, i18n-check…)
+├─ tests/                        # script kiểm thử chạy bằng node (.cjs)
+└─ docs/                         # SRS, runbook
+```
+
+---
+
+## 4. Chạy trên máy (localhost)
+
+### 4.1 Yêu cầu
+Node.js ≥ 20, npm ≥ 10, MySQL 8 (hoặc MariaDB) — hoặc dùng luôn MySQL trên cloud.
+
+### 4.2 Cài đặt
+```bash
+git clone https://github.com/HoangTuan1301/denso-iot-monitoring.git
+cd denso-iot-monitoring
+npm install
+cp .env.example .env      # Windows: copy .env.example .env
+```
+
+### 4.3 Biến môi trường (`.env`)
+
+| Biến | Ý nghĩa | Mặc định |
+|---|---|---|
+| `PORT` | Cổng backend | `5000` |
+| `JWT_SECRET`, `JWT_REFRESH_SECRET` | Khóa ký token. **Bắt buộc đặt trên server thật**; nếu thiếu, server tự sinh khóa ngẫu nhiên và mọi phiên đăng nhập mất khi server khởi động lại | — |
+| `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | Kết nối MySQL | `localhost`, `3306`, … |
+| `DB_SSL` | Bật SSL (tự bật nếu host là Aiven/TiDB) | `false` |
+| `ENABLE_FILE_INGESTION`, `FILE_INGESTION_WATCH_DIR` | Bật đọc file CSV log từ thư mục | `false` |
+| `ENABLE_PHYSICAL_PLC` | Cho phép kết nối PLC thật qua Modbus TCP | `false` |
+| `RECORD_SIMULATION_TO_DB` | Ghi dữ liệu telemetry mô phỏng vào CSDL | `false` |
+| `VITE_API_URL`, `VITE_WS_URL` | (Frontend, khi build) địa chỉ backend nếu không dùng Vercel/Render mặc định | — |
+
+> Không commit file `.env` / `.env.backup`.
+
+### 4.4 Chạy
+```bash
+npm run dev
+```
+- Backend: http://localhost:5000 · Frontend: **http://localhost:3000** (Vite proxy `/api`, `/uploads`, `/ws` sang backend).
+- Chạy riêng: `npm run server` (backend) · `npm run vite` (frontend).
+- **Sau khi `git pull`:** tắt server (Ctrl + C) rồi chạy lại `npm run dev`; nếu `package.json` có thay đổi thì chạy `npm install` trước.
+
+### 4.5 Tài khoản mặc định
+Khi bảng `users` **trống**, server tự tạo 3 tài khoản:
+
+| Email | Mật khẩu | Vai trò |
+|---|---|---|
+| `admin@denso.com` | `admin123` | ADMIN |
+| `tech@denso.com` | `tech123` | MAINTENANCE |
+| `user@denso.com` | `user123` | OPERATOR |
+
+Trang đăng nhập có nút đăng nhập nhanh theo vai trò. Hãy đổi mật khẩu khi dùng thật.
+
+---
+
+## 5. Cơ sở dữ liệu
+
+`initDatabase()` trong `server/db-mysql.js` chạy mỗi lần server khởi động:
+1. Tạo database nếu chưa có (bỏ qua khi dùng SSL/cloud — tạo DB trước).
+2. `CREATE TABLE IF NOT EXISTS` cho các bảng: `users`, `production_lines`, `machines`, `plc_stations`, `metric_catalog`, `machine_telemetry_history`, `audit_logs`, `ingested_files_log`, `ingested_file_conflicts`, `app_settings`, `machine_documents` (file lưu dạng LONGBLOB, tối đa 10 MB/file), `check_sheet_records`.
+3. Seed dữ liệu mẫu chỉ khi bảng còn trống.
+
+Chưa có hệ thống migration có phiên bản: thay đổi cấu trúc bảng cần sửa trong `db-mysql.js` (hoặc chạy SQL thủ công trên CSDL đã có).
+
+---
+
+## 6. Đa ngôn ngữ (VI / EN / JA)
+
+- Nút **VI · EN · 日本語** trên thanh tiêu đề. Lựa chọn lưu trong trình duyệt (`localStorage: denso_iot_lang`). Đổi ngôn ngữ sẽ **tải lại trang** và mở lại đúng màn hình đang xem.
+- Hai cơ chế:
+  - `t('nhom.key')` (i18next) — key trong `src/i18n/locales/{vi,en,ja}.json`.
+  - `tr('Câu tiếng Việt')` — câu tiếng Việt làm khóa, bản dịch trong `src/i18n/dict/{en,ja}.json`. Biến chèn dạng `tr('Máy {0} lỗi', code)`.
+- **Dữ liệu từ CSDL** (tên dây chuyền, máy, thông số, mô tả…) được dịch ở `src/services/api.ts`; khi gửi lên server, chuỗi đã dịch được đổi lại tiếng Việt để không ghi đè CSDL. Tên người giữ nguyên.
+- Thêm chữ mới: viết `tr("…")`, thêm bản dịch vào `dict/en.json` và `dict/ja.json`, rồi kiểm tra:
+  ```bash
+  node scripts/i18n-check.mjs          # thống kê câu thiếu bản dịch
+  node scripts/i18n-check.mjs --list   # liệt kê câu thiếu
+  ```
+  Câu chưa dịch sẽ hiển thị tiếng Việt, không làm lỗi trang.
+
+---
+
+## 7. API chính
+
+Tất cả API (trừ đăng nhập và `/api/health`) cần header `Authorization: Bearer <accessToken>`.
+
+| Nhóm | Endpoint |
+|---|---|
+| Xác thực | `POST /api/auth/login` · `POST /api/auth/logout` · `GET /api/auth/me` |
+| Người dùng | `GET/POST /api/users` · `PUT/DELETE /api/users/:id` · `POST /api/users/:id/reset-password` · `POST /api/users/upload-avatar` |
+| Dây chuyền & máy | `GET/POST /api/lines` · `GET/PUT /api/lines/:id` · `POST/PUT /api/lines/:id/plc` · `GET/POST /api/machines` · `GET/PUT /api/machines/:id` · `/api/machines/:id/plc` · `GET /api/plc-stations` |
+| Thông số & ngưỡng | `/api/metrics*` · `/api/mappings*` (gồm `/thresholds`, `/schedule`, `/monitoring`) |
+| Telemetry | `GET /api/telemetry/latest` · `GET /api/telemetry/engine-status` · WebSocket `/ws` |
+| Sản xuất (mô phỏng) | `GET /api/production/overview` · `GET /api/production/lines/:lineId?date&shift` · `…/conditions?days=30` · `…/what-if?otHours&reroutePct&orderQty` · `GET/PUT /api/production/settings` |
+| Chi tiết máy | `GET/POST /api/machines/:machineId/documents` · `GET …/documents/:docId/download` · `DELETE …/documents/:docId` · `GET/POST /api/check-sheets` · `GET /api/production/machines/:machineId/unipulse` |
+| Khác | `GET /api/audit-logs` · `/api/ingestion/*` · `GET /api/health` |
+
+---
+
+## 8. Build, kiểm tra & triển khai
+
+| Lệnh | Mô tả |
+|---|---|
+| `npm run build` | Kiểm tra TypeScript (`tsc --noEmit`) rồi build vào `dist/` |
+| `npm run preview` | Xem thử bản build |
+| `node scripts/i18n-check.mjs` | Kiểm tra bản dịch |
+| `node tests/<tên-file>.cjs` | Các script kiểm thử riêng lẻ (chưa có lệnh `npm test`) |
+
+**Triển khai:** push lên `main` → Vercel build frontend, Render khởi động lại backend (mất khoảng 2–3 phút). Trên Render cần đặt `JWT_SECRET`, `JWT_REFRESH_SECRET` và các biến `DB_*`.
+
+---
+
+## 9. Kịch bản demo gợi ý
+
+1. Đăng nhập bằng nút **ADMIN**.
+2. **Dashboard:** xem OEE nhà máy → sơ đồ mặt bằng (chế độ *Trạng thái*) → **Top 5 dây chuyền dừng dài** → chọn một dây chuyền để xem **What-If** và **Thác tổn thất**, đọc phương án được đề xuất.
+3. Mở **chi tiết dây chuyền** → xem dừng ngắn/dừng dài, biểu đồ sản lượng theo giờ, bảng điều kiện gia công 30 ngày.
+4. Bấm vào một máy trên sơ đồ → **chi tiết máy**: ghi nhận check sheet đầu ca, xem tài liệu máy, dữ liệu Unipulse.
+5. Bấm **Giả lập sự cố** trên thanh tiêu đề → xem cảnh báo xuất hiện ở **Cảnh báo & sự cố**, xử lý theo 3 bước → **Khôi phục**.
+6. Chuyển **EN / 日本語** để giới thiệu giao diện đa ngôn ngữ; mở trên điện thoại để giới thiệu bản mobile.
+
+---
+
+## 10. Nhóm phát triển
+
+- **Dự án:** DENSO IoT Monitoring System – KaiLink (DENSO Hackathon)
+- **Thành viên:** *(nhóm bổ sung)*
+- **Liên hệ:** *(nhóm bổ sung)*

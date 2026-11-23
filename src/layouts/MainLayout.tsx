@@ -18,12 +18,12 @@ export function MainLayout({ children }: MainLayoutProps) {
       <Sidebar />
 
       {/* Vùng nội dung chính bên phải */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         {/* Header điều hành phía trên */}
         <Header />
 
         {/* Nội dung trang có thanh cuộn riêng */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
           {children}
         </main>
       </div>

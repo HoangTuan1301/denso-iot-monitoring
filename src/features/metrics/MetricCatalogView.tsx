@@ -414,7 +414,7 @@ export function MetricCatalogView() {
       {/* ========================================================================= */}
       {/* 2. BỐN THẺ THỐNG KÊ (4 STATS CARDS - CHUẨN ẢNH MẪU 1)                    */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         {/* Card 1: Tổng thông số (Green accent) */}
         <div className="bg-factory-card rounded-2xl border border-factory-border p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
           <div className="flex items-center gap-2.5">

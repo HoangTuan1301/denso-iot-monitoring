@@ -302,7 +302,7 @@ export function DeviceMonitoringView() {
       {/* ========================================================================= */}
       {/* 2. KHU VỰC THỐNG KÊ TỔNG QUAN (4 TOP-LEVEL KPI CARDS)                      */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         {/* Card 1: Tổng thiết bị */}
         <div className="bg-white dark:bg-factory-card p-5 rounded-2xl border border-factory-border shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all flex items-center justify-between">
           <div>

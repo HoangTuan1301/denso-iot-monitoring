@@ -241,7 +241,7 @@ export function FactoryLayoutMap({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
-        className={`relative flex-1 min-h-[480px] bg-white dark:bg-factory-bg/40 overflow-hidden select-none ${
+        className={`relative flex-1 min-h-[260px] sm:min-h-[480px] bg-white dark:bg-factory-bg/40 overflow-hidden select-none ${
           isDragging ? 'cursor-grabbing' : 'cursor-grab'
         }`}
       >

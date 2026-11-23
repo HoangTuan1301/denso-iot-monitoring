@@ -103,7 +103,7 @@ export function UserManagementView() {
     setIsLoading(true);
     try {
       const res = await apiClient.getUsers();
-      setUsers(res.users);
+      setUsers(Array.isArray(res?.users) ? res.users : []);
     } catch {
       // Mock fallback nếu máy chủ chưa mở
       setUsers([

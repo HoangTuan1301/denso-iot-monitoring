@@ -27,7 +27,8 @@
     "qr": "QR Scan",
     "settings": "Parameters & System",
     "expand": "Expand navigation",
-    "collapse": "Collapse navigation"
+    "collapse": "Collapse navigation",
+    "openMenu": "Open menu"
   },
   "breadcrumb": {
     "monitoring": "Monitoring",

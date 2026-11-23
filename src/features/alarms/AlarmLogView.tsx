@@ -194,7 +194,7 @@ export function AlarmLogView() {
       {/* ========================================================================= */}
       {/* TOP STATS CARDS: THỐNG KÊ NHANH CÁC SỰ CỐ (INDUSTRIAL CONTROL CENTER)      */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         {/* Thẻ 1: CRITICAL (Nguy hiểm) */}
         <div className="bg-red-50/70 dark:bg-rose-950/20 border border-slate-200/80 dark:border-slate-800 border-l-4 border-l-red-500 rounded-xl p-4 shadow-sm flex items-center justify-between transition-all hover:shadow-md">
           <div>

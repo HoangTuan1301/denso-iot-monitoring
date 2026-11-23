@@ -27,7 +27,8 @@
     "qr": "QRスキャン",
     "settings": "パラメータ・システム",
     "expand": "ナビゲーションを展開",
-    "collapse": "ナビゲーションを折りたたむ"
+    "collapse": "ナビゲーションを折りたたむ",
+    "openMenu": "メニューを開く"
   },
   "breadcrumb": {
     "monitoring": "監視",

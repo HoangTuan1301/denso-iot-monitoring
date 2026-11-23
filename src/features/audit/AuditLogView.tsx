@@ -202,7 +202,7 @@ export function AuditLogView() {
       </div>
 
       {/* 4 Thẻ KPI Thống Kê Đỉnh */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 w-full">
         {/* Card 1: SỰ CỐ & KHẨN CẤP */}
         <div className="bg-red-50/70 dark:bg-rose-950/20 border-l-4 border-red-500 border border-red-100 dark:border-rose-900/30 rounded-xl p-4 flex items-center justify-between shadow-xs">
           <div>

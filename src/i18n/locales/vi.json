@@ -27,7 +27,8 @@
     "qr": "Quét mã QR",
     "settings": "Danh mục Thông số & Hệ thống",
     "expand": "Mở rộng thanh điều hướng",
-    "collapse": "Thu gọn thanh điều hướng"
+    "collapse": "Thu gọn thanh điều hướng",
+    "openMenu": "Mở menu"
   },
   "breadcrumb": {
     "monitoring": "Giám sát",

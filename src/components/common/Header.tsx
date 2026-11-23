@@ -167,7 +167,7 @@ export function Header() {
       {/* ---- Góc trái: Breadcrumb phân tầng thông minh ---- */}
       <div className="flex items-center gap-1.5 text-xs sm:text-sm select-none">
         {activeTab === 'dashboard' && dashboardViewLevel !== 'factory_layout' ? (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 whitespace-nowrap">
             <button
               onClick={() => {
                 setDashboardViewLevel('factory_layout');

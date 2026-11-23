@@ -652,3 +652,51 @@ export function buildFactoryOverview({ lineShifts, machines = [], lines = [] }) 
     topDowntime,
   };
 }
+
+/* ------------------------------------------------------------------ */
+/* 5. Dữ liệu đo từ bộ hiển thị tải Unipulse (file CSV)                  */
+/* ------------------------------------------------------------------ */
+/**
+ * Mô phỏng các bản ghi đo của thiết bị Unipulse (tải ép + hành trình) cho 1 máy.
+ * Cấu trúc cột sẽ được chỉnh theo file CSV mẫu thật khi nhóm cung cấp.
+ */
+export function simulateUnipulse({ machine, limit = 12, now = new Date() }) {
+  const n = Math.max(1, Math.min(100, Number(limit) || 12));
+  const CYCLE_SEC = 14;
+  const spec = { loadMin: 18, loadMax: 22, strokeMin: 41.8, strokeMax: 42.4 };
+  const nowSec = Math.floor(now.getTime() / 1000);
+  const lastSlot = Math.floor(nowSec / CYCLE_SEC);
+  const rows = [];
+  for (let i = 0; i < n; i++) {
+    const slot = lastSlot - i;
+    const rng = createRng(`${machine.id}|unipulse|${slot}`);
+    let load = 20 + (rng() - 0.5) * 1.6;
+    if (rng() < 0.05) load = rng() < 0.5 ? 17.2 + rng() * 0.6 : 22.2 + rng() * 0.6;
+    const stroke = 42.1 + (rng() - 0.5) * 0.24;
+    const loadR = round(load, 2);
+    const strokeR = round(stroke, 2);
+    const ok =
+      loadR >= spec.loadMin && loadR <= spec.loadMax && strokeR >= spec.strokeMin && strokeR <= spec.strokeMax;
+    const p = toVnParts(new Date(slot * CYCLE_SEC * 1000));
+    rows.push({
+      seq: slot,
+      time: `${pad(p.hour)}:${pad(p.minute)}:${pad(new Date(slot * CYCLE_SEC * 1000).getUTCSeconds())}`,
+      loadKn: loadR,
+      strokeMm: strokeR,
+      result: ok ? 'OK' : 'NG',
+    });
+  }
+  const p = toVnParts(now);
+  const fileStamp = `${p.year}${pad(p.month)}${pad(p.day)}_${pad(p.hour)}${pad(Math.floor(p.minute / 10) * 10)}`;
+  return {
+    simulated: true,
+    machineId: machine.id,
+    source: 'UNIPULSE_CSV',
+    fileName: `UNIPULSE_${machine.code || machine.id}_${fileStamp}.csv`,
+    importedAt: rows[0] ? rows[0].time : null,
+    spec,
+    columns: ['time', 'loadKn', 'strokeMm', 'result'],
+    rows,
+    summary: { count: rows.length, ng: rows.filter((r) => r.result === 'NG').length },
+  };
+}

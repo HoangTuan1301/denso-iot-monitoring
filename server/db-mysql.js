@@ -333,6 +333,42 @@ export async function initDatabase() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
 
+    // 14e. Tài liệu máy (bản vẽ / chương trình / khác) — lưu trực tiếp trong CSDL
+    //      vì ổ đĩa của Render bị xóa mỗi lần deploy.
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS machine_documents (
+        id VARCHAR(64) NOT NULL PRIMARY KEY,
+        machine_id VARCHAR(64) NOT NULL,
+        category ENUM('DRAWING','PROGRAM','OTHER') NOT NULL DEFAULT 'OTHER',
+        file_name VARCHAR(255) NOT NULL,
+        mime_type VARCHAR(128) NOT NULL DEFAULT 'application/octet-stream',
+        size_bytes INT NOT NULL,
+        content LONGBLOB NOT NULL,
+        note VARCHAR(255) NULL,
+        uploaded_by VARCHAR(128) NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_doc_machine (machine_id, category)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    // 14f. Kết quả Check Sheet đầu ca / cuối ca theo máy
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS check_sheet_records (
+        id VARCHAR(64) NOT NULL PRIMARY KEY,
+        machine_id VARCHAR(64) NOT NULL,
+        production_date DATE NOT NULL,
+        shift TINYINT NOT NULL,
+        check_type ENUM('START','END') NOT NULL,
+        result ENUM('OK','NG') NOT NULL,
+        items_json TEXT NOT NULL,
+        note VARCHAR(500) NULL,
+        checked_by VARCHAR(128) NULL,
+        checked_by_name VARCHAR(128) NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_check_machine_shift (machine_id, production_date, shift)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
     // 15. Seed Metric Catalog nếu trống
     const [metricRows] = await pool.query('SELECT COUNT(*) as count FROM metric_catalog');
     if (metricRows[0].count === 0) {

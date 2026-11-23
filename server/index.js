@@ -23,6 +23,7 @@ import { ResilientBatchBuffer } from './telemetry/ResilientBatchBuffer.js';
 import { FileIngestionService } from './ingestion/FileIngestionService.js';
 import { defaultProfileRegistry } from './ingestion/FileProfileRegistry.js';
 import { registerProductionRoutes } from './production/productionRoutes.js';
+import { registerMachineRoutes } from './production/machineRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -2281,6 +2282,8 @@ app.get('/', (req, res) => {
 
 // API dữ liệu sản xuất (mô phỏng): OEE, dừng máy, sản lượng, điều kiện gia công, What-If
 registerProductionRoutes(app, { authenticateToken, requireRole, mysqlDb, isDbConnected: () => isDbConnected });
+// API Chi tiết máy: tài liệu máy, check sheet đầu/cuối ca, dữ liệu Unipulse
+registerMachineRoutes(app, { authenticateToken, requireRole, mysqlDb, isDbConnected: () => isDbConnected });
 
 app.get('/api/health', (req, res) => {
   res.json({

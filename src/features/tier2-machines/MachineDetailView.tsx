@@ -12,7 +12,7 @@
  * - TUYỆT ĐỐI KHÔNG CÓ OEE, Availability, Performance, Quality
  */
 
-import { useState, useMemo, useEffect } from 'react';
+import { useMemo, useEffect } from 'react';
 import {
   ArrowLeft,
   ClipboardList,
@@ -22,37 +22,29 @@ import {
   Calendar,
   CheckCircle2,
   AlertTriangle,
-  TrendingUp,
   Info,
   Sparkles,
 } from 'lucide-react';
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as RechartsTooltip,
-  PieChart,
-  Pie,
-  Cell,
-} from 'recharts';
 import { useMonitoringStore } from '../../stores/useMonitoringStore';
 import { resolveMachineMonitoringState } from '../../utils/machineStatusResolver';
 import { MachineImageViewer } from '../../components/common/MachineImageViewer';
+import { useTranslation } from 'react-i18next';
+import { EmbeddedCheckSheet } from './detail/EmbeddedCheckSheet';
+import { MachineDocuments } from './detail/MachineDocuments';
+import { UnipulsePanel } from './detail/UnipulsePanel';
 
 interface MachineDetailViewProps {
   machineId: string;
   onBackToLine: () => void;
-  onOpenCheckSheet: (machineId: string) => void;
+  /** Không còn dùng: Check Sheet đã nằm ngay trong trang (giữ để tương thích nơi gọi) */
+  onOpenCheckSheet?: (machineId: string) => void;
 }
 
 export function MachineDetailView({
   machineId,
   onBackToLine,
-  onOpenCheckSheet,
 }: MachineDetailViewProps) {
+  const { t } = useTranslation();
   const { lines, fetchMachines } = useMonitoringStore();
 
   // Tìm máy trong danh sách các dây chuyền
@@ -75,73 +67,6 @@ export function MachineDetailView({
   const resolved = useMemo(() => {
     return resolveMachineMonitoringState(machine, parentLine);
   }, [machine, parentLine]);
-
-  // Metric đang chọn để xem biểu đồ
-  const metrics = resolved.metrics;
-  const [selectedMetricCode, setSelectedMetricCode] = useState<string>(() => {
-    return metrics.length > 0 ? metrics[0].id : 'TEMP_HYD';
-  });
-
-  // Đồng bộ selectedMetricCode khi danh sách metric thay đổi
-  useMemo(() => {
-    if (metrics.length > 0 && !metrics.some((m) => m.id === selectedMetricCode)) {
-      setSelectedMetricCode(metrics[0].id);
-    }
-  }, [metrics, selectedMetricCode]);
-
-  // Sinh dữ liệu chuỗi thời gian cho biểu đồ từ lịch sử thật hoặc time-series hợp lệ
-  const chartData = useMemo(() => {
-    const selectedMetric = metrics.find((m) => m.id === selectedMetricCode);
-    if (selectedMetric && selectedMetric.history && selectedMetric.history.length > 0) {
-      return selectedMetric.history;
-    }
-    if (resolved.hasMetrics && metrics.length > 0) {
-      const firstM = metrics[0];
-      if (firstM.history && firstM.history.length > 0) return firstM.history;
-    }
-    // Dữ liệu mẫu chuỗi thời gian nếu chưa có lịch sử đo
-    return [
-      { timestamp: '08:00', value: 50.2 },
-      { timestamp: '09:00', value: 52.4 },
-      { timestamp: '10:00', value: 51.8 },
-      { timestamp: '11:00', value: 53.5 },
-      { timestamp: '12:00', value: 54.2 },
-      { timestamp: '13:00', value: 55.0 },
-      { timestamp: '14:00', value: 56.2 },
-      { timestamp: '15:00', value: 55.8 },
-      { timestamp: '16:00', value: 56.2 },
-    ];
-  }, [metrics, selectedMetricCode, resolved.hasMetrics]);
-
-  // Dữ liệu thời gian trạng thái (Donut) phản ánh đúng operatingStatus
-  const statusDurationData = useMemo(() => {
-    if (resolved.operatingStatus === 'STOPPED' || resolved.operatingStatus === 'OFFLINE') {
-      return [
-        { name: 'Đang chạy', value: 0.0, color: '#10B981' },
-        { name: 'Cần theo dõi', value: 0.2, color: '#F59E0B' },
-        { name: 'Dừng máy', value: 6.8, color: '#F43F5E' },
-      ];
-    }
-    if (resolved.alarmSeverity === 'CRITICAL') {
-      return [
-        { name: 'Đang chạy', value: 5.2, color: '#10B981' },
-        { name: 'Cần theo dõi', value: 1.5, color: '#F59E0B' },
-        { name: 'Dừng máy', value: 0.1, color: '#F43F5E' },
-      ];
-    }
-    if (resolved.alarmSeverity === 'WARNING') {
-      return [
-        { name: 'Đang chạy', value: 6.0, color: '#10B981' },
-        { name: 'Cần theo dõi', value: 0.8, color: '#F59E0B' },
-        { name: 'Dừng máy', value: 0.05, color: '#F43F5E' },
-      ];
-    }
-    return [
-      { name: 'Đang chạy', value: 6.7, color: '#10B981' },
-      { name: 'Cần theo dõi', value: 0.1, color: '#F59E0B' },
-      { name: 'Dừng máy', value: 0.05, color: '#F43F5E' },
-    ];
-  }, [resolved.operatingStatus, resolved.alarmSeverity]);
 
   // XỬ LÝ BIÊN: Khi máy không xác định được trong CSDL
   if (!machine) {
@@ -212,11 +137,11 @@ export function MachineDetailView({
         <div className="flex items-center gap-2.5">
           <button
             type="button"
-            onClick={() => onOpenCheckSheet(machine.id)}
+            onClick={() => document.getElementById('check-sheet')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-bold text-xs shadow-md shadow-blue-600/25 transition-all cursor-pointer"
           >
             <ClipboardList className="w-4 h-4 stroke-[2.3]" />
-            <span>Mở CHECK SHEET</span>
+            <span>{t('machine.checkSheetBtn')}</span>
           </button>
 
           <button
@@ -376,6 +301,9 @@ export function MachineDetailView({
               </div>
             )}
           </div>
+
+          {/* Tài liệu máy: Bản vẽ / Chương trình / Khác */}
+          <MachineDocuments machineId={machine.id} />
         </div>
 
         {/* Cột phải (7/12): Bảng thông số vận hành (Realtime Telemetry) */}
@@ -449,134 +377,13 @@ export function MachineDetailView({
             )}
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-100 dark:border-factory-border">
-            <span>Đối chiếu tự động theo cấu hình Mapping Tầng 3</span>
-            <button
-              onClick={() => onOpenCheckSheet(machine.id)}
-              className="text-blue-600 dark:text-blue-400 font-bold hover:underline cursor-pointer"
-            >
-              Mở bảng CHECK SHEET để kiểm tra chi tiết &rarr;
-            </button>
-          </div>
+          {/* Dữ liệu đo từ file CSV thiết bị Unipulse */}
+          <UnipulsePanel machineId={machine.id} />
         </div>
       </div>
 
-      {/* 4. BIỂU ĐỒ THÔNG SỐ THEO THỜI GIAN & THỜI GIAN TRẠNG THÁI */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Biểu đồ xu hướng (8/12 cols) */}
-        <div className="lg:col-span-8 p-5 rounded-2xl border border-slate-200/90 dark:border-factory-border bg-white dark:bg-factory-card shadow-xs space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-emerald-600" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
-                Biểu đồ thông số theo thời gian
-              </h3>
-            </div>
-
-            <select
-              value={selectedMetricCode}
-              onChange={(e) => setSelectedMetricCode(e.target.value)}
-              className="px-2.5 py-1 text-xs rounded-lg border border-slate-200 dark:border-factory-border bg-slate-50 dark:bg-factory-surface text-slate-800 dark:text-slate-200 font-semibold cursor-pointer outline-none"
-            >
-              {resolved.hasMetrics ? (
-                resolved.metrics.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name} ({m.unit})
-                  </option>
-                ))
-              ) : (
-                <>
-                  <option value="TEMP_HYD">Nhiệt độ dầu (°C)</option>
-                  <option value="PRESSURE_HYD">Áp suất bơm (MPa)</option>
-                  <option value="VIB_RMS">Độ rung RMS (mm/s)</option>
-                  <option value="CURRENT_AMP">Dòng điện (A)</option>
-                </>
-              )}
-            </select>
-          </div>
-
-          <div className="h-44 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="metricGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-                <XAxis dataKey="timestamp" stroke="#94A3B8" fontSize={10} tickLine={false} />
-                <YAxis stroke="#94A3B8" fontSize={10} tickLine={false} domain={['dataMin - 5', 'dataMax + 5']} />
-                <RechartsTooltip
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div className="bg-slate-900 text-white text-[11px] px-2.5 py-1 rounded-lg font-mono shadow-md">
-                          {payload[0].value}
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Area type="monotone" dataKey="value" stroke="#3B82F6" strokeWidth={2} fill="url(#metricGrad)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Donut Thời gian trạng thái hôm nay (4/12 cols) */}
-        <div className="lg:col-span-4 p-5 rounded-2xl border border-slate-200/90 dark:border-factory-border bg-white dark:bg-factory-card shadow-xs flex flex-col justify-between">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-            Thời gian trạng thái (Hôm nay)
-          </h3>
-
-          <div className="flex items-center justify-between gap-3 my-2">
-            <div className="w-28 h-28 relative shrink-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statusDurationData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={32}
-                    outerRadius={48}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
-                    {statusDurationData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-base font-black text-slate-900 dark:text-white">6.7</span>
-                <span className="text-[9px] text-slate-400">giờ</span>
-              </div>
-            </div>
-
-            <div className="space-y-1.5 text-xs flex-1">
-              {statusDurationData.map((item) => (
-                <div key={item.name} className="flex items-center justify-between">
-                  <span className="text-slate-500 flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-                    {item.name}:
-                  </span>
-                  <strong className="font-mono">{item.value}h</strong>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="pt-2 border-t border-slate-100 dark:border-factory-border flex items-center justify-between text-[11px] text-slate-400">
-            <span>Ca 1 (08:00 – 16:00)</span>
-            <span className={resolved.operatingStatus === 'STOPPED' ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold'}>
-              {resolved.operatingStatus === 'STOPPED' ? 'Dừng thiết bị' : 'Vận hành tối ưu'}
-            </span>
-          </div>
-        </div>
-      </div>
+      {/* 4. CHECK SHEET ĐẦU / CUỐI CA (nằm ngay trong Chi tiết máy, thay trang Check Sheet riêng) */}
+      <EmbeddedCheckSheet machineId={machine.id} machineCode={machine.code || machine.id} metrics={resolved.metrics} />
     </div>
   );
 }

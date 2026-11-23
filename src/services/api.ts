@@ -13,6 +13,7 @@ import type {
   ProcessConditionsResponse,
   WhatIfResponse,
 } from '../types/production';
+import type { MachineDocument, MachineDocCategory, CheckSheetRecord, CheckSheetItem, UnipulseData } from '../types/machineDetail';
 import { ProductionLine, MachineComponent } from '../types/hierarchy';
 import {
   MetricCatalogItem,
@@ -743,5 +744,59 @@ export const apiClient = {
     if (params?.orderQty !== undefined) sp.append('orderQty', String(params.orderQty));
     const qs = sp.toString();
     return request(`/api/production/lines/${encodeURIComponent(lineId)}/what-if${qs ? `?${qs}` : ''}`);
+  },
+
+  // --- Chi tiết máy: tài liệu, check sheet, Unipulse ---
+  async getMachineDocuments(machineId: string): Promise<{ documents: MachineDocument[] }> {
+    return request(`/api/machines/${encodeURIComponent(machineId)}/documents`);
+  },
+
+  async uploadMachineDocument(machineId: string, file: File, category: MachineDocCategory): Promise<{ document: MachineDocument }> {
+    const fd = new FormData();
+    fd.append('category', category);
+    fd.append('file', file);
+    return request(`/api/machines/${encodeURIComponent(machineId)}/documents`, { method: 'POST', body: fd });
+  },
+
+  async deleteMachineDocument(machineId: string, docId: string): Promise<{ success: boolean }> {
+    return request(`/api/machines/${encodeURIComponent(machineId)}/documents/${encodeURIComponent(docId)}`, { method: 'DELETE' });
+  },
+
+  /** Tải file tài liệu về máy người dùng (cần gửi kèm token nên không dùng thẻ <a href> trực tiếp). */
+  async downloadMachineDocument(machineId: string, doc: MachineDocument): Promise<void> {
+    const token = tokenStorage.getAccessToken();
+    const endpoint = `/api/machines/${encodeURIComponent(machineId)}/documents/${encodeURIComponent(doc.id)}/download`;
+    const res = await fetch(API_BASE_URL ? `${API_BASE_URL}${endpoint}` : endpoint, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const url = URL.createObjectURL(await res.blob());
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = doc.fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+
+  async getCheckSheets(machineId: string, params?: { date?: string; shift?: number }): Promise<{ date: string; shift: number; records: CheckSheetRecord[] }> {
+    const sp = new URLSearchParams({ machineId });
+    if (params?.date) sp.append('date', params.date);
+    if (params?.shift) sp.append('shift', String(params.shift));
+    return request(`/api/check-sheets?${sp.toString()}`);
+  },
+
+  async createCheckSheet(payload: {
+    machineId: string;
+    date: string;
+    shift: number;
+    checkType: 'START' | 'END';
+    items: Array<Omit<CheckSheetItem, 'result'>>;
+    note?: string;
+  }): Promise<{ record: CheckSheetRecord }> {
+    return request('/api/check-sheets', { method: 'POST', body: JSON.stringify(payload) });
+  },
+
+  async getUnipulseData(machineId: string, limit = 10): Promise<UnipulseData> {
+    return request(`/api/production/machines/${encodeURIComponent(machineId)}/unipulse?limit=${limit}`);
   },
 };

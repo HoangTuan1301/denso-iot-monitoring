@@ -240,15 +240,19 @@
       "stroke": "Stroke (mm)",
       "result": "Result",
       "note": "Columns will follow the device's real sample CSV file.",
-      "ng": "{{count}} NG / {{total}} readings"
+      "ng": "{{count}} NG / {{total}} readings",
+      "count": "Measurements",
+      "okRate": "OK rate",
+      "times": "{{count}} times",
+      "spec": "Spec load · stroke"
     },
     "cs": {
       "title": "CHECK SHEET · Start / end of shift",
       "subtitle": "{{code}} · {{date}} · {{count}} mapped parameters",
       "shift": "Shift {{shift}} · {{label}}",
-      "startTile": "START-OF-SHIFT CHECK",
-      "endTile": "END-OF-SHIFT CHECK",
-      "ngTile": "OUT OF SPEC (RECENT)",
+      "startTile": "Start-of-shift check",
+      "endTile": "End-of-shift check",
+      "ngTile": "Out of spec",
       "measureTile": "CONTINUOUS MEASUREMENT",
       "notChecked": "Not checked",
       "waitingEnd": "Pending · due {{time}}",
@@ -275,12 +279,23 @@
       "done": "Checks for this shift are complete",
       "saving": "Saving…",
       "saved": "Check result saved.",
-      "startMeasure": "Start",
-      "stopMeasure": "Stop",
+      "startMeasure": "Start measuring",
+      "stopMeasure": "Stop measuring",
       "exportCsv": "Export CSV",
       "noMetrics": "This machine has no metric mapping yet, so there is nothing to check.",
       "error": "Could not save: {{msg}}",
-      "sparkAria": "{{name}} during the shift, spec {{min}} to {{max}}"
+      "sparkAria": "{{name}} during the shift, spec {{min}} to {{max}}",
+      "paramCount": "{{count}} parameters",
+      "nearCount": "{{count}} near limit",
+      "measuring": "MEASURING · 1 s/sample",
+      "resultTitleShift": "Shift {{shift}} check results",
+      "autoJudge": "OK/NG is judged automatically against the spec and saved to the audit log.",
+      "near": "Near limit",
+      "vsStart": "vs. start of shift",
+      "ago2m": "−2 min",
+      "ago1m": "−1 min",
+      "now": "Now",
+      "avg": "AVG"
     }
   }
 }

@@ -1,17 +1,19 @@
 /**
  * @file EmbeddedCheckSheet.tsx
- * @description CHECK SHEET đầu ca / cuối ca nằm ngay trong màn Chi tiết máy (thay cho trang Check Sheet riêng).
- *  - 4 ô trạng thái: Check đầu ca · Check cuối ca · Ngoài quy cách gần đây · Đo liên tục
- *  - Mỗi thông số (theo Metric Mapping thật) 1 thẻ: giá trị hiện tại, quy cách, biểu đồ nhỏ có vùng quy cách
- *  - Bảng kết quả đầu ca / cuối ca lưu trong CSDL, ghi chú, nút ghi nhận, Start/Stop đo, Xuất CSV
+ * @description CHECK SHEET đầu ca / cuối ca nằm ngay trong màn Chi tiết máy.
+ *  - Hàng nhãn trạng thái gọn: Check đầu ca · Check cuối ca · Ngoài quy cách · Đang đo (+ nút Dừng/Bắt đầu đo)
+ *  - Biểu đồ lớn cho từng thông số: giá trị hiện tại, vùng quy cách, đường 2 phút gần nhất
+ *    cập nhật mỗi giây, thống kê MIN / MAX / TB / Cpk
+ *  - Cột phải: bảng kết quả đầu ca / cuối ca lưu trong CSDL, ghi chú, nút ghi nhận
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ClipboardList } from 'lucide-react';
+import { ClipboardList, FileSpreadsheet } from 'lucide-react';
 import { apiClient } from '../../../services/api';
 import { useMonitoringStore } from '../../../stores/useMonitoringStore';
-import type { MetricIndicator } from '../../../types/hierarchy';
 import type { CheckSheetRecord } from '../../../types/machineDetail';
+import { type LiveMetric, fmtNum } from './useLiveMetrics';
+import { LiveSpecChart } from './LiveSpecChart';
 
 const SHIFT_LABEL: Record<number, string> = { 1: '06:00–14:00', 2: '14:00–22:00', 3: '22:00–06:00' };
 const SHIFT_END_CHECK: Record<number, string> = { 1: '13:50', 2: '21:50', 3: '05:50' };
@@ -27,14 +29,13 @@ function currentVnShift(now = new Date()) {
   return { shift: 3, date: day(new Date(vn.getTime() - 86_400_000)) };
 }
 
-const inSpec = (v: number, m: MetricIndicator) =>
-  (m.warningMin == null || v >= m.warningMin) && (m.warningMax == null || v <= m.warningMax);
 const fmt = (v: number | null | undefined) => (v === null || v === undefined || Number.isNaN(v) ? '—' : String(Math.round(v * 100) / 100));
 
 interface Props {
   machineId: string;
   machineCode: string;
-  metrics: MetricIndicator[];
+  /** Thông số sống (giá trị + lịch sử 2 phút + quy cách) – xem useLiveMetrics */
+  metrics: LiveMetric[];
 }
 
 export function EmbeddedCheckSheet({ machineId, machineCode, metrics }: Props) {
@@ -66,22 +67,9 @@ export function EmbeddedCheckSheet({ machineId, machineCode, metrics }: Props) {
   const nextType: 'START' | 'END' | null = !startRec ? 'START' : !endRec ? 'END' : null;
   const isCurrentShift = shift === now.shift;
 
-  // Điểm đo ngoài quy cách trong lịch sử gần đây
-  const ngInfo = useMemo(() => {
-    let count = 0;
-    let worst: string | null = null;
-    let worstCount = 0;
-    for (const m of metrics) {
-      const c = (m.history || []).filter((h) => !inSpec(h.value, m)).length;
-      count += c;
-      if (c > worstCount) {
-        worstCount = c;
-        worst = m.name;
-      }
-    }
-    return { count, worst };
-  }, [metrics]);
-  const samples = metrics.reduce((a, m) => a + (m.history?.length || 0), 0);
+  // Thông số đang ngoài quy cách / sát ngưỡng
+  const ngCount = metrics.filter((m) => m.status === 'ng').length;
+  const nearCount = metrics.filter((m) => m.status === 'near').length;
 
   const timeFmt = (iso: string) =>
     new Intl.DateTimeFormat(i18n.language === 'ja' ? 'ja-JP' : i18n.language === 'en' ? 'en-GB' : 'vi-VN', {
@@ -89,30 +77,6 @@ export function EmbeddedCheckSheet({ machineId, machineCode, metrics }: Props) {
       minute: '2-digit',
       timeZone: 'Asia/Ho_Chi_Minh',
     }).format(new Date(iso));
-
-  const recordTile = (rec: CheckSheetRecord | null, label: string, pendingText: string) => {
-    const ok = rec ? rec.items.filter((i) => i.result === 'OK').length : 0;
-    const tone = !rec
-      ? 'border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300'
-      : rec.result === 'OK'
-        ? 'border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300'
-        : 'border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-300';
-    return (
-      <div className={`rounded-xl border p-3 flex flex-col gap-1 min-w-0 ${tone}`}>
-        <span className="text-[10px] font-extrabold tracking-wide">{label}</span>
-        <strong className="text-base leading-tight">
-          {rec
-            ? rec.result === 'OK'
-              ? t('machine.cs.passed', { ok, total: rec.items.length })
-              : t('machine.cs.failed', { ok, total: rec.items.length })
-            : t('machine.cs.notChecked')}
-        </strong>
-        <span className="text-[11px] opacity-80 truncate">
-          {rec ? t('machine.cs.by', { time: timeFmt(rec.createdAt), name: rec.checkedByName || rec.checkedBy || '' }) : pendingText}
-        </span>
-      </div>
-    );
-  };
 
   const save = async () => {
     if (!nextType) return;
@@ -129,9 +93,9 @@ export function EmbeddedCheckSheet({ machineId, machineCode, metrics }: Props) {
           metricId: m.id,
           name: m.name,
           unit: m.unit,
-          value: Number(m.currentValue),
-          min: m.warningMin ?? null,
-          max: m.warningMax ?? null,
+          value: Number(m.value.toFixed(m.decimals + 1)),
+          min: m.min,
+          max: m.max,
         })),
       });
       setNote('');
@@ -152,9 +116,9 @@ export function EmbeddedCheckSheet({ machineId, machineCode, metrics }: Props) {
       ...metrics.map((m) => [
         m.name,
         m.unit,
-        fmt(m.warningMin),
-        fmt(m.warningMax),
-        fmt(Number(m.currentValue)),
+        fmtNum(m.min, m.decimals),
+        fmtNum(m.max, m.decimals),
+        fmtNum(m.value, m.decimals + 1),
         fmt(startRec?.items.find((i) => i.metricId === m.id)?.value),
         fmt(endRec?.items.find((i) => i.metricId === m.id)?.value),
       ]),
@@ -168,8 +132,30 @@ export function EmbeddedCheckSheet({ machineId, machineCode, metrics }: Props) {
     URL.revokeObjectURL(url);
   };
 
+  const chip = (dot: string, tone: string, label: string, value: string, pulse = false) => (
+    <div className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs ${tone}`}>
+      <span className={`h-2 w-2 rounded-full ${dot} ${pulse ? 'animate-pulse' : ''}`} />
+      {label && <span className="text-slate-600 dark:text-slate-300">{label}:</span>}
+      <strong className="font-bold">{value}</strong>
+    </div>
+  );
+  const recordChip = (rec: CheckSheetRecord | null, label: string, pending: string) => {
+    if (!rec)
+      return chip('bg-amber-500', 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/30 dark:text-amber-300', label, pending);
+    const ok = rec.items.filter((i) => i.result === 'OK').length;
+    const text = `${rec.result === 'OK' ? t('machine.cs.passed', { ok, total: rec.items.length }) : t('machine.cs.failed', { ok, total: rec.items.length })} · ${timeFmt(rec.createdAt)}`;
+    return rec.result === 'OK'
+      ? chip('bg-emerald-500', 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/30 dark:text-emerald-300', label, text)
+      : chip('bg-rose-500', 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-800/60 dark:bg-rose-950/30 dark:text-rose-300', label, text);
+  };
+  const startValueOf = (m: LiveMetric) => {
+    const v = startRec?.items.find((i) => i.metricId === m.id)?.value;
+    return v !== undefined && v !== null ? Number(v) : m.history[0];
+  };
+
   return (
     <section id="check-sheet" aria-label={t('machine.cs.title')} className="scroll-mt-4 p-5 rounded-2xl border border-slate-200/90 dark:border-factory-border bg-white dark:bg-factory-card shadow-xs flex flex-col gap-4">
+      {/* Tiêu đề + chọn ca + xuất CSV */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <span className="w-10 h-10 shrink-0 rounded-xl bg-[#DC0032] text-white flex items-center justify-center">
@@ -182,20 +168,30 @@ export function EmbeddedCheckSheet({ machineId, machineCode, metrics }: Props) {
             </p>
           </div>
         </div>
-        <div role="group" aria-label="Shift" className="flex rounded-lg bg-slate-100 dark:bg-slate-800 p-0.5 gap-0.5">
-          {[1, 2, 3].map((s) => (
-            <button
-              key={s}
-              type="button"
-              aria-pressed={shift === s}
-              onClick={() => setShift(s)}
-              className={`min-h-[34px] px-3 rounded-md text-[11px] font-bold cursor-pointer transition-colors ${
-                shift === s ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              {t('machine.cs.shift', { shift: s, label: SHIFT_LABEL[s] })}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-2">
+          <div role="group" aria-label="Shift" className="flex rounded-lg bg-slate-100 dark:bg-slate-800 p-0.5 gap-0.5">
+            {[1, 2, 3].map((s) => (
+              <button
+                key={s}
+                type="button"
+                aria-pressed={shift === s}
+                onClick={() => setShift(s)}
+                className={`min-h-[34px] px-3 rounded-md text-[11px] font-bold cursor-pointer transition-colors ${
+                  shift === s ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                {t('machine.cs.shift', { shift: s, label: SHIFT_LABEL[s] })}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={exportCsv}
+            className="flex items-center gap-1.5 min-h-[36px] px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            {t('machine.cs.exportCsv')}
+          </button>
         </div>
       </div>
 
@@ -203,166 +199,103 @@ export function EmbeddedCheckSheet({ machineId, machineCode, metrics }: Props) {
         <p className="text-sm text-slate-500 dark:text-slate-400 py-6 text-center">{t('machine.cs.noMetrics')}</p>
       ) : (
         <>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {recordTile(startRec, t('machine.cs.startTile'), t('machine.cs.notChecked'))}
-            {recordTile(endRec, t('machine.cs.endTile'), t('machine.cs.waitingEnd', { time: SHIFT_END_CHECK[shift] }))}
-            <div className={`rounded-xl border p-3 flex flex-col gap-1 min-w-0 ${ngInfo.count > 0 ? 'border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-300' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-white/5 text-slate-700 dark:text-slate-300'}`}>
-              <span className="text-[10px] font-extrabold tracking-wide">{t('machine.cs.ngTile')}</span>
-              <strong className="text-base leading-tight truncate">
-                {ngInfo.count > 0 ? t('machine.cs.ngSome', { count: ngInfo.count, name: ngInfo.worst }) : t('machine.cs.ngNone')}
-              </strong>
-            </div>
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-white/5 p-3 flex flex-col gap-1 min-w-0 text-slate-700 dark:text-slate-300">
-              <span className="text-[10px] font-extrabold tracking-wide">{t('machine.cs.measureTile')}</span>
-              <strong className="text-base leading-tight flex items-center gap-1.5">
-                <span className={`w-2.5 h-2.5 rounded-full ${isRealtimeActive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
-                {isRealtimeActive ? t('machine.cs.recording') : t('machine.cs.stopped')}
-              </strong>
-              <span className="text-[11px] opacity-80">{t('machine.cs.samples', { count: samples })}</span>
-            </div>
+          {/* Hàng nhãn trạng thái gọn */}
+          <div className="flex flex-wrap items-center gap-2">
+            {recordChip(startRec, t('machine.cs.startTile'), t('machine.cs.notChecked'))}
+            {recordChip(endRec, t('machine.cs.endTile'), t('machine.cs.waitingEnd', { time: SHIFT_END_CHECK[shift] }))}
+            {ngCount > 0
+              ? chip('bg-rose-500', 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-800/60 dark:bg-rose-950/30 dark:text-rose-300', t('machine.cs.ngTile'), t('machine.cs.paramCount', { count: ngCount }))
+              : nearCount > 0
+                ? chip('bg-amber-500', 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/30 dark:text-amber-300', t('machine.cs.ngTile'), t('machine.cs.nearCount', { count: nearCount }))
+                : chip('bg-emerald-500', 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/30 dark:text-emerald-300', t('machine.cs.ngTile'), t('machine.cs.paramCount', { count: 0 }))}
+            {isRealtimeActive
+              ? chip('bg-emerald-500', 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/30 dark:text-emerald-300', '', t('machine.cs.measuring'), true)
+              : chip('bg-slate-400', 'border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300', '', t('machine.cs.stopped'))}
+            <button
+              type="button"
+              onClick={() => toggleRealtime()}
+              className={`ml-auto min-h-[32px] px-3 rounded-full border text-xs font-bold cursor-pointer transition-colors ${
+                isRealtimeActive
+                  ? 'border-rose-200 text-rose-700 bg-white hover:bg-rose-50 dark:border-rose-800/60 dark:bg-transparent dark:text-rose-300'
+                  : 'border-emerald-300 text-emerald-700 bg-white hover:bg-emerald-50 dark:border-emerald-700 dark:bg-transparent dark:text-emerald-300'
+              }`}
+            >
+              {isRealtimeActive ? t('machine.cs.stopMeasure') : t('machine.cs.startMeasure')}
+            </button>
           </div>
 
-          <div className="flex flex-col xl:flex-row gap-4 items-start">
-            {/* Thẻ từng thông số */}
-            <div className="flex-[3] min-w-0 w-full grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-4 items-start">
+            {/* Biểu đồ lớn từng thông số */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {metrics.map((m) => (
-                <ParamCard key={m.id} metric={m} />
+                <LiveSpecChart key={m.id} metric={m} startValue={startValueOf(m)} />
               ))}
             </div>
 
-            {/* Bảng kết quả & ghi nhận */}
-            <div className="flex-[2] min-w-0 w-full xl:max-w-[400px] rounded-xl border border-slate-200 dark:border-slate-700 p-3.5 flex flex-col gap-3">
-              <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">{t('machine.cs.resultTitle')}</h4>
-              <table className="w-full text-xs border-collapse">
+            {/* Kết quả check + ghi nhận */}
+            <aside className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex flex-col gap-3">
+              <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">{t('machine.cs.resultTitleShift', { shift })}</h4>
+              <table className="w-full text-xs">
                 <thead>
-                  <tr className="text-left text-[11px] text-slate-500 dark:text-slate-400">
-                    <th className="py-1.5 px-1 font-bold border-b border-slate-200 dark:border-slate-700">{t('machine.cs.param')}</th>
-                    <th className="py-1.5 px-1 font-bold border-b border-slate-200 dark:border-slate-700 text-right">{t('machine.cs.start')}</th>
-                    <th className="py-1.5 px-1 font-bold border-b border-slate-200 dark:border-slate-700 text-right">{t('machine.cs.end')}</th>
+                  <tr className="text-[10px] uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    <th className="py-1.5 text-left font-bold border-b border-slate-200 dark:border-slate-700">{t('machine.cs.param')}</th>
+                    <th className="py-1.5 text-right font-bold border-b border-slate-200 dark:border-slate-700">{t('machine.cs.start')}</th>
+                    <th className="py-1.5 text-right font-bold border-b border-slate-200 dark:border-slate-700">{t('machine.cs.end')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {metrics.map((m) => {
-                    const s = startRec?.items.find((i) => i.metricId === m.id);
-                    const e = endRec?.items.find((i) => i.metricId === m.id);
-                    const cell = (it?: { value: number | null; result: 'OK' | 'NG' }) =>
-                      it ? (
-                        <span className={it.result === 'OK' ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 font-bold'}>
-                          {it.result === 'OK' ? '✓' : '✗'} {fmt(it.value)}
+                    const cell = (rec: CheckSheetRecord | null) => {
+                      const it = rec?.items.find((i) => i.metricId === m.id);
+                      if (!it) return <span className="text-slate-400">—</span>;
+                      return (
+                        <span className={`font-mono font-bold ${it.result === 'OK' ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                          {fmtNum(Number(it.value), m.decimals)}
                         </span>
-                      ) : (
-                        <span className="text-slate-400">—</span>
                       );
+                    };
                     return (
-                      <tr key={m.id}>
-                        <td className="py-1.5 px-1 border-b border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-300 truncate max-w-[150px]" title={m.name}>{m.name}</td>
-                        <td className="py-1.5 px-1 border-b border-slate-100 dark:border-slate-800 text-right font-mono">{cell(s)}</td>
-                        <td className="py-1.5 px-1 border-b border-slate-100 dark:border-slate-800 text-right font-mono">{cell(e)}</td>
+                      <tr key={m.id} className="border-b border-slate-100 dark:border-slate-800">
+                        <td className="py-2 pr-2 text-slate-700 dark:text-slate-300">
+                          <span className="line-clamp-2">{m.name}</span>
+                          <span className="text-[10px] text-slate-400"> ({m.unit})</span>
+                        </td>
+                        <td className="py-2 text-right">{cell(startRec)}</td>
+                        <td className="py-2 text-right">{cell(endRec)}</td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
-
-              {nextType && isCurrentShift && (
-                <label className="flex flex-col gap-1 text-[11px] font-bold text-slate-700 dark:text-slate-300">
-                  {t('machine.cs.noteLabel')}
-                  <textarea
-                    rows={2}
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    placeholder={t('machine.cs.notePlaceholder')}
-                    maxLength={500}
-                    className="font-normal text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-2 resize-y"
-                  />
-                </label>
-              )}
-
-              {message && <p className={`text-[11px] font-semibold ${message.ok ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600'}`}>{t(message.key, { msg: message.msg })}</p>}
-
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{t('machine.cs.noteLabel')}</span>
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  rows={2}
+                  maxLength={500}
+                  placeholder={t('machine.cs.notePlaceholder')}
+                  className="rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 resize-y"
+                />
+              </label>
               <button
                 type="button"
                 disabled={!nextType || !isCurrentShift || saving}
                 onClick={save}
-                className="min-h-[44px] rounded-lg bg-[#DC0032] hover:bg-[#B8002A] disabled:bg-slate-300 disabled:dark:bg-slate-700 disabled:cursor-not-allowed text-white text-sm font-extrabold cursor-pointer"
+                className="min-h-[44px] rounded-xl bg-[#DC0032] hover:bg-[#B8002A] disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white text-sm font-extrabold cursor-pointer transition-colors"
               >
                 {saving ? t('machine.cs.saving') : nextType === 'START' ? t('machine.cs.recordStart') : nextType === 'END' ? t('machine.cs.recordEnd') : t('machine.cs.done')}
               </button>
-              <div className="grid grid-cols-3 gap-1.5">
-                <button type="button" onClick={() => toggleRealtime(true)} disabled={isRealtimeActive} className="min-h-[38px] rounded-lg border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 text-[11px] font-bold disabled:opacity-50 cursor-pointer">
-                  {t('machine.cs.startMeasure')}
-                </button>
-                <button type="button" onClick={() => toggleRealtime(false)} disabled={!isRealtimeActive} className="min-h-[38px] rounded-lg border border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 text-[11px] font-bold disabled:opacity-50 cursor-pointer">
-                  {t('machine.cs.stopMeasure')}
-                </button>
-                <button type="button" onClick={exportCsv} className="min-h-[38px] rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-[11px] font-bold cursor-pointer">
-                  {t('machine.cs.exportCsv')}
-                </button>
-              </div>
-            </div>
+              {message && (
+                <p className={`text-xs font-semibold ${message.ok ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                  {t(message.key, { msg: message.msg })}
+                </p>
+              )}
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">{t('machine.cs.autoJudge')}</p>
+            </aside>
           </div>
         </>
       )}
     </section>
-  );
-}
-
-/** Thẻ 1 thông số: giá trị hiện tại + biểu đồ nhỏ có vùng quy cách (xanh) và điểm NG (đỏ) */
-function ParamCard({ metric: m }: { metric: MetricIndicator }) {
-  const { t } = useTranslation();
-  const value = Number(m.currentValue);
-  const hasSpec = m.warningMin != null || m.warningMax != null;
-  const ok = inSpec(value, m);
-  const hist = (m.history || []).slice(-30);
-
-  const W = 300;
-  const H = 96;
-  const vals = [...hist.map((h) => h.value), value];
-  const lo0 = Math.min(...vals, m.warningMin ?? Infinity);
-  const hi0 = Math.max(...vals, m.warningMax ?? -Infinity);
-  const pad = (hi0 - lo0 || Math.abs(hi0) || 1) * 0.15;
-  const lo = lo0 - pad;
-  const hi = hi0 + pad;
-  const y = (v: number) => H - 6 - ((v - lo) / (hi - lo || 1)) * (H - 12);
-  const x = (i: number) => (hist.length <= 1 ? W / 2 : (i / (hist.length - 1)) * W);
-  const pts = hist.map((h, i) => `${x(i).toFixed(1)},${y(h.value).toFixed(1)}`).join(' ');
-  const bandTop = m.warningMax != null ? y(m.warningMax) : 0;
-  const bandBot = m.warningMin != null ? y(m.warningMin) : H;
-
-  return (
-    <div className={`rounded-xl p-3 flex flex-col gap-2 min-w-0 ${hasSpec && !ok ? 'border-2 border-rose-300 dark:border-rose-800 bg-rose-50/40 dark:bg-rose-950/10' : 'border border-slate-200 dark:border-slate-700'}`}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <strong className="block text-xs text-slate-900 dark:text-white truncate" title={m.name}>{m.name}</strong>
-          <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400">
-            {hasSpec ? t('machine.cs.spec', { min: m.warningMin ?? '—', max: m.warningMax ?? '—' }) : t('machine.cs.noSpec')}
-          </span>
-        </div>
-        {hasSpec && (
-          <span className={`shrink-0 text-[10px] font-extrabold px-2 py-0.5 rounded-full ${ok ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'}`}>
-            {ok ? t('machine.cs.inSpec') : t('machine.cs.outSpec')}
-          </span>
-        )}
-      </div>
-      <span className="font-mono text-2xl font-extrabold leading-none text-slate-900 dark:text-white">
-        {fmt(value)} <span className="text-xs font-semibold text-slate-500">{m.unit}</span>
-      </span>
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        role="img"
-        aria-label={t('machine.cs.sparkAria', { name: m.name, min: m.warningMin ?? '—', max: m.warningMax ?? '—' })}
-        className="w-full h-[96px]"
-        preserveAspectRatio="none"
-      >
-        {hasSpec && <rect x="0" y={Math.min(bandTop, bandBot)} width={W} height={Math.abs(bandBot - bandTop)} className="fill-emerald-100 dark:fill-emerald-950/50" />}
-        {m.warningMax != null && <line x1="0" x2={W} y1={bandTop} y2={bandTop} strokeDasharray="5 4" className="stroke-rose-400" />}
-        {m.warningMin != null && <line x1="0" x2={W} y1={bandBot} y2={bandBot} strokeDasharray="5 4" className="stroke-rose-400" />}
-        {hist.length > 1 && <polyline points={pts} fill="none" strokeWidth="2" vectorEffect="non-scaling-stroke" className="stroke-blue-600 dark:stroke-blue-400" />}
-        {hist.map((h, i) => (!inSpec(h.value, m) ? <circle key={i} cx={x(i)} cy={y(h.value)} r="4" className="fill-rose-600" /> : null))}
-        {Number.isFinite(value) && (
-          <circle cx={hist.length > 1 ? W - 4 : W / 2} cy={y(value)} r="4" className={hasSpec && !ok ? 'fill-rose-600' : 'fill-blue-600 dark:fill-blue-400'} />
-        )}
-      </svg>
-    </div>
   );
 }

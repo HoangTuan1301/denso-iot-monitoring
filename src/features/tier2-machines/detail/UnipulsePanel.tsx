@@ -1,6 +1,6 @@
 /**
  * @file UnipulsePanel.tsx
- * @description Bảng dữ liệu đo từ file CSV của thiết bị Unipulse (tải ép, hành trình, kết quả OK/NG).
+ * @description Dữ liệu đo từ file CSV của thiết bị Unipulse: 4 ô tóm tắt + bảng 40 lần đo gần nhất có thanh cuộn.
  * Hiện dùng dữ liệu mô phỏng; cột sẽ chỉnh theo file CSV mẫu thật.
  */
 import { useEffect, useState } from 'react';
@@ -18,7 +18,7 @@ export function UnipulsePanel({ machineId }: { machineId: string }) {
     let alive = true;
     const load = () =>
       apiClient
-        .getUnipulseData(machineId, 6)
+        .getUnipulseData(machineId, 40)
         .then((d) => alive && setData(d))
         .catch(() => {});
     load();
@@ -29,48 +29,77 @@ export function UnipulsePanel({ machineId }: { machineId: string }) {
     };
   }, [machineId]);
 
-  if (!data) return <div className="h-40 rounded-xl bg-slate-100 dark:bg-white/5 animate-pulse" />;
+  if (!data) return <div className="h-72 rounded-2xl bg-slate-100 dark:bg-white/5 animate-pulse" />;
+
+  const okPct = data.summary.count ? ((data.summary.count - data.summary.ng) / data.summary.count) * 100 : 0;
+  const tile = (label: string, value: string, tone: string) => (
+    <div className={`rounded-xl border px-3 py-2 min-w-0 ${tone}`}>
+      <div className="text-[11px] opacity-80 truncate">{label}</div>
+      <strong className={`tabular-nums ${value.length > 12 ? 'text-xs sm:text-[13px]' : 'text-sm sm:text-base'}`}>{value}</strong>
+    </div>
+  );
+  const th = 'sticky top-0 z-[1] bg-slate-50 dark:bg-slate-800 py-2 px-3 text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700';
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-white/[0.03] p-3">
+    <section className="p-5 rounded-2xl border border-slate-200/90 dark:border-factory-border bg-white dark:bg-factory-card shadow-xs flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h4 className="text-xs font-extrabold text-slate-900 dark:text-white">{t('machine.unipulse.title')}</h4>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('machine.unipulse.title')}</h3>
         <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400 truncate">
           {t('machine.unipulse.file', { file: data.fileName, time: data.importedAt })}
         </span>
       </div>
-      <div className="overflow-x-auto">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        {tile(t('machine.unipulse.count'), String(data.summary.count), 'border-slate-200 bg-slate-50 text-slate-800 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-100')}
+        {tile(t('machine.unipulse.okRate'), `${okPct.toFixed(1)}%`, 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/30 dark:text-emerald-300')}
+        {tile('NG', t('machine.unipulse.times', { count: data.summary.ng }), 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-800/60 dark:bg-rose-950/30 dark:text-rose-300')}
+        {tile(
+          t('machine.unipulse.spec'),
+          `${data.spec.loadMin}–${data.spec.loadMax} kN · ${data.spec.strokeMin}–${data.spec.strokeMax} mm`,
+          'border-slate-200 bg-slate-50 text-slate-800 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-100',
+        )}
+      </div>
+      <div
+        tabIndex={0}
+        aria-label={t('machine.unipulse.title')}
+        className="h-[214px] overflow-auto rounded-xl border border-slate-200 dark:border-slate-700 [scrollbar-width:thin]"
+      >
         <table className="w-full text-xs border-collapse">
           <thead>
-            <tr className="text-left text-[11px] text-slate-500 dark:text-slate-400">
-              <th className="py-1.5 px-1.5 font-bold">{t('machine.unipulse.time')}</th>
-              <th className="py-1.5 px-1.5 font-bold text-right">{t('machine.unipulse.load')}</th>
-              <th className="py-1.5 px-1.5 font-bold text-right">{t('machine.unipulse.stroke')}</th>
-              <th className="py-1.5 px-1.5 font-bold text-center">{t('machine.unipulse.result')}</th>
+            <tr>
+              <th className={`${th} text-left`}>{t('machine.unipulse.time')}</th>
+              <th className={`${th} text-right`}>{t('machine.unipulse.load')}</th>
+              <th className={`${th} text-right`}>{t('machine.unipulse.stroke')}</th>
+              <th className={`${th} text-center`}>{t('machine.unipulse.result')}</th>
             </tr>
           </thead>
           <tbody>
-            {data.rows.map((r) => (
-              <tr key={r.seq} className="border-t border-slate-200/70 dark:border-slate-700/70">
-                <td className="py-1.5 px-1.5 font-mono text-slate-700 dark:text-slate-300">{r.time}</td>
-                <td className={`py-1.5 px-1.5 font-mono text-right ${r.loadKn < data.spec.loadMin || r.loadKn > data.spec.loadMax ? 'text-rose-600 font-bold' : 'text-slate-900 dark:text-white'}`}>
-                  {r.loadKn.toFixed(2)}
-                </td>
-                <td className="py-1.5 px-1.5 font-mono text-right text-slate-900 dark:text-white">{r.strokeMm.toFixed(2)}</td>
-                <td className="py-1.5 px-1.5 text-center">
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${r.result === 'OK' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'}`}>
-                    {r.result}
-                  </span>
-                </td>
-              </tr>
-            ))}
+            {data.rows.map((r) => {
+              const badLoad = r.loadKn < data.spec.loadMin || r.loadKn > data.spec.loadMax;
+              const badStroke = r.strokeMm < data.spec.strokeMin || r.strokeMm > data.spec.strokeMax;
+              return (
+                <tr key={r.seq} className="border-b border-slate-100 dark:border-slate-800">
+                  <td className="py-1.5 px-3 font-mono text-slate-700 dark:text-slate-300">{r.time}</td>
+                  <td className={`py-1.5 px-3 font-mono text-right tabular-nums ${badLoad ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-slate-900 dark:text-white'}`}>
+                    {r.loadKn.toFixed(2)}
+                  </td>
+                  <td className={`py-1.5 px-3 font-mono text-right tabular-nums ${badStroke ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-slate-900 dark:text-white'}`}>
+                    {r.strokeMm.toFixed(2)}
+                  </td>
+                  <td className="py-1.5 px-3 text-center">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${r.result === 'OK' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'}`}>
+                      {r.result}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
       <p className="text-[10px] text-slate-500 dark:text-slate-400">
-        {t('machine.unipulse.ng', { count: data.summary.ng, total: data.summary.count })} · {t('machine.unipulse.note')}
+        {t('machine.unipulse.note')}
         {data.simulated && ` · ${t('lineView.simulated')}`}
       </p>
-    </div>
+    </section>
   );
 }

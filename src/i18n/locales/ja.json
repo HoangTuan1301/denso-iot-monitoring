@@ -240,7 +240,11 @@
       "stroke": "ストローク (mm)",
       "result": "判定",
       "note": "列構成は実機のサンプルCSVに合わせて調整します。",
-      "ng": "NG {{count}} / 計測 {{total}} 回"
+      "ng": "NG {{count}} / 計測 {{total}} 回",
+      "count": "計測回数",
+      "okRate": "良品率",
+      "times": "{{count}} 回",
+      "spec": "規格 荷重・ストローク"
     },
     "cs": {
       "title": "チェックシート · 始業／終業点検",
@@ -248,7 +252,7 @@
       "shift": "{{shift}}直 · {{label}}",
       "startTile": "始業点検",
       "endTile": "終業点検",
-      "ngTile": "規格外（直近）",
+      "ngTile": "規格外",
       "measureTile": "連続計測",
       "notChecked": "未点検",
       "waitingEnd": "点検待ち · 期限 {{time}}",
@@ -276,11 +280,22 @@
       "saving": "保存中…",
       "saved": "点検結果を保存しました。",
       "startMeasure": "計測開始",
-      "stopMeasure": "停止",
+      "stopMeasure": "計測停止",
       "exportCsv": "CSV出力",
       "noMetrics": "測定項目のマッピングが未設定のため、点検項目がありません。",
       "error": "保存できません：{{msg}}",
-      "sparkAria": "{{name}}（直内）、規格 {{min}}～{{max}}"
+      "sparkAria": "{{name}}（直内）、規格 {{min}}～{{max}}",
+      "paramCount": "{{count}} 項目",
+      "nearCount": "{{count}} 項目が規格限界付近",
+      "measuring": "計測中 · 1秒/サンプル",
+      "resultTitleShift": "{{shift}}直の点検結果",
+      "autoJudge": "規格に基づき OK/NG を自動判定し、システム監査ログに記録します。",
+      "near": "限界付近",
+      "vsStart": "始業比",
+      "ago2m": "−2分",
+      "ago1m": "−1分",
+      "now": "現在",
+      "avg": "平均"
     }
   }
 }

@@ -42,6 +42,10 @@ export interface LineStationConfig {
   name: string;
   defaultId: string;
   percentX: number;
+  /** Ảnh máy đã tách nền (PNG/WebP trong suốt) đặt lên băng tải */
+  image?: string;
+  /** Hệ số chiều cao ảnh máy (1 = mặc định) để cân đối máy dài / máy cao */
+  scale?: number;
 }
 
 export interface LineGenericPhotorealisticViewProps {
@@ -114,6 +118,8 @@ export function LineGenericPhotorealisticView({
         status,
         statusLabel,
         percentX: cfg.percentX,
+        image: cfg.image,
+        scale: cfg.scale ?? 1,
         liveData: live,
       };
     });
@@ -159,12 +165,58 @@ export function LineGenericPhotorealisticView({
         {/* Vùng cuộn ngang an toàn cho màn hình nhỏ, bảo toàn tỷ lệ 1024/240 */}
         <div className="overflow-x-auto overflow-y-hidden pb-1 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700">
           <div className="relative min-w-[940px] lg:min-w-0 w-full aspect-[1024/240] rounded-xl overflow-hidden bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
-            {/* 1. ẢNH NỀN PHỐI CẢNH DÂY CHUYỀN CHÂN THỰC (Floor, Roller Conveyor, 4 CAD Machines, ĐẦU VÀO, ĐẦU RA) */}
-            <img
-              src={bgImageUrl}
-              alt={`DENSO ${lineCode} Layout`}
-              className="absolute inset-0 w-full h-full object-fill pointer-events-none"
-            />
+            {/* 1. NỀN DÂY CHUYỀN: vẽ bằng SVG khi có ảnh máy tách nền, ngược lại dùng ảnh nền cũ */}
+            {stations.every((st) => st.image) ? (
+              <>
+                <ConveyorBackdrop stationXs={stations.map((st) => st.percentX)} />
+                {/* Nhãn ĐẦU VÀO / ĐẦU RA (dịch theo ngôn ngữ) */}
+                {[
+                  { side: 'left', label: tr("ĐẦU\nVÀO") },
+                  { side: 'right', label: tr("ĐẦU\nRA") },
+                ].map((lb) => (
+                  <div
+                    key={lb.side}
+                    className="absolute z-[5] flex items-center justify-center rounded-[3px] bg-blue-700 text-white font-black text-center leading-tight shadow-sm whitespace-pre-line"
+                    style={{
+                      [lb.side]: '1.4%',
+                      top: '59%',
+                      width: '4.6%',
+                      height: '17%',
+                      fontSize: 'clamp(7px, 0.85vw, 11px)',
+                    } as React.CSSProperties}
+                  >
+                    {lb.label + ' →'}
+                  </div>
+                ))}
+                {/* Ảnh từng máy (cùng ảnh với màn hình Chi tiết máy) */}
+                {stations.map((st) => (
+                  <img
+                    key={`img-${st.op}`}
+                    src={st.image}
+                    alt={st.name}
+                    loading="lazy"
+                    draggable={false}
+                    className={`absolute z-[6] object-contain object-bottom pointer-events-none select-none transition-transform duration-200 drop-shadow-[0_6px_6px_rgba(15,23,42,0.18)] ${
+                      hoveredOp === st.op ? 'scale-[1.04]' : ''
+                    }`}
+                    style={{
+                      left: `${st.percentX}%`,
+                      bottom: '7%',
+                      width: '18.5%',
+                      height: `${Math.round(58 * st.scale)}%`,
+                      transform: 'translateX(-50%)',
+                      transformOrigin: 'bottom center',
+                    }}
+                  />
+                ))}
+              </>
+            ) : (
+              <img
+                src={bgImageUrl}
+                alt={`DENSO ${lineCode} Layout`}
+                className="absolute inset-0 w-full h-full object-fill pointer-events-none"
+              />
+            )}
 
             {/* 2. CÁC THẺ TRẠNG THÁI NỔI LƠ LỬNG + ĐƯỜNG CHỈ DẪN XANH (OVERLAY REACT DYNAMIC) */}
             {stations.map((st) => {
@@ -271,8 +323,8 @@ export function LineGenericPhotorealisticView({
                   onMouseLeave={() => setHoveredOp(null)}
                   className={`absolute top-[30%] bottom-[6%] w-[15%] min-w-[110px] max-w-[170px] z-10 cursor-pointer rounded-xl transition-all duration-150 ${
                     isHovered
-                      ? 'bg-blue-500/10 ring-2 ring-blue-500/40 shadow-lg'
-                      : 'hover:bg-blue-500/5'
+                      ? 'bg-blue-500/5 ring-2 ring-blue-500/40'
+                      : ''
                   }`}
                   title={tr("Nhấn vào máy {0} ({1}) để xem Machine Detail", st.code, st.name)}
                 />
@@ -397,10 +449,10 @@ export function LineGenericPhotorealisticView({
  * Cấu hình chuẩn 4 công đoạn Line 2 (LN-PNT-02)
  */
 export const LINE2_STATION_CONFIGS: LineStationConfig[] = [
-  { op: 'OP10', code: 'DRY-01', name: tr("Lò sấy nhiệt hồng ngoại Kawasumi"), defaultId: 'MCH-DRY-01', percentX: 20.0 },
-  { op: 'OP20', code: 'MC-DRY-01', name: tr("Trạm sấy hồng ngoại"), defaultId: 'MC-DRY-01', percentX: 40.0 },
-  { op: 'OP30', code: 'MC-PNT-01', name: tr("Trạm phun sơn tự động"), defaultId: 'MC-PNT-01', percentX: 60.0 },
-  { op: 'OP40', code: 'PNT-01', name: tr("Buồng phun sơn robot Yaskawa EPX"), defaultId: 'MCH-PNT-01', percentX: 80.0 },
+  { op: 'OP10', code: 'DRY-01', name: tr("Lò sấy nhiệt hồng ngoại Kawasumi"), defaultId: 'MCH-DRY-01', percentX: 20.0, image: '/images/machines/cutout/DRY-01.webp', scale: 0.9 },
+  { op: 'OP20', code: 'MC-DRY-01', name: tr("Trạm sấy hồng ngoại"), defaultId: 'MC-DRY-01', percentX: 40.0, image: '/images/machines/cutout/MC-DRY-01.webp' },
+  { op: 'OP30', code: 'MC-PNT-01', name: tr("Trạm phun sơn tự động"), defaultId: 'MC-PNT-01', percentX: 60.0, image: '/images/machines/cutout/MC-PNT-01.webp' },
+  { op: 'OP40', code: 'PNT-01', name: tr("Buồng phun sơn robot Yaskawa EPX"), defaultId: 'MCH-PNT-01', percentX: 80.0, image: '/images/machines/cutout/PNT-01.webp' },
 ];
 
 /**
@@ -410,8 +462,82 @@ export const LINE2_STATION_CONFIGS: LineStationConfig[] = [
  * Cấu hình chuẩn 4 công đoạn Line 3 (LN-ASM-03)
  */
 export const LINE3_STATION_CONFIGS: LineStationConfig[] = [
-  { op: 'OP10', code: 'ASM-01', name: tr("Robot siết bulong tự động Atlas Copco"), defaultId: 'MCH-ASM-01', percentX: 20.0 },
-  { op: 'OP20', code: 'MC-TST-01', name: tr("Trạm kiểm tra chức năng"), defaultId: 'MC-TST-01', percentX: 40.0 },
-  { op: 'OP30', code: 'MS-10', name: 'Messi', defaultId: 'MCH-MS10', percentX: 60.0 },
-  { op: 'OP40', code: 'TST-01', name: tr("Băng chuyền kiểm tra cuối dòng TestBench"), defaultId: 'MCH-TST-01', percentX: 80.0 },
+  { op: 'OP10', code: 'ASM-01', name: tr("Robot siết bulong tự động Atlas Copco"), defaultId: 'MCH-ASM-01', percentX: 20.0, image: '/images/machines/cutout/ASM-01.webp' },
+  { op: 'OP20', code: 'MC-TST-01', name: tr("Trạm kiểm tra chức năng"), defaultId: 'MC-TST-01', percentX: 40.0, image: '/images/machines/cutout/MC-TST-01.webp' },
+  { op: 'OP30', code: 'MS-10', name: 'Messi', defaultId: 'MCH-MS10', percentX: 60.0, image: '/images/machines/cutout/MS-10.webp' },
+  { op: 'OP40', code: 'TST-01', name: tr("Băng chuyền kiểm tra cuối dòng TestBench"), defaultId: 'MCH-TST-01', percentX: 80.0, image: '/images/machines/cutout/TST-01.webp', scale: 0.82 },
 ];
+
+/**
+ * Nền dây chuyền vẽ bằng SVG (thay ảnh JPG cũ có khung trắng quanh máy):
+ * sàn, ray an toàn màu cam, băng tải con lăn, chân đỡ và mũi tên hướng dòng chảy.
+ * viewBox 1024×240 khớp tỉ lệ khung sơ đồ; tự đổi màu theo chế độ sáng/tối.
+ */
+function ConveyorBackdrop({ stationXs }: { stationXs: number[] }) {
+  const W = 1024;
+  const xs = stationXs.map((p) => (p / 100) * W);
+  // vị trí mũi tên: giữa các máy + trước máy đầu, sau máy cuối
+  const gaps = [
+    (70 + xs[0]) / 2 - 20,
+    ...xs.slice(1).map((x, i) => (xs[i] + x) / 2),
+    (xs[xs.length - 1] + W - 70) / 2 + 20,
+  ];
+  const legs = [92, W - 92];
+  const rollers: number[] = [];
+  for (let x = 66; x < W - 66; x += 14) rollers.push(x);
+  return (
+    <svg
+      viewBox={`0 0 ${W} 240`}
+      preserveAspectRatio="none"
+      className="absolute inset-0 h-full w-full pointer-events-none"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id="lnFloor" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" className="[stop-color:#f8fafc] dark:[stop-color:#0f172a]" />
+          <stop offset="0.6" className="[stop-color:#eef2f7] dark:[stop-color:#111c2e]" />
+          <stop offset="1" className="[stop-color:#dfe6ef] dark:[stop-color:#16233a]" />
+        </linearGradient>
+      </defs>
+      <rect x="0" y="0" width={W} height="240" fill="url(#lnFloor)" />
+      {/* vùng sàn dưới băng tải */}
+      <rect x="0" y="186" width={W} height="54" className="fill-slate-300/40 dark:fill-slate-700/30" />
+      {/* ray an toàn màu cam (vòng kín) */}
+      <path
+        d={`M 16 148 L ${W - 16} 148 M 16 148 L 16 228 L ${W - 16} 228 L ${W - 16} 148`}
+        fill="none"
+        stroke="#f0a030"
+        strokeWidth="3"
+        strokeLinejoin="round"
+      />
+      {/* chân đỡ băng tải */}
+      {legs.map((x, i) => (
+        <g key={`leg-${i}`} className="fill-slate-500 dark:fill-slate-500">
+          <rect x={x - 3} y="184" width="6" height="36" />
+          <rect x={x - 14} y="217" width="28" height="5" rx="1" />
+        </g>
+      ))}
+      {/* băng tải con lăn */}
+      <rect x="62" y="167" width={W - 124} height="19" rx="2" className="fill-slate-500 dark:fill-slate-600" />
+      {rollers.map((x) => (
+        <rect
+          key={`r-${x}`}
+          x={x}
+          y="170"
+          width="9"
+          height="13"
+          rx="1.5"
+          className="fill-slate-100 stroke-slate-400 dark:fill-slate-300 dark:stroke-slate-500"
+          strokeWidth="1"
+        />
+      ))}
+      {/* mũi tên hướng dòng chảy */}
+      {gaps.map((x, i) => (
+        <g key={`ch-${i}`} transform={`translate(${x - 9} 214)`} className="fill-none stroke-blue-500" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M 0 0 L 5 5 L 0 10" />
+          <path d="M 7 0 L 12 5 L 7 10" />
+        </g>
+      ))}
+    </svg>
+  );
+}

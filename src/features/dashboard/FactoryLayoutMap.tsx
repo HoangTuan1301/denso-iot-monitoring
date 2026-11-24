@@ -486,20 +486,6 @@ export function FactoryLayoutMap({
                       </text>
                     )}
 
-                    {/* Ghi chú nguyên nhân cho line bất thường (mô phỏng) */}
-                    {prod && prod.status !== 'RUNNING' && prod.note && (
-                      <text
-                        x={zone.x + zone.w / 2}
-                        y={zone.y + zone.h - 9}
-                        textAnchor="middle"
-                        dominantBaseline="central"
-                        fontSize={8}
-                        fontWeight="700"
-                        fill={PROD_STYLE[prod.status].text}
-                      >
-                        {prod.note.length > 34 ? prod.note.slice(0, 33) + '…' : prod.note}
-                      </text>
-                    )}
                   </g>
                 ) : isMediumCell ? (
                   /* ======================================================== */
@@ -535,22 +521,9 @@ export function FactoryLayoutMap({
                         fontSize={prod ? 8.5 : 7.5}
                         fontWeight={prod ? '700' : '500'}
                         fontFamily={prod ? 'monospace' : undefined}
-                        fill={prod ? PROD_STYLE[prod.status].text : '#64748B'}
+                        fill={prod ? dotColor : '#64748B'}
                       >
-                        {prod ? `OEE ${prod.oee.toFixed(1)}%` : 'N/A'}
-                      </text>
-                    )}
-                    {prod && prod.status !== 'RUNNING' && prod.note && zone.h >= 55 && (
-                      <text
-                        x={zone.x + zone.w / 2}
-                        y={zone.y + zone.h - 9}
-                        textAnchor="middle"
-                        dominantBaseline="central"
-                        fontSize={6.5}
-                        fontWeight="700"
-                        fill={PROD_STYLE[prod.status].text}
-                      >
-                        {prod.note.length > 18 ? prod.note.slice(0, 17) + '…' : prod.note}
+                        {prod ? `${prod.oee.toFixed(1)}%` : 'N/A'}
                       </text>
                     )}
                   </g>

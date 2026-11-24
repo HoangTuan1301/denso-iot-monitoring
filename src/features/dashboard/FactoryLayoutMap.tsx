@@ -559,33 +559,29 @@ export function FactoryLayoutMap({
           })}
         </svg>
 
-        {/* Tooltip khi rê chuột hiển thị thông tin đầy đủ và minh bạch */}
-        {hoveredZone && (
+        {/* Tooltip khi rê chuột: dùng cùng nguồn dữ liệu với ô (OEE % + trạng thái sản xuất) */}
+        {hoveredZone && (() => {
+          const hp = viewMode === 'status' ? productionZones?.[hoveredZone.id] : undefined;
+          const hs = hp ? PROD_STYLE[hp.status] : null;
+          const statusLabel: Record<ZoneProductionState['status'], string> = {
+            RUNNING: tr('Đang chạy'),
+            WARNING: tr('Cảnh báo'),
+            ALARM: tr('Dừng máy'),
+            IDLE: tr('Dừng chờ'),
+          };
+          return (
           <div
             className="absolute bottom-4 left-4 z-20 p-3 rounded-xl border border-slate-200 dark:border-factory-border bg-white/95 dark:bg-factory-card/95 backdrop-blur shadow-lg text-xs pointer-events-none max-w-sm animate-in fade-in duration-100"
           >
             <div className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-white">
               <span
                 className="w-2.5 h-2.5 rounded-full border border-white"
-                style={{
-                  backgroundColor:
-                    viewMode === 'safety'
-                      ? getHealthScoreColor(
-                          hoveredZone.isConfiguredLine && hoveredZone.mappedLineId
-                            ? lineDataMap.get(hoveredZone.mappedLineId)?.safetyScore ?? 96.8
-                            : null
-                        )
-                      : getStatusDotColor(
-                          hoveredZone.isConfiguredLine && hoveredZone.mappedLineId
-                            ? lineDataMap.get(hoveredZone.mappedLineId)?.status ?? 'RUNNING'
-                            : 'UNMONITORED'
-                        ),
-                }}
+                style={{ backgroundColor: hs ? hs.dot : getStatusDotColor('UNMONITORED') }}
               />
               <span className="text-sm">{hoveredZone.name}</span>
-              {hoveredZone.isConfiguredLine ? (
+              {hp ? (
                 <span className="ml-1 text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold border border-emerald-300">
-                  {tr("Dây chuyền giám sát (")}{hoveredZone.mappedLineId})
+                  {hp.lineCode}
                 </span>
               ) : (
                 <span className="ml-1 text-[9px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-semibold border border-slate-200">
@@ -600,48 +596,28 @@ export function FactoryLayoutMap({
               </p>
             )}
 
-            {hoveredZone.isConfiguredLine && hoveredZone.mappedLineId ? (
+            {hp && hs ? (
               <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1">
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-slate-500">{tr("Mức an toàn đo lường:")}</span>
-                  <strong
-                    className="font-mono font-bold"
-                    style={{
-                      color: getHealthScoreColor(lineDataMap.get(hoveredZone.mappedLineId)?.safetyScore ?? null),
-                    }}
-                  >
-                    {lineDataMap.get(hoveredZone.mappedLineId)?.safetyScore != null
-                      ? `${lineDataMap.get(hoveredZone.mappedLineId)!.safetyScore!.toFixed(1)}%`
-                      : 'N/A'}
+                <div className="flex items-center justify-between gap-6 text-[11px]">
+                  <span className="text-slate-500">{tr("Hiệu suất OEE:")}</span>
+                  <strong className="font-mono font-bold" style={{ color: hs.dot }}>
+                    {`${hp.oee.toFixed(1)}%`}
                   </strong>
                 </div>
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-slate-500">{tr("Trạng thái vận hành:")}</span>
-                  <strong className="font-mono text-slate-800 dark:text-slate-200">
-                    {lineDataMap.get(hoveredZone.mappedLineId)?.operatingStatusLabel ?? tr("Đang hoạt động")}
+                <div className="flex items-center justify-between gap-6 text-[11px]">
+                  <span className="text-slate-500">{tr("Trạng thái sản xuất:")}</span>
+                  <strong className="font-bold" style={{ color: hs.dot }}>
+                    {statusLabel[hp.status]}
                   </strong>
                 </div>
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-slate-500">{tr("Mức độ cảnh báo:")}</span>
-                  <strong
-                    className="font-mono font-bold"
-                    style={{
-                      color:
-                        lineDataMap.get(hoveredZone.mappedLineId)?.status === 'CRITICAL'
-                          ? '#DC2626'
-                          : lineDataMap.get(hoveredZone.mappedLineId)?.status === 'WARNING'
-                          ? '#EAB308'
-                          : '#16A34A',
-                    }}
-                  >
-                    {lineDataMap.get(hoveredZone.mappedLineId)?.alarmSeverityLabel ?? tr("Bình thường")}
-                  </strong>
-                </div>
+                {hp.note && (
+                  <div className="flex items-start justify-between gap-6 text-[11px]">
+                    <span className="text-slate-500 shrink-0">{tr("Lý do dừng:")}</span>
+                    <strong className="text-right text-slate-800 dark:text-slate-200">{hp.note}</strong>
+                  </div>
+                )}
                 <p className="text-[10px] text-blue-600 font-semibold mt-1">
                   {tr("• Nhấn vào khu vực để mở Line Overview (Chi tiết dây chuyền)")}
-                </p>
-                <p className="text-[9px] text-slate-400 italic">
-                  {tr("* Vị trí liên kết dự kiến trên bản đồ sơ bộ (Đang chờ nhà máy nghiệm thu vị trí thực tế).")}
                 </p>
               </div>
             ) : (
@@ -652,7 +628,8 @@ export function FactoryLayoutMap({
               </div>
             )}
           </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* 3. Chân bản đồ: Gợi ý tương tác & Thống kê khu vực */}

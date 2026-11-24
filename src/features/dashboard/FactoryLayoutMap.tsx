@@ -248,9 +248,10 @@ export function FactoryLayoutMap({
             // Lớp trạng thái sản xuất chỉ áp dụng ở chế độ "Trạng thái"; chế độ "Mức độ an toàn" giữ nguyên như cũ
             const prod = viewMode === 'status' ? productionZones?.[zone.id] : undefined;
             const prodStyle = prod ? PROD_STYLE[prod.status] : null;
-            const fillColor = prodStyle?.fill || getZoneFillColor(zone);
-            const strokeColor = isSelected ? getZoneStrokeColor(zone) : prodStyle?.stroke || getZoneStrokeColor(zone);
-            const strokeW = isSelected ? '2.5' : prodStyle?.stroke ? '2' : '1';
+            // Nền & viền ô luôn theo màu nhóm khu vực; trạng thái sản xuất chỉ đổi màu chấm tròn và số % (OEE)
+            const fillColor = getZoneFillColor(zone);
+            const strokeColor = getZoneStrokeColor(zone);
+            const strokeW = isSelected ? '2.5' : '1';
 
             // Dữ liệu dây chuyền thật nếu là line được cấu hình
             const liveLine = isConfigured && zone.mappedLineId ? lineDataMap.get(zone.mappedLineId) : null;
@@ -345,22 +346,6 @@ export function FactoryLayoutMap({
                     strokeWidth={strokeW}
                     strokeDasharray={zone.category === 'future' ? '4 3' : 'none'}
                     className="transition-all duration-150 hover:brightness-95"
-                  />
-                )}
-
-                {/* Viền nhấp nháy đỏ cho line đang Alarm / dừng (mô phỏng) */}
-                {prod?.status === 'ALARM' && (
-                  <rect
-                    x={zone.x - 3}
-                    y={zone.y - 3}
-                    width={zone.w + 6}
-                    height={zone.h + 6}
-                    rx="4"
-                    ry="4"
-                    fill="none"
-                    stroke="#DC2626"
-                    strokeWidth="2"
-                    className="animate-pulse pointer-events-none"
                   />
                 )}
 

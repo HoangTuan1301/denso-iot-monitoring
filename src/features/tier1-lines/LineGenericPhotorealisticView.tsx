@@ -167,49 +167,7 @@ export function LineGenericPhotorealisticView({
           <div className="relative min-w-[940px] lg:min-w-0 w-full aspect-[1024/240] rounded-xl overflow-hidden bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
             {/* 1. NỀN DÂY CHUYỀN: vẽ bằng SVG khi có ảnh máy tách nền, ngược lại dùng ảnh nền cũ */}
             {stations.every((st) => st.image) ? (
-              <>
-                <ConveyorBackdrop stationXs={stations.map((st) => st.percentX)} />
-                {/* Nhãn ĐẦU VÀO / ĐẦU RA (dịch theo ngôn ngữ) */}
-                {[
-                  { side: 'left', label: tr("ĐẦU\nVÀO") },
-                  { side: 'right', label: tr("ĐẦU\nRA") },
-                ].map((lb) => (
-                  <div
-                    key={lb.side}
-                    className="absolute z-[5] flex items-center justify-center rounded-[3px] bg-blue-700 text-white font-black text-center leading-tight shadow-sm whitespace-pre-line"
-                    style={{
-                      [lb.side]: '1.4%',
-                      top: '59%',
-                      width: '4.6%',
-                      height: '17%',
-                      fontSize: 'clamp(7px, 0.85vw, 11px)',
-                    } as React.CSSProperties}
-                  >
-                    {lb.label + ' →'}
-                  </div>
-                ))}
-                {/* Ảnh từng máy (cùng ảnh với màn hình Chi tiết máy) */}
-                {stations.map((st) => (
-                  <img
-                    key={`img-${st.op}`}
-                    src={st.image}
-                    alt={st.name}
-                    loading="lazy"
-                    draggable={false}
-                    className={`absolute z-[6] object-contain object-bottom pointer-events-none select-none transition-transform duration-200 drop-shadow-[0_6px_6px_rgba(15,23,42,0.18)] ${
-                      hoveredOp === st.op ? 'scale-[1.04]' : ''
-                    }`}
-                    style={{
-                      left: `${st.percentX}%`,
-                      bottom: '7%',
-                      width: '18.5%',
-                      height: `${Math.round(58 * st.scale)}%`,
-                      transform: 'translateX(-50%)',
-                      transformOrigin: 'bottom center',
-                    }}
-                  />
-                ))}
-              </>
+              <ConveyorScene stations={stations} hoveredOp={hoveredOp} />
             ) : (
               <img
                 src={bgImageUrl}
@@ -539,5 +497,77 @@ function ConveyorBackdrop({ stationXs }: { stationXs: number[] }) {
         </g>
       ))}
     </svg>
+  );
+}
+
+export interface SceneStation {
+  op: string;
+  name: string;
+  percentX: number;
+  image?: string;
+  scale?: number;
+}
+
+/**
+ * Cảnh dây chuyền dùng chung cho Line 1/2/3: nền băng tải SVG, nhãn ĐẦU VÀO / ĐẦU RA
+ * và ảnh từng máy (ảnh gốc đã tách nền, cùng ảnh với màn Chi tiết máy).
+ */
+export function ConveyorScene({
+  stations,
+  hoveredOp,
+  imageWidthPct = 18.5,
+  imageHeightPct = 58,
+}: {
+  stations: SceneStation[];
+  hoveredOp: string | null;
+  imageWidthPct?: number;
+  imageHeightPct?: number;
+}) {
+  return (
+    <>
+      <ConveyorBackdrop stationXs={stations.map((st) => st.percentX)} />
+      {/* Nhãn ĐẦU VÀO / ĐẦU RA (dịch theo ngôn ngữ) */}
+      {[
+        { side: 'left', label: tr("ĐẦU\nVÀO") },
+        { side: 'right', label: tr("ĐẦU\nRA") },
+      ].map((lb) => (
+        <div
+          key={lb.side}
+          className="absolute z-[5] flex items-center justify-center rounded-[3px] bg-blue-700 text-white font-black text-center leading-tight shadow-sm whitespace-pre-line"
+          style={{
+            [lb.side]: '1.4%',
+            top: '59%',
+            width: '4.6%',
+            height: '17%',
+            fontSize: 'clamp(7px, 0.85vw, 11px)',
+          } as React.CSSProperties}
+        >
+          {lb.label + ' →'}
+        </div>
+      ))}
+      {/* Ảnh từng máy */}
+      {stations.map((st) =>
+        st.image ? (
+          <img
+            key={`img-${st.op}`}
+            src={st.image}
+            alt={st.name}
+            loading="lazy"
+            draggable={false}
+            className={`absolute z-[6] object-contain object-bottom pointer-events-none select-none transition-transform duration-200 drop-shadow-[0_6px_6px_rgba(15,23,42,0.18)] ${
+              hoveredOp === st.op ? 'scale-[1.04]' : ''
+            }`}
+            style={{
+              left: `${st.percentX}%`,
+              bottom: '7%',
+              width: `${imageWidthPct}%`,
+              height: `${Math.round(imageHeightPct * (st.scale ?? 1))}%`,
+              transform: 'translateX(-50%)',
+              transformOrigin: 'bottom center',
+            }}
+          />
+        ) : null,
+      )}
+    </>
   );
 }

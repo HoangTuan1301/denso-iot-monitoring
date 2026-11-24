@@ -22,6 +22,7 @@ import {
   X,
 } from 'lucide-react';
 import { tr } from '../../i18n/tr';
+import { ConveyorScene } from './LineGenericPhotorealisticView';
 
 interface StationFlowData {
   id: string;
@@ -58,12 +59,12 @@ const STATION_PERCENT_X = [16.2, 30.5, 43.5, 56.5, 70.0, 84.5];
  * Tên thiết bị chuẩn công nghiệp cho Line 1
  */
 const DEFAULT_OP_CONFIGS = [
-  { op: 'OP10', code: 'MC-ASM-01', name: tr("Trạm siết bulong tự động"), defaultId: 'MC-ASM-01' },
-  { op: 'OP20', code: 'MC-CYL-01', name: tr("Máy dập xi lanh thủy lực"), defaultId: 'MC-CYL-01' },
-  { op: 'OP30', code: 'MC-FDR-01', name: tr("Máy cấp phôi tự động"), defaultId: 'MC-FDR-01' },
-  { op: 'OP40', code: 'MC-PHASE-C', name: tr("Máy thử nghiệm giai đoạn C"), defaultId: 'MC-TEST-C01' },
-  { op: 'OP50', code: 'STP-01', name: tr("Máy dập thủy lực 500T Komatsu"), defaultId: 'MCH-PRS-01' },
-  { op: 'OP60', code: 'ROB-01', name: tr("Robot hàn điểm Fanuc R-2000iC"), defaultId: 'MCH-WLD-01' },
+  { op: 'OP10', code: 'MC-ASM-01', name: tr("Trạm siết bulong tự động"), defaultId: 'MC-ASM-01', image: '/images/machines/cutout/MC-ASM-01.webp' },
+  { op: 'OP20', code: 'MC-CYL-01', name: tr("Máy dập xi lanh thủy lực"), defaultId: 'MC-CYL-01', image: '/images/machines/cutout/MC-CYL-01.webp' },
+  { op: 'OP30', code: 'MC-FDR-01', name: tr("Máy cấp phôi tự động"), defaultId: 'MC-FDR-01', image: '/images/machines/cutout/MC-FDR-01.webp' },
+  { op: 'OP40', code: 'MC-PHASE-C', name: tr("Máy thử nghiệm giai đoạn C"), defaultId: 'MC-TEST-C01', image: '/images/machines/cutout/MC-PHASE-C.webp' },
+  { op: 'OP50', code: 'STP-01', name: tr("Máy dập thủy lực 500T Komatsu"), defaultId: 'MCH-PRS-01', image: '/images/machines/cutout/STP-01.webp' },
+  { op: 'OP60', code: 'ROB-01', name: tr("Robot hàn điểm Fanuc R-2000iC"), defaultId: 'MCH-WLD-01', image: '/images/machines/cutout/ROB-01.webp' },
 ];
 
 export function Line1PhotorealisticView({
@@ -101,6 +102,7 @@ export function Line1PhotorealisticView({
         status,
         statusLabel,
         percentX: STATION_PERCENT_X[index],
+        image: cfg.image,
         liveData: live,
       };
     });
@@ -146,12 +148,8 @@ export function Line1PhotorealisticView({
         {/* Vùng cuộn ngang an toàn cho màn hình nhỏ, giữ nguyên tỷ lệ đồ họa */}
         <div className="overflow-x-auto overflow-y-hidden pb-1 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700">
           <div className="relative min-w-[940px] lg:min-w-0 w-full aspect-[1024/240] rounded-xl overflow-hidden bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
-            {/* 1. ẢNH NỀN PHỐI CẢNH DÂY CHUYỀN CHÂN THỰC (Floor, Conveyor, 6 CAD Machines, ĐẦU VÀO, ĐẦU RA) */}
-            <img
-              src="/images/lines/line1-diagram-body.jpg"
-              alt="DENSO Line 1 Layout"
-              className="absolute inset-0 w-full h-full object-fill pointer-events-none"
-            />
+            {/* 1. NỀN DÂY CHUYỀN (SVG) + ẢNH GỐC SẮC NÉT CỦA 6 MÁY (cùng cách làm với Line 2, Line 3) */}
+            <ConveyorScene stations={stations} hoveredOp={hoveredOp} imageWidthPct={13.2} imageHeightPct={60} />
 
             {/* 2. CÁC THẺ TRẠNG THÁI NỔI LƠ LỬNG + ĐƯỜNG CHỈ DẪN XANH (OVERLAY REACT DYNAMIC) */}
             {stations.map((st) => {

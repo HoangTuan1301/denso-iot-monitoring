@@ -27,6 +27,7 @@ import {
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useThemeStore } from '../../stores/useThemeStore';
 import { tr } from '../../i18n/tr';
+import { LanguageSwitcher } from '../../components/common/LanguageSwitcher';
 
 const REMEMBERED_EMAIL_KEY = 'denso_remembered_email';
 
@@ -187,8 +188,9 @@ export function LoginPage() {
       {/* 2. KHU VỰC BÊN PHẢI – AUTHENTICATION PANEL (46-48% MÀN HÌNH TRÊN DESKTOP)  */}
       {/* ========================================================================= */}
       <div className="w-full lg:w-[48%] xl:w-[46%] flex flex-col items-center justify-center p-4 sm:p-8 lg:p-10 xl:p-12 relative z-20">
-        {/* Nút chuyển đổi Theme (Sáng / Tối) góc trên bên phải */}
-        <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30">
+        {/* Chọn ngôn ngữ + chuyển Theme (Sáng / Tối) góc trên bên phải */}
+        <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 flex items-center gap-2">
+          <LanguageSwitcher />
           <button
             type="button"
             onClick={toggleTheme}

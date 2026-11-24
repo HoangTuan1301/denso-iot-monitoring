@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { Sun, Moon, RefreshCw, Flame, AlertOctagon, LogOut, Radio, RotateCcw, Menu } from "lucide-react";
+import { Sun, Moon, RefreshCw, LogOut, Radio, Menu } from "lucide-react";
 import { useUiStore, useIsDesktop } from "../../stores/useUiStore";
 import { useMonitoringStore } from "../../stores/useMonitoringStore";
 import { useAuthStore }       from "../../stores/useAuthStore";
@@ -43,16 +43,12 @@ export function Header() {
     isRealtimeActive,
     toggleRealtime,
     simulateTick,
-    triggerEmergencyDemo,
-    resetEmergencyDemo,
-    setActiveTab,
     dashboardViewLevel,
     selectedLineId,
     selectedMachineId,
     lines,
     setDashboardViewLevel,
     setSelectedLineId,
-    activeEmergencyMetricId,
   } = useMonitoringStore();
   const setMobileNavOpen = useUiStore((s) => s.setMobileNavOpen);
   const isDesktop = useIsDesktop();
@@ -61,7 +57,6 @@ export function Header() {
   const { t }                   = useTranslation();
 
   const [timeStr, setTimeStr]       = useState("");
-  const [demoNotice, setDemoNotice] = useState<string | null>(null);
   const [isWsConnected, setIsWsConnected] = useState(false);
 
   /* Lắng nghe trạng thái kết nối WebSocket Realtime */
@@ -108,7 +103,6 @@ export function Header() {
       : BREADCRUMBS[activeTab] ?? BREADCRUMBS.dashboard;
   const { group, page } = currentBreadcrumb;
   const userRole        = (currentUser?.role || "OPERATOR").toUpperCase();
-  const isAdmin         = userRole === "ADMIN";
 
   const displayName     = currentUser?.fullName || currentUser?.name || t("common.defaultUser");
   const initials        = displayName
@@ -119,53 +113,8 @@ export function Header() {
     .join("")
     .toUpperCase() || "DN";
 
-  const [hasActiveEmergency, setHasActiveEmergency] = useState(false);
-  const isEmergencyActive = hasActiveEmergency || !!activeEmergencyMetricId;
-
-  /* Xử lý kích hoạt sự cố giả lập demo */
-  const handleTriggerEmergency = () => {
-    const triggered = triggerEmergencyDemo();
-    if (triggered) {
-      setHasActiveEmergency(true);
-      setDemoNotice(
-        t("header.emergencyNotice", {
-          machine: triggered.machineName,
-          metric: triggered.metricName,
-          value: triggered.value,
-          unit: triggered.unit,
-        })
-      );
-      setTimeout(() => setDemoNotice(null), 8000);
-    }
-  };
-
-  /* Xử lý khôi phục trạng thái chuẩn sau diễn tập */
-  const handleRestoreEmergency = () => {
-    resetEmergencyDemo();
-    setHasActiveEmergency(false);
-    setDemoNotice(t("header.restoredNotice"));
-    setTimeout(() => setDemoNotice(null), 3000);
-  };
-
   return (
     <header className="relative flex h-[60px] shrink-0 items-center justify-between border-b border-factory-border bg-factory-card gap-2 px-3 sm:px-6 z-20">
-
-      {/* ---- Thông báo Toast khi bấm Giả lập sự cố ---- */}
-      {demoNotice && (
-        <div 
-          className="absolute top-[66px] right-6 z-50 flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 text-white px-4 py-2.5 shadow-2xl shadow-rose-950/40 text-xs font-semibold select-none transition-all"
-        >
-          <AlertOctagon className="w-4.5 h-4.5 shrink-0 animate-bounce" />
-          <span onClick={() => setActiveTab('alarms')} className="cursor-pointer hover:underline">{demoNotice}</span>
-          <button
-            type="button"
-            onClick={handleRestoreEmergency}
-            className="ml-2 px-2.5 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-[11px] font-bold cursor-pointer transition-colors"
-          >
-            {t("header.restoreNow")}
-          </button>
-        </div>
-      )}
 
       {/* ---- Nút mở menu (điện thoại / máy tính bảng) ---- */}
       <button
@@ -247,33 +196,6 @@ export function Header() {
 
       {/* ---- Góc phải: các pill & nút ---- */}
       <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-
-        {/* Nút Giả Lập Sự Cố Khẩn Cấp (Chỉ hiển thị cho ADMIN) */}
-        {isAdmin && (
-          <button
-            onClick={handleTriggerEmergency}
-            title={t("header.emergencyTitle")}
-            className="flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border border-rose-500/40 bg-rose-500/10 px-3 py-1 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 active:scale-95 transition-all cursor-pointer shadow-xs"
-          >
-            <Flame className="h-3.5 w-3.5 text-rose-500 animate-pulse" />
-            <span className="hidden xl:inline">{t("header.emergency")}</span>
-            <span className="hidden sm:inline xl:hidden">{t("header.emergencyShort")}</span>
-          </button>
-        )}
-
-        {/* Nút Khôi phục Trạng thái Chuẩn khi có sự cố */}
-        {isAdmin && isEmergencyActive && (
-          <button
-            type="button"
-            onClick={handleRestoreEmergency}
-            title={t("header.restoreTitle")}
-            className="flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 active:scale-95 transition-all cursor-pointer shadow-xs animate-in fade-in"
-          >
-            <RotateCcw className="h-3.5 w-3.5 text-emerald-500" />
-            <span className="hidden sm:inline">{t("header.restoreIncident")}</span>
-            <span className="sm:hidden">{t("header.restore")}</span>
-          </button>
-        )}
 
         {/* Pill Stream — Bật / Tắt cập nhật tự động */}
         <button

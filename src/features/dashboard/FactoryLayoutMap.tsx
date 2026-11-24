@@ -15,8 +15,6 @@ import {
   ZoomIn,
   ZoomOut,
   RotateCcw,
-  ShieldCheck,
-  Activity,
   Layers,
   Info,
 } from 'lucide-react';
@@ -46,7 +44,6 @@ interface FactoryLayoutMapProps {
   /** Gọi khi bấm vào khu vực có line sản xuất (kể cả line mô phỏng) */
   onSelectProductionLine?: (lineCode: string) => void;
   viewMode: 'safety' | 'status';
-  onChangeViewMode: (mode: 'safety' | 'status') => void;
   selectedZoneId: string | null;
   onSelectZone: (zone: FactoryZone) => void;
   onOpenLineOverview: (lineId: string) => void;
@@ -63,7 +60,6 @@ export function FactoryLayoutMap({
   productionZones,
   onSelectProductionLine,
   viewMode,
-  onChangeViewMode,
   selectedZoneId,
   onSelectZone,
   onOpenLineOverview,
@@ -174,36 +170,8 @@ export function FactoryLayoutMap({
           </div>
         </div>
 
-        {/* Thanh công cụ: Chế độ xem & Zoom */}
+        {/* Thanh công cụ: Zoom */}
         <div className="flex items-center gap-2">
-          {/* Nút chuyển đổi: [Mức độ an toàn] / [Trạng thái] */}
-          <div className="flex items-center p-0.5 bg-slate-100 dark:bg-factory-surface rounded-xl border border-slate-200/60 dark:border-factory-border text-xs">
-            <button
-              type="button"
-              onClick={() => onChangeViewMode('safety')}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                viewMode === 'safety'
-                  ? 'bg-white dark:bg-factory-card text-emerald-700 dark:text-emerald-400 shadow-2xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-              }`}
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>{tr("Mức độ an toàn")}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => onChangeViewMode('status')}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                viewMode === 'status'
-                  ? 'bg-white dark:bg-factory-card text-emerald-700 dark:text-emerald-400 shadow-2xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-              }`}
-            >
-              <Activity className="w-3.5 h-3.5" />
-              <span>{tr("Trạng thái")}</span>
-            </button>
-          </div>
-
           {/* Công cụ Zoom / Pan */}
           <div className="flex items-center gap-1 p-0.5 bg-slate-100 dark:bg-factory-surface rounded-xl border border-slate-200/60 dark:border-factory-border">
             <button

@@ -33,6 +33,7 @@ import { EmbeddedCheckSheet } from './detail/EmbeddedCheckSheet';
 import { MachineDocuments } from './detail/MachineDocuments';
 import { UnipulsePanel } from './detail/UnipulsePanel';
 import { tr } from '../../i18n/tr';
+import { downloadMachineCsv } from './detail/machineCsv';
 
 interface MachineDetailViewProps {
   machineId: string;
@@ -146,10 +147,12 @@ export function MachineDetailView({
 
           <button
             type="button"
-            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-factory-border bg-slate-50 dark:bg-factory-surface text-slate-700 dark:text-slate-300 hover:bg-slate-100 font-semibold text-xs transition-colors cursor-pointer"
+            onClick={() => downloadMachineCsv(machine.id, machine.code, resolved.metrics as never[])}
+            title={tr("Tải file CSV dữ liệu của máy (check sheet ca + điều kiện gia công 30 ngày)")}
+            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 font-semibold text-xs transition-colors cursor-pointer"
           >
             <Download className="w-4 h-4" />
-            <span className="hidden sm:inline">{tr("Xuất dữ liệu")}</span>
+            <span className="hidden sm:inline">{tr("Tải CSV")}</span>
           </button>
         </div>
       </div>

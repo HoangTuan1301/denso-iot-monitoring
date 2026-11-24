@@ -18,7 +18,7 @@
     "devices": "設備監視",
     "alarms": "アラーム・異常",
     "history": "データ履歴",
-    "ai": "AI監視・予知",
+    "ai": "AI監視・予知保全",
     "lines": "ライン・設備",
     "metrics": "パラメータ一覧",
     "thresholds": "マッピング・警報しきい値",
@@ -83,14 +83,14 @@
     "whatIfTitle": "What‑If シミュレーション · {{line}}",
     "order": "受注 {{code}} · {{qty}} 個（納期 {{due}}）",
     "oee": "OEE",
-    "qty": "数量",
+    "qty": "生産数",
     "cost": "費用",
-    "recovery": "復旧",
+    "recovery": "挽回数",
     "best": "最適",
     "meets": "納期内",
     "short": "{{count}} 個不足",
     "surplus": "{{count}} 個余裕",
-    "waterfallTitle": "ロスウォーターフォール（個）",
+    "waterfallTitle": "生産ロス分析（個）",
     "scenarioLabel": "対策案：{{name}}",
     "plan": "直の計画",
     "final": "直終了時の見込み",
@@ -155,7 +155,7 @@
   },
   "lineView": {
     "kpi": {
-      "oee": "OEE（設備総合効率）· ライン効率",
+      "oee": "OEE（設備総合効率）· ライン",
       "oeeTarget": "目標 {{target}}%",
       "shortStop": "チョコ停時間",
       "longStop": "ドカ停時間",
@@ -227,7 +227,7 @@
       "empty": "資料はまだありません。",
       "download": "ダウンロード",
       "delete": "削除",
-      "confirmDelete": "削除？",
+      "confirmDelete": "削除しますか？",
       "tooLarge": "10 MB を超えています。",
       "error": "失敗しました：{{msg}}",
       "noPermission": "アップロード・削除は ADMIN / MAINTENANCE のみ。"
@@ -278,7 +278,7 @@
       "startMeasure": "計測開始",
       "stopMeasure": "停止",
       "exportCsv": "CSV出力",
-      "noMetrics": "メトリクスのマッピングが未設定のため、点検項目がありません。",
+      "noMetrics": "測定項目のマッピングが未設定のため、点検項目がありません。",
       "error": "保存できません：{{msg}}",
       "sparkAria": "{{name}}（直内）、規格 {{min}}～{{max}}"
     }

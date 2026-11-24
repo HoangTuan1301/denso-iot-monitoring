@@ -17,9 +17,9 @@ Hệ thống web giám sát nhà máy thông minh cho bài thi **DENSO Hackathon
 
 | Màn hình | Nội dung |
 |---|---|
-| **Dashboard tổng quan** | KPI nhà máy (OEE = A × P × Q, số dây chuyền, số máy, trạng thái, máy offline) · **Sơ đồ mặt bằng nhà máy** 87 khu vực, tô màu theo *trạng thái sản xuất* (mặc định) hoặc *mức độ an toàn* · **Top 5 dây chuyền dừng dài nhất** trong ca · **Mô phỏng What-If** (Chờ sửa / San tải sang line khác / Tăng ca OT / Thay linh kiện giao ca) · **Thác tổn thất** sản lượng · khuyến nghị và xuất báo cáo |
+| **Dashboard tổng quan** | KPI nhà máy (OEE = A × P × Q, số dây chuyền, số máy, trạng thái, máy offline) · **Sơ đồ mặt bằng nhà máy** 87 khu vực, tô màu theo *trạng thái sản xuất* · **Top 5 dây chuyền dừng dài nhất** trong ca · **Mô phỏng What-If** (Chờ sửa / San tải sang line khác / Tăng ca OT / Thay linh kiện giao ca) · **Thác tổn thất** sản lượng · khuyến nghị và xuất báo cáo |
 | **Chi tiết dây chuyền** | KPI ca (OEE, dừng ngắn チョコ停, dừng dài ドカ停, sản lượng) · sơ đồ dây chuyền 2D/3D, bấm vào máy để mở chi tiết · **Giám sát sản lượng** theo giờ (kế hoạch – thực tế – dự báo cuối ca, chọn Ca 1/2/3) · **Bảng điều kiện gia công 30 ngày** (đánh dấu ô ngoài quy cách, xuất Excel) |
-| **Chi tiết máy** | Trạng thái, thông số realtime, thông tin kỹ thuật · **Check sheet đầu/cuối ca** nằm ngay trong trang (ghi nhận, tự chấm OK/NG theo ngưỡng, xuất CSV) · **Tài liệu máy** (bản vẽ, chương trình, khác — tải lên/tải xuống) · **Dữ liệu CSV Unipulse** |
+| **Chi tiết máy** | Trạng thái, thông số realtime, thông tin kỹ thuật · **Check sheet đầu/cuối ca** nằm ngay trong trang (ghi nhận, tự chấm OK/NG theo ngưỡng, xuất CSV) · **Tài liệu máy** (bản vẽ, chương trình, khác — tải lên/tải xuống) · **Dữ liệu CSV Unipulse** · nút **Tải CSV** (mỗi máy có sẵn 1 file mẫu: check sheet ca + điều kiện gia công 30 ngày) |
 | **Giám sát thiết bị** | Danh sách máy dạng thẻ/bảng, lọc theo dây chuyền, trạng thái, nguồn dữ liệu, mã QR |
 | **Cảnh báo & sự cố** | Nhật ký cảnh báo, quy trình 3 bước *Chờ tiếp nhận → Đang xử lý → Đã giải quyết*, xuất CSV/Excel |
 | **Lịch sử dữ liệu** | Tra cứu telemetry theo ca/ngày/giờ/máy, xuất Excel · CSV · JSON |
@@ -166,7 +166,7 @@ Chưa có hệ thống migration có phiên bản: thay đổi cấu trúc bản
 
 ## 6. Đa ngôn ngữ (VI / EN / JA)
 
-- Nút **VI · EN · 日本語** trên thanh tiêu đề. Lựa chọn lưu trong trình duyệt (`localStorage: denso_iot_lang`). Đổi ngôn ngữ sẽ **tải lại trang** và mở lại đúng màn hình đang xem.
+- Nút **cờ** trên thanh tiêu đề mở menu chọn Tiếng Việt / English / 日本語. Lựa chọn lưu trong trình duyệt (`localStorage: denso_iot_lang`). Đổi ngôn ngữ sẽ **tải lại trang** và mở lại đúng màn hình đang xem.
 - Hai cơ chế:
   - `t('nhom.key')` (i18next) — key trong `src/i18n/locales/{vi,en,ja}.json`.
   - `tr('Câu tiếng Việt')` — câu tiếng Việt làm khóa, bản dịch trong `src/i18n/dict/{en,ja}.json`. Biến chèn dạng `tr('Máy {0} lỗi', code)`.
@@ -204,6 +204,7 @@ Tất cả API (trừ đăng nhập và `/api/health`) cần header `Authorizati
 | `npm run build` | Kiểm tra TypeScript (`tsc --noEmit`) rồi build vào `dist/` |
 | `npm run preview` | Xem thử bản build |
 | `node scripts/i18n-check.mjs` | Kiểm tra bản dịch |
+| `node scripts/gen-machine-csv.mjs` | Sinh lại file CSV mẫu của từng máy vào `public/data/machine-csv/` |
 | `node tests/<tên-file>.cjs` | Các script kiểm thử riêng lẻ (chưa có lệnh `npm test`) |
 
 **Triển khai:** push lên `main` → Vercel build frontend, Render khởi động lại backend (mất khoảng 2–3 phút). Trên Render cần đặt `JWT_SECRET`, `JWT_REFRESH_SECRET` và các biến `DB_*`.
@@ -216,7 +217,7 @@ Tất cả API (trừ đăng nhập và `/api/health`) cần header `Authorizati
 2. **Dashboard:** xem OEE nhà máy → sơ đồ mặt bằng (chế độ *Trạng thái*) → **Top 5 dây chuyền dừng dài** → chọn một dây chuyền để xem **What-If** và **Thác tổn thất**, đọc phương án được đề xuất.
 3. Mở **chi tiết dây chuyền** → xem dừng ngắn/dừng dài, biểu đồ sản lượng theo giờ, bảng điều kiện gia công 30 ngày.
 4. Bấm vào một máy trên sơ đồ → **chi tiết máy**: ghi nhận check sheet đầu ca, xem tài liệu máy, dữ liệu Unipulse.
-5. Bấm **Giả lập sự cố** trên thanh tiêu đề → xem cảnh báo xuất hiện ở **Cảnh báo & sự cố**, xử lý theo 3 bước → **Khôi phục**.
+5. Bấm **Tải CSV** ở chi tiết máy để lấy file dữ liệu máy; mở **Cảnh báo & sự cố** để xem quy trình xử lý 3 bước.
 6. Chuyển **EN / 日本語** để giới thiệu giao diện đa ngôn ngữ; mở trên điện thoại để giới thiệu bản mobile.
 
 ---

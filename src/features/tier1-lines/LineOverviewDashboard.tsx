@@ -126,7 +126,7 @@ function FactoryLayoutMainView() {
   const { alarms } = useAlarmStore();
   const [mainTabMode, setMainTabMode] = useState<'layout' | 'analytics'>('layout');
   // Mặc định xem "Trạng thái" (OEE + line bất thường); "Mức độ an toàn" giữ nguyên hiển thị cũ
-  const [mapViewMode, setMapViewMode] = useState<'safety' | 'status'>('status');
+  const mapViewMode = 'status' as const;
 
   // Mặc định chọn khu vực CVT (tương ứng LN-PRS-01) như ảnh tham chiếu
   const [selectedZone, setSelectedZone] = useState<FactoryZone | null>(() => {
@@ -310,7 +310,6 @@ function FactoryLayoutMainView() {
                 productionZones={productionZones}
                 onSelectProductionLine={handleSelectProductionLine}
                 viewMode={mapViewMode}
-                onChangeViewMode={setMapViewMode}
                 selectedZoneId={selectedZone?.id || null}
                 onSelectZone={(zone) => setSelectedZone(zone)}
                 onOpenLineOverview={(lineId) => navigateToLine(lineId)}

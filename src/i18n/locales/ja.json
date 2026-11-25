@@ -137,22 +137,6 @@
     "LOW_OEE": "OEE低下",
     "SHORT_STOP_COUNT": "チョコ停 × {{count}}"
   },
-  "mapGuide": {
-    "title": "工場レイアウトの使い方",
-    "step1": "ライン（緑枠）をクリックしてライン詳細を表示",
-    "step2": "右側の上位5ラインから選んで What‑If を実行",
-    "step3": "エリアにカーソルを合わせると詳細を表示",
-    "safetyScale": "安全度の色分け",
-    "statusScale": "生産状態の色分け",
-    "safe": "安全",
-    "watch": "監視",
-    "caution": "注意",
-    "danger": "危険",
-    "unmonitored": "未監視",
-    "runningHint": "OEE 82%以上・ドカ停なし",
-    "warningHint": "直近ドカ停 / OEE 82%未満",
-    "alarmHint": "停止中 / OEE 72%未満"
-  },
   "lineView": {
     "kpi": {
       "oee": "OEE（設備総合効率）· ライン",

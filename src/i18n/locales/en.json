@@ -137,22 +137,6 @@
     "LOW_OEE": "Low OEE",
     "SHORT_STOP_COUNT": "Minor stops × {{count}}"
   },
-  "mapGuide": {
-    "title": "How to use the factory layout",
-    "step1": "Click a line (green outline) to open its Line Overview",
-    "step2": "Pick a line in the Top 5 on the right to run What‑If",
-    "step3": "Hover over an area to see its details",
-    "safetyScale": "Safety color scale",
-    "statusScale": "Production status colors",
-    "safe": "Safe",
-    "watch": "Watch",
-    "caution": "Caution",
-    "danger": "Danger",
-    "unmonitored": "Not monitored",
-    "runningHint": "OEE ≥ 82%, no long stop",
-    "warningHint": "Recent long stop / OEE < 82%",
-    "alarmHint": "Stopped now / OEE < 72%"
-  },
   "lineView": {
     "kpi": {
       "oee": "OEE (machine) · line efficiency",

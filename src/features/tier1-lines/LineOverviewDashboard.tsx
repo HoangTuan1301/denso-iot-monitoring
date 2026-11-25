@@ -16,7 +16,6 @@ import {
   Map,
   BarChart3,
   ArrowRight,
-  Info,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -56,64 +55,6 @@ import { tr } from '../../i18n/tr';
  * Component hiển thị giao diện Màn hình 1: Factory Layout Map & Analytics
  * Tách biệt hoàn toàn hooks để tuân thủ React Rules of Hooks
  */
-/** Hướng dẫn sử dụng sơ đồ + thang màu theo chế độ đang xem (nằm ngay dưới sơ đồ) */
-function FactoryMapGuide({ viewMode }: { viewMode: 'safety' | 'status' }) {
-  const { t } = useTranslation();
-  const safetyScale = [
-    { color: '#16A34A', range: '90 – 100%', label: t('mapGuide.safe'), cls: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800' },
-    { color: '#EAB308', range: '80 – 89.9%', label: t('mapGuide.watch'), cls: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800' },
-    { color: '#F97316', range: '70 – 79.9%', label: t('mapGuide.caution'), cls: 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800' },
-    { color: '#DC2626', range: '< 70%', label: t('mapGuide.danger'), cls: 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800' },
-    { color: '#94A3B8', range: 'N/A', label: t('mapGuide.unmonitored'), cls: 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700' },
-  ];
-  const statusScale = [
-    { color: '#16A34A', range: t('dashboard.mapLegend.running'), label: t('mapGuide.runningHint'), cls: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800' },
-    { color: '#EAB308', range: t('dashboard.mapLegend.warning'), label: t('mapGuide.warningHint'), cls: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800' },
-    { color: '#DC2626', range: t('dashboard.mapLegend.alarm'), label: t('mapGuide.alarmHint'), cls: 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800' },
-    { color: '#94A3B8', range: 'N/A', label: t('mapGuide.unmonitored'), cls: 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700' },
-  ];
-  const scale = viewMode === 'safety' ? safetyScale : statusScale;
-  const steps = [t('mapGuide.step1'), t('mapGuide.step2'), t('mapGuide.step3')];
-  const stepColor = ['text-emerald-600', 'text-blue-600', 'text-amber-600'];
-
-  return (
-    <div className="bg-white dark:bg-factory-card rounded-xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs">
-      <div className="flex flex-col gap-4">
-        <div>
-          <h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5 mb-2.5">
-            <Info className="w-4 h-4 text-blue-600" />
-            <span>{t('mapGuide.title')}</span>
-          </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-slate-600 dark:text-slate-300">
-            {steps.map((txt, i) => (
-              <div key={i} className="flex items-start gap-2 p-2 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
-                <span className={`${stepColor[i]} font-bold`}>{i + 1}.</span>
-                <span>{txt}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div>
-          <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-2.5">
-            {viewMode === 'safety' ? t('mapGuide.safetyScale') : t('mapGuide.statusScale')}
-          </h4>
-          <div className={`grid grid-cols-2 gap-2 text-[10px] ${viewMode === 'safety' ? 'sm:grid-cols-5' : 'sm:grid-cols-4'}`}>
-            {scale.map((c) => (
-              <div key={c.range} className={`flex items-center gap-1.5 p-1.5 rounded border ${c.cls}`}>
-                <span className="w-2.5 h-2.5 rounded-full shrink-0 border border-white" style={{ background: c.color }} />
-                <div className="min-w-0">
-                  <div className="font-bold text-slate-800 dark:text-slate-200 truncate">{c.range}</div>
-                  <div className="text-slate-500 text-[9px] truncate">{c.label}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function FactoryLayoutMainView() {
   const {
     lines,
@@ -304,7 +245,7 @@ function FactoryLayoutMainView() {
       {mainTabMode === 'layout' ? (
         <div className="space-y-4">
           <div className="flex flex-col lg:flex-row gap-4 items-start">
-            {/* Cột trái / Trung tâm: Bản đồ SVG 87 khu vực + hướng dẫn & thang màu ngay bên dưới */}
+            {/* Cột trái / Trung tâm: Bản đồ SVG 87 khu vực */}
             <div className="flex-1 min-w-0 w-full flex flex-col gap-4">
               <FactoryLayoutMap
                 productionZones={productionZones}
@@ -314,7 +255,6 @@ function FactoryLayoutMainView() {
                 onSelectZone={(zone) => setSelectedZone(zone)}
                 onOpenLineOverview={(lineId) => navigateToLine(lineId)}
               />
-              <FactoryMapGuide viewMode={mapViewMode} />
             </div>
 
             {/* Cột phải: Top 5 line dừng lâu → What-If → Thác tổn thất → Khuyến nghị */}

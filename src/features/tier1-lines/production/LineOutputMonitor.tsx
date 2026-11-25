@@ -1,236 +1,536 @@
 /**
  * @file LineOutputMonitor.tsx
- * @description Giám sát sản lượng sản xuất của 1 dây chuyền trong 1 ca:
- *  - Dải 5 số liệu: Kế hoạch · Thực tế · Chênh lệch · Dự báo cuối ca · Takt/Cycle time
- *  - Biểu đồ lũy kế: kế hoạch (nét đứt) vs thực tế (vùng xanh) vs dự báo (chấm), vùng đỏ = dừng dài
- *  - Bảng sản lượng theo giờ có % đạt và ghi chú nguyên nhân
+ * @description Giám sát sản lượng sản xuất của 1 dây chuyền (theo góp ý mentor DENSO):
+ *  - 3 chế độ xem: Ca · theo giờ / Tuần · theo ngày / Tháng · theo tuần
+ *  - 5 thẻ số: Kế hoạch · Thực tế · Chênh lệch · Dự báo (hoặc tuần/ngày tốt nhất) · Hàng lỗi NG
+ *  - Biểu đồ cột Kế hoạch/Thực tế + đường lũy kế, dải chênh lệch so với kế hoạch
+ *  - Biểu đồ hàng lỗi NG + loại lỗi nhiều nhất
+ *  - Bảng chi tiết theo giờ (thu gọn được) ở chế độ ca
  */
-import type { ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { LineShiftProduction } from '../../../types/production';
+import { ChevronDown, ChevronLeft, ChevronRight, Download, Table2 } from 'lucide-react';
+import type { LineShiftProduction, DefectCount } from '../../../types/production';
 import { useCauseText } from '../../dashboard/production/useProduction';
-import { minutesFromShiftStart } from './useLineProduction';
+import { useLineDaily } from './useLineProduction';
+import { NgChart, OutputBarChart, VarianceStrip, nf, toneOf, type OutputSlot, type SlotGroup } from './OutputCharts';
+import { tr, trData } from '../../../i18n/tr';
 
-const nf = (v: number) => v.toLocaleString('en-US');
-
-// Khung biểu đồ (đơn vị SVG)
-const W = 700;
-const H = 260;
-const L = 52; // lề trái cho nhãn trục
-const R = 690;
-const TOP = 14;
-const BOT = 222;
+type ViewMode = 'shift' | 'week' | 'month';
 
 interface Props {
   data: LineShiftProduction | null;
   loading: boolean;
   shift: 1 | 2 | 3 | null;
   onChangeShift: (shift: 1 | 2 | 3) => void;
+  lineCode?: string | null;
 }
 
-export function LineOutputMonitor({ data, loading, shift, onChangeShift }: Props) {
+const DAY_MS = 86400000;
+const addDays = (d: string, n: number) => new Date(Date.parse(`${d}T00:00:00Z`) + n * DAY_MS).toISOString().slice(0, 10);
+const addMonths = (d: string, n: number) => {
+  const x = new Date(`${d}T00:00:00Z`);
+  return new Date(Date.UTC(x.getUTCFullYear(), x.getUTCMonth() + n, 1)).toISOString().slice(0, 10);
+};
+const dm = (d: string) => `${d.slice(8, 10)}/${d.slice(5, 7)}`;
+const signed = (v: number) => `${v >= 0 ? '+' : '−'}${nf(Math.abs(v))}`;
+
+function downloadCsv(name: string, rows: Array<Array<string | number | null>>) {
+  const body = rows.map((r) => r.map((c) => (c === null ? '' : `"${String(c).replace(/"/g, '""')}"`)).join(',')).join('\r\n');
+  const blob = new Blob(['﻿' + body], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+function Kpi({ label, value, tone, sub, bar }: { label: string; value: ReactNode; tone: string; sub: ReactNode; bar?: { pct: number; mark: number; tone: string } }) {
+  return (
+    <div className="p-3.5 rounded-xl border border-slate-200 dark:border-factory-border bg-white dark:bg-factory-card flex flex-col gap-1.5 min-w-0">
+      <span className="text-[10.5px] font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400 truncate">{label}</span>
+      <strong className={`font-mono text-2xl leading-none ${tone}`}>{value}</strong>
+      <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{sub}</span>
+      {bar && (
+        <div className="relative h-[5px] rounded-full bg-slate-100 dark:bg-white/[0.08] mt-1" aria-hidden="true">
+          <div className={`h-[5px] rounded-full ${bar.tone}`} style={{ width: `${Math.min(100, bar.pct)}%` }} />
+          <div className="absolute -top-[3px] w-0.5 h-[11px] bg-slate-900 dark:bg-white" style={{ left: `${Math.min(100, bar.mark)}%` }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Legend({ items }: { items: Array<{ kind: 'bar' | 'ghost' | 'dash' | 'line'; cls: string; label: string }> }) {
+  return (
+    <div className="flex flex-wrap gap-x-3.5 gap-y-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+      {items.map((it) => (
+        <span key={it.label} className="flex items-center gap-1.5">
+          {it.kind === 'bar' && <span className={`w-2.5 h-2.5 rounded-[3px] ${it.cls}`} />}
+          {it.kind === 'ghost' && <span className={`w-2.5 h-2.5 rounded-[3px] border-[1.5px] border-dashed ${it.cls}`} />}
+          {it.kind === 'dash' && <span className={`w-[18px] border-t-2 border-dashed ${it.cls}`} />}
+          {it.kind === 'line' && <span className={`w-[18px] h-[2.5px] rounded ${it.cls}`} />}
+          {it.label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function Panel({ title, legend, children }: { title: string; legend?: ReactNode; children: ReactNode }) {
+  return (
+    <section className="rounded-xl border border-slate-200 dark:border-factory-border bg-white dark:bg-factory-card p-4 flex flex-col gap-2.5 min-w-0">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h4 className="text-[12.5px] font-extrabold tracking-wide text-slate-900 dark:text-white">{title}</h4>
+        {legend}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function TopDefects({ items }: { items?: DefectCount[] }) {
+  const list = (items || []).filter((d) => d.count > 0).sort((a, b) => b.count - a.count);
+  if (!list.length) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] text-[11px]">
+      <span className="font-bold text-slate-500 dark:text-slate-400 mr-0.5">{tr('Lỗi nhiều nhất')}</span>
+      {list.map((d) => (
+        <span key={d.code} className="px-2 py-0.5 rounded-full font-bold bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300">
+          {trData(d.label)} <span className="font-mono">{nf(d.count)}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+const barLegend = (target: number, withGhost: boolean) => [
+  { kind: 'bar' as const, cls: 'bg-blue-500', label: tr('Kế hoạch') },
+  { kind: 'bar' as const, cls: 'bg-lime-400', label: tr('Thực tế') },
+  { kind: 'bar' as const, cls: 'bg-amber-400', label: tr('Dưới {0}%', target) },
+  ...(withGhost ? [{ kind: 'ghost' as const, cls: 'border-blue-500', label: tr('Chưa tới') }] : []),
+  { kind: 'dash' as const, cls: 'border-slate-500 dark:border-slate-300', label: tr('Lũy kế KH') },
+  { kind: 'line' as const, cls: 'bg-cyan-600 dark:bg-cyan-400', label: tr('Lũy kế TT') },
+];
+
+function VarianceBlock({ slots, target, width }: { slots: OutputSlot[]; target: number; width: number }) {
+  return (
+    <div className="border-t border-dashed border-slate-200 dark:border-factory-border pt-2">
+      <p className="text-[10.5px] font-extrabold tracking-wider text-slate-500 dark:text-slate-400">
+        {tr('CHÊNH LỆCH SO VỚI KẾ HOẠCH')}{' '}
+        <span className="font-semibold tracking-normal">
+          · {tr('xanh: đạt mục tiêu ≥ {0}% · cam: {1}–{0}% · đỏ: < {1}%', target, target - 5)}
+        </span>
+      </p>
+      <VarianceStrip slots={slots} targetPct={target} width={width} height={slots.length > 12 ? 112 : 92} />
+    </div>
+  );
+}
+
+export function LineOutputMonitor({ data, loading, shift, onChangeShift, lineCode }: Props) {
   const { t } = useTranslation();
   const causeText = useCauseText();
+  const [mode, setMode] = useState<ViewMode>('shift');
+  const [anchor, setAnchor] = useState<string | undefined>(undefined);
+  const [showTable, setShowTable] = useState(false);
+  const daily = useLineDaily(lineCode ?? data?.lineCode ?? null, mode === 'shift' ? null : mode, anchor);
 
   const activeShift = shift ?? data?.shift ?? 1;
+  const modes: Array<[ViewMode, string]> = [
+    ['shift', tr('Ca · theo giờ')],
+    ['week', tr('Tuần · theo ngày')],
+    ['month', tr('Tháng · theo tuần')],
+  ];
+
+  const segBtn = (active: boolean) =>
+    `min-h-[34px] px-3 rounded-md text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
+      active
+        ? 'bg-white dark:bg-factory-surface text-slate-900 dark:text-white shadow-sm dark:shadow-none dark:ring-1 dark:ring-factory-border'
+        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+    }`;
+
+  // ---------- Dữ liệu chế độ ca ----------
+  const shiftView = useMemo(() => {
+    if (!data || data.state === 'NOT_STARTED') return null;
+    const target = data.output.targetPct ?? 85;
+    const slots: OutputSlot[] = data.hourly.map((h) => {
+      const frac = h.status === 'running' ? Math.max(0.05, (data.elapsedMin % 60) / 60 || 1) : undefined;
+      return {
+        label: h.hour,
+        plan: h.plan,
+        planCompare: h.status === 'running' ? h.planSoFar : h.plan,
+        actual: h.status === 'future' ? null : h.actual,
+        ng: h.status === 'future' ? null : (h.ng ?? null),
+        status: h.status,
+        frac,
+      };
+    });
+    const ngThreshold = Math.max(1, Math.round(((data.hourly[0]?.plan ?? 0) * (data.output.ngTargetPct ?? 1)) / 100));
+    return { target, slots, ngThreshold };
+  }, [data]);
+
+  // ---------- Dữ liệu chế độ tuần / tháng ----------
+  const dayView = useMemo(() => {
+    const d = daily.data;
+    if (!d || mode === 'shift') return null;
+    const work = d.days.filter((x) => x.status !== 'off');
+    const slots: OutputSlot[] = work.map((x) => ({
+      label: mode === 'week' ? `${dm(x.date)}` : x.date.slice(8, 10),
+      plan: x.plan,
+      planCompare: x.status === 'running' ? x.planSoFar : x.plan,
+      actual: x.actual,
+      ng: x.ng,
+      status: x.status === 'off' ? 'future' : x.status,
+      frac: x.status === 'running' && x.plan > 0 ? x.planSoFar / x.plan : undefined,
+    }));
+    let groups: SlotGroup[] | undefined;
+    let ngGroups: SlotGroup[] | undefined;
+    if (mode === 'month') {
+      groups = [];
+      ngGroups = [];
+      for (const w of d.weeks) {
+        const start = work.findIndex((x) => x.date === w.from);
+        const end = work.findIndex((x) => x.date === w.to);
+        if (start < 0 || end < 0) continue;
+        const pct = w.planSoFar > 0 && w.actual !== null ? (w.actual / w.planSoFar) * 100 : null;
+        groups.push({
+          label: `W${w.week}`,
+          start,
+          end,
+          value: pct === null ? '—' : `${pct.toFixed(1)}%`,
+          tone: pct === null ? 'good' : toneOf(w.actual ?? 0, w.planSoFar, d.targetPct),
+        });
+        ngGroups.push({ label: `W${w.week}`, start, end, value: w.ng === null ? '—' : `NG ${nf(w.ng)}`, tone: 'ng' });
+      }
+    }
+    const dayPlan = work.find((x) => x.plan > 0)?.plan ?? 0;
+    const ngThreshold = Math.max(1, Math.round((dayPlan * d.ngTargetPct) / 100));
+    return { d, slots, groups, ngGroups, ngThreshold, target: d.targetPct };
+  }, [daily.data, mode]);
+
+  // ---------- Thanh tiêu đề ----------
+  const periodLabel = (() => {
+    const d = daily.data;
+    if (!d) return '';
+    if (mode === 'week') return `${tr('Tuần')} W${d.days[0]?.week ?? ''} · ${dm(d.from)} – ${dm(d.to)}`;
+    return `${tr('Tháng')} ${d.from.slice(5, 7)}/${d.from.slice(0, 4)}`;
+  })();
+  const canNext = !!daily.data && daily.data.to < daily.data.today;
+  const step = (dir: -1 | 1) => {
+    const base = daily.data?.from ?? daily.data?.today;
+    if (!base) return;
+    setAnchor(mode === 'week' ? addDays(base, dir * 7) : addMonths(base, dir));
+  };
+
+  const exportCsv = () => {
+    if (mode === 'shift' && data) {
+      downloadCsv(`${data.lineCode}_${data.date}_ca${data.shift}_san-luong.csv`, [
+        [tr('Giờ'), tr('Kế hoạch'), tr('Thực tế'), tr('Chênh lệch'), 'NG', tr('Ghi chú')],
+        ...data.hourly.map((h) => {
+          const plan = h.status === 'running' ? h.planSoFar : h.plan;
+          return [h.hour, plan, h.actual, h.actual === null ? null : h.actual - plan, h.ng ?? null, h.note ? trData(h.note) : ''];
+        }),
+      ]);
+    } else if (daily.data) {
+      const d = daily.data;
+      downloadCsv(`${d.lineCode}_${d.from}_${d.to}_san-luong.csv`, [
+        [tr('Ngày'), tr('Tuần'), tr('Kế hoạch'), tr('Thực tế'), tr('Chênh lệch'), 'NG'],
+        ...d.days.filter((x) => x.status !== 'off').map((x) => {
+          const plan = x.status === 'running' ? x.planSoFar : x.plan;
+          return [x.date, `W${x.week}`, plan, x.actual, x.actual === null ? null : x.actual - plan, x.ng];
+        }),
+      ]);
+    }
+  };
+
+  const subtitle =
+    mode === 'shift'
+      ? data
+        ? t('lineView.output.subtitle', { shift: data.shift, date: data.date, time: data.updatedAt })
+        : ''
+      : daily.data
+        ? `${daily.data.lineCode} · ${periodLabel} · ${tr('cập nhật {0}', daily.data.updatedAt)}`
+        : '';
+  const simulated = mode === 'shift' ? data?.simulated : daily.data?.simulated;
 
   const header = (
-    <div className="flex flex-wrap items-center justify-between gap-2">
+    <div className="flex flex-wrap items-end justify-between gap-3">
       <div className="min-w-0">
-        <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">{t('lineView.output.title')}</h3>
-        {data && (
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-            {t('lineView.output.subtitle', { shift: data.shift, date: data.date, time: data.updatedAt })}
-            {data.simulated && <span className="ml-1.5">· {t('lineView.simulated')}</span>}
-          </p>
-        )}
+        <h3 className="text-base font-extrabold text-slate-900 dark:text-white">{t('lineView.output.title')}</h3>
+        <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5">
+          {subtitle}
+          {simulated && <span className="ml-1.5 font-bold text-violet-700 dark:text-violet-300">· {t('lineView.simulated')}</span>}
+        </p>
       </div>
-      <div role="group" aria-label="Shift" className="flex rounded-lg bg-slate-100 dark:bg-slate-800 p-0.5 gap-0.5">
-        {([1, 2, 3] as const).map((s) => (
-          <button
-            key={s}
-            type="button"
-            aria-pressed={activeShift === s}
-            onClick={() => onChangeShift(s)}
-            className={`min-h-[34px] px-3 rounded-md text-xs font-bold transition-colors cursor-pointer ${
-              activeShift === s
-                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            {t('lineView.output.shiftBtn', { shift: s })}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center gap-2">
+        <div role="group" aria-label={tr('Chế độ xem')} className="flex max-w-full overflow-x-auto rounded-lg bg-slate-100 dark:bg-factory-bg dark:border dark:border-factory-border p-0.5 gap-0.5">
+          {modes.map(([m, label]) => (
+            <button
+              key={m}
+              type="button"
+              aria-pressed={mode === m}
+              onClick={() => {
+                setMode(m);
+                setAnchor(undefined);
+              }}
+              className={segBtn(mode === m)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {mode === 'shift' ? (
+          <div role="group" aria-label="Shift" className="flex rounded-lg bg-slate-100 dark:bg-factory-bg dark:border dark:border-factory-border p-0.5 gap-0.5">
+            {([1, 2, 3] as const).map((s) => (
+              <button key={s} type="button" aria-pressed={activeShift === s} onClick={() => onChangeShift(s)} className={segBtn(activeShift === s)}>
+                {t('lineView.output.shiftBtn', { shift: s })}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center rounded-lg border border-slate-200 dark:border-factory-border bg-white dark:bg-factory-card">
+            <button type="button" onClick={() => step(-1)} aria-label={tr('Kỳ trước')} className="w-9 h-[38px] flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer">
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="px-1 text-xs font-bold text-slate-800 dark:text-slate-100 whitespace-nowrap min-w-[120px] text-center">{periodLabel || '…'}</span>
+            <button
+              type="button"
+              onClick={() => step(1)}
+              disabled={!canNext}
+              aria-label={tr('Kỳ sau')}
+              className="w-9 h-[38px] flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={exportCsv}
+          className="h-[38px] px-3 rounded-lg border border-slate-200 dark:border-factory-border bg-white dark:bg-factory-card text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-factory-surface flex items-center gap-1.5 cursor-pointer"
+        >
+          <Download className="w-3.5 h-3.5" />
+          {tr('Tải CSV')}
+        </button>
       </div>
     </div>
   );
 
   const shell = (children: ReactNode) => (
-    <section className="bg-white dark:bg-factory-card rounded-xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs flex flex-col gap-4">
+    <section className="bg-slate-50/60 dark:bg-factory-bg/40 rounded-2xl border border-slate-200/80 dark:border-factory-border p-4 shadow-xs flex flex-col gap-3.5">
       {header}
       {children}
     </section>
   );
+  const skeleton = <div className="h-[420px] rounded-xl bg-slate-100 dark:bg-white/5 animate-pulse" aria-busy="true" />;
 
-  if (loading && !data) return shell(<div className="h-[320px] rounded-lg bg-slate-100 dark:bg-white/5 animate-pulse" aria-busy="true" />);
-  if (!data) return null;
-  if (data.state === 'NOT_STARTED') {
-    return shell(<p className="text-sm text-slate-500 dark:text-slate-400 py-10 text-center">{t('lineView.output.notStarted')}</p>);
+  // ================= CHẾ ĐỘ TUẦN / THÁNG =================
+  if (mode !== 'shift') {
+    if (!dayView) return shell(daily.error ? <p className="text-sm text-rose-600 py-10 text-center">{daily.error}</p> : skeleton);
+    const { d, slots, groups, ngGroups, ngThreshold, target } = dayView;
+    const tt = d.totals;
+    const gap = tt.actual - tt.planSoFar;
+    const pctSoFar = tt.planSoFar > 0 ? (tt.actual / tt.planSoFar) * 100 : 0;
+    // tuần (tháng) hoặc ngày (tuần) tốt nhất
+    let best: { label: string; pct: number } | null = null;
+    if (mode === 'month') {
+      for (const w of d.weeks) {
+        if (w.actual === null || w.planSoFar <= 0) continue;
+        const p = (w.actual / w.planSoFar) * 100;
+        if (!best || p > best.pct) best = { label: `W${w.week}`, pct: p };
+      }
+    } else {
+      for (const x of d.days) {
+        if (x.status !== 'done' || x.actual === null) continue;
+        const p = (x.actual / x.plan) * 100;
+        if (!best || p > best.pct) best = { label: dm(x.date), pct: p };
+      }
+    }
+    const overDays = d.days.filter((x) => x.ng !== null && x.ng > ngThreshold).length;
+    const W = 1080;
+    return shell(
+      <>
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
+          <Kpi label={tr('Kế hoạch đến hôm nay')} value={nf(tt.planSoFar)} tone="text-blue-700 dark:text-blue-300" sub={tr('{0} ngày làm việc · cả kỳ {1}', tt.workDays, nf(tt.plan))} />
+          <Kpi
+            label={tr('Thực tế')}
+            value={nf(tt.actual)}
+            tone="text-lime-700 dark:text-lime-300"
+            sub={tr('{0}% kế hoạch', pctSoFar.toFixed(1))}
+            bar={{ pct: (tt.actual / Math.max(1, tt.plan)) * 100, mark: (tt.planSoFar / Math.max(1, tt.plan)) * 100, tone: 'bg-lime-600 dark:bg-lime-400' }}
+          />
+          <Kpi label={tr('Chênh lệch')} value={signed(gap)} tone={gap >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'} sub={tr('so với kế hoạch đến hôm nay')} />
+          <Kpi
+            label={mode === 'month' ? tr('Tuần tốt nhất') : tr('Ngày tốt nhất')}
+            value={best ? best.label : '—'}
+            tone="text-emerald-600 dark:text-emerald-400"
+            sub={best ? tr('{0}% kế hoạch', best.pct.toFixed(1)) : tr('Chưa có ngày hoàn thành')}
+          />
+          <Kpi
+            label={tr('Hàng lỗi NG')}
+            value={nf(tt.ng)}
+            tone="text-rose-600 dark:text-rose-300"
+            sub={tr('{0}% · {1} ngày vượt ngưỡng', tt.actual > 0 ? ((tt.ng / tt.actual) * 100).toFixed(2) : '0', overDays)}
+          />
+        </div>
+        <Panel title={mode === 'month' ? tr('SẢN LƯỢNG THEO NGÀY · CHIA THEO TUẦN (pcs)') : tr('SẢN LƯỢNG THEO NGÀY (pcs)')} legend={<Legend items={barLegend(target, true)} />}>
+          <div className="overflow-x-auto">
+            <div className="min-w-[760px]">
+              <OutputBarChart slots={slots} targetPct={target} groups={groups} width={W} height={mode === 'month' ? 310 : 290} showValues={mode === 'week'} ariaLabel={tr('Sản lượng kế hoạch và thực tế theo ngày')} />
+              <VarianceBlock slots={slots} target={target} width={W} />
+            </div>
+          </div>
+        </Panel>
+        <Panel
+          title={tr('HÀNG LỖI NG THEO NGÀY (pcs)')}
+          legend={<Legend items={[{ kind: 'line', cls: 'bg-rose-600 dark:bg-rose-400', label: 'NG' }, { kind: 'dash', cls: 'border-orange-500', label: tr('Ngưỡng {0}%', d.ngTargetPct) }]} />}
+        >
+          <div className="overflow-x-auto">
+            <div className="min-w-[760px]">
+              <NgChart slots={slots} threshold={ngThreshold} groups={ngGroups} width={W} height={mode === 'month' ? 230 : 210} alignWithBars />
+            </div>
+          </div>
+          <TopDefects items={d.defectsByType} />
+        </Panel>
+      </>
+    );
   }
 
-  const startHour = Number(data.shiftLabel.slice(0, 2));
-  const planTotal = data.output.planTotal;
-  const maxQ = Math.max(planTotal, data.output.forecast) * 1.04;
-  const X = (min: number) => L + (min / 480) * (R - L);
-  const Y = (q: number) => BOT - (q / maxQ) * (BOT - TOP);
-
-  // Điểm lũy kế thực tế theo từng mốc giờ đã chạy
-  const pts: Array<[number, number]> = [[X(0), Y(0)]];
-  let acc = 0;
-  data.hourly.forEach((h, i) => {
-    if (h.status === 'future' || h.actual === null) return;
-    acc += h.actual;
-    const endMin = h.status === 'running' ? data.elapsedMin : (i + 1) * 60;
-    pts.push([X(endMin), Y(acc)]);
-  });
-  const nowX = X(data.elapsedMin);
-  const nowY = Y(data.output.actual);
-  const actualLine = pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
-  const area = `${X(0)},${BOT} ${actualLine} ${nowX.toFixed(1)},${BOT}`;
-  const longBands = data.stops
-    .filter((s) => s.type === 'LONG')
-    .map((s) => {
-      const m = minutesFromShiftStart(s.startedAt, startHour);
-      return { x: X(m), w: Math.max(3, X(m + s.durationMin) - X(m)), s };
-    });
-  const gridQ = [0, 0.25, 0.5, 0.75, 1].map((f) => Math.round((planTotal * f) / 100) * 100);
+  // ================= CHẾ ĐỘ CA =================
+  if (loading && !data) return shell(skeleton);
+  if (!data) return null;
+  if (data.state === 'NOT_STARTED' || !shiftView) {
+    return shell(<p className="text-sm text-slate-500 dark:text-slate-400 py-10 text-center">{t('lineView.output.notStarted')}</p>);
+  }
+  const { target, slots, ngThreshold } = shiftView;
+  const o = data.output;
   const finished = data.state === 'FINISHED';
-  const gap = data.output.actual - data.output.planSoFar;
-
-  const stat = (label: string, value: ReactNode, tone = '', bg = '') => (
-    <div className={`px-3.5 py-3 flex flex-col gap-1 min-w-0 ${bg}`}>
-      <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">{label}</span>
-      <strong className={`font-mono text-xl leading-none ${tone || 'text-slate-900 dark:text-white'}`}>{value}</strong>
-    </div>
-  );
+  const gap = o.actual - o.planSoFar;
+  const ngTarget = o.ngTarget ?? Math.round((o.planTotal * (o.ngTargetPct ?? 1)) / 100);
+  const ngPct = o.actual > 0 ? (o.defects / o.actual) * 100 : 0;
 
   return shell(
     <>
-      <div className="grid grid-cols-2 md:grid-cols-5 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden divide-x divide-y md:divide-y-0 divide-slate-200 dark:divide-slate-700">
-        {stat(t('lineView.output.plan'), nf(planTotal))}
-        {stat(t('lineView.output.actual', { time: data.updatedAt }), nf(data.output.actual), 'text-emerald-700 dark:text-emerald-400')}
-        {stat(t('lineView.output.gap'), `${gap >= 0 ? '+' : '−'}${nf(Math.abs(gap))}`, gap >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}
-        {stat(
-          finished ? t('lineView.output.finished') : t('lineView.output.forecast'),
-          <>
-            {nf(data.output.forecast)} <span className="text-xs">({data.output.forecastPct}%)</span>
-          </>,
-          'text-amber-700 dark:text-amber-400',
-          'bg-amber-50/70 dark:bg-amber-950/20'
-        )}
-        {stat(t('lineView.output.takt'), (
-          <>
-            {data.taktSec}s <span className={`text-sm ${data.cycleSec > data.taktSec ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400'}`}>/ {data.cycleSec}s</span>
-          </>
-        ))}
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
+        <Kpi label={t('lineView.output.plan')} value={nf(o.planTotal)} tone="text-blue-700 dark:text-blue-300" sub={tr('{0} pcs / giờ', nf(data.hourly[0]?.plan ?? 0))} />
+        <Kpi
+          label={t('lineView.output.actual', { time: data.updatedAt })}
+          value={nf(o.actual)}
+          tone="text-lime-700 dark:text-lime-300"
+          sub={tr('{0}% kế hoạch ca', Math.round((o.actual / Math.max(1, o.planTotal)) * 100))}
+          bar={{ pct: (o.actual / Math.max(1, o.planTotal)) * 100, mark: (o.planSoFar / Math.max(1, o.planTotal)) * 100, tone: 'bg-lime-600 dark:bg-lime-400' }}
+        />
+        <Kpi
+          label={t('lineView.output.gap')}
+          value={signed(gap)}
+          tone={gap >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}
+          sub={tr('KH đến {0}: {1}', data.updatedAt, nf(o.planSoFar))}
+        />
+        <Kpi
+          label={finished ? t('lineView.output.finished') : t('lineView.output.forecast')}
+          value={nf(o.forecast)}
+          tone="text-amber-600 dark:text-amber-400"
+          sub={tr('{0}% kế hoạch', o.forecastPct)}
+        />
+        <Kpi
+          label={tr('Hàng lỗi NG')}
+          value={nf(o.defects)}
+          tone="text-rose-600 dark:text-rose-300"
+          sub={tr('{0}% · mục tiêu ≤ {1} ({2}%)', ngPct.toFixed(2), nf(ngTarget), o.ngTargetPct ?? 1)}
+        />
       </div>
 
-      <div className="flex flex-col xl:flex-row gap-5">
-        {/* Biểu đồ lũy kế */}
-        <div className="flex-[3] min-w-0 flex flex-col gap-2">
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-600 dark:text-slate-300">
-            <span className="flex items-center gap-1.5"><span className="w-5 border-t-2 border-dashed border-slate-500" />{t('lineView.output.legendPlan')}</span>
-            <span className="flex items-center gap-1.5"><span className="w-5 h-2.5 bg-emerald-200 dark:bg-emerald-900 border-t-2 border-emerald-700" />{t('lineView.output.legendActual')}</span>
-            {!finished && <span className="flex items-center gap-1.5"><span className="w-5 border-t-2 border-dotted border-amber-600" />{t('lineView.output.legendForecast')}</span>}
-            <span className="flex items-center gap-1.5"><span className="w-3 h-2.5 bg-rose-100 dark:bg-rose-950" />{t('lineView.output.legendLong')}</span>
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,8fr)_minmax(0,5fr)] gap-3.5">
+        <Panel title={tr('SẢN LƯỢNG THEO GIỜ (pcs)')} legend={<Legend items={barLegend(target, false)} />}>
+          <div className="overflow-x-auto">
+            <div className="min-w-[560px]">
+              <OutputBarChart slots={slots} targetPct={target} width={660} height={270} ariaLabel={t('lineView.output.chartAria')} />
+              <VarianceBlock slots={slots} target={target} width={660} />
+            </div>
           </div>
-          <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t('lineView.output.chartAria')} className="w-full h-auto">
-            {longBands.map((b) => (
-              <g key={b.s.id}>
-                <rect x={b.x} y={TOP} width={b.w} height={BOT - TOP} className="fill-rose-100 dark:fill-rose-950/60" />
-                <text x={b.x + b.w / 2} y={TOP + 12} fontSize="10" textAnchor="middle" className="fill-rose-700 dark:fill-rose-400" fontWeight="700">
-                  {`${b.s.durationMin}'`}
-                </text>
-                <text x={b.x + b.w / 2} y={TOP + 24} fontSize="9" textAnchor="middle" className="fill-rose-700 dark:fill-rose-400">
-                  {causeText(b.s.causeCode, b.s.op, b.s.cause)}
-                </text>
-              </g>
-            ))}
-            {gridQ.map((q) => (
-              <g key={q}>
-                <line x1={L} y1={Y(q)} x2={R} y2={Y(q)} className="stroke-slate-200 dark:stroke-slate-700" />
-                <text x={L - 6} y={Y(q) + 3} fontSize="10" textAnchor="end" className="fill-slate-500">{nf(q)}</text>
-              </g>
-            ))}
-            {Array.from({ length: 9 }, (_, i) => (
-              <text key={i} x={X(i * 60)} y={BOT + 16} fontSize="10" textAnchor="middle" className="fill-slate-500">
-                {`${String((startHour + i) % 24).padStart(2, '0')}:00`}
-              </text>
-            ))}
-            <polygon points={area} className="fill-emerald-200/70 dark:fill-emerald-900/50" />
-            <line x1={X(0)} y1={Y(0)} x2={X(480)} y2={Y(planTotal)} strokeDasharray="6 5" strokeWidth="2" className="stroke-slate-500" />
-            <polyline points={actualLine} fill="none" strokeWidth="2.5" className="stroke-emerald-700 dark:stroke-emerald-400" />
-            {!finished && (
-              <line x1={nowX} y1={nowY} x2={X(480)} y2={Y(data.output.forecast)} strokeDasharray="2 4" strokeWidth="2.5" className="stroke-amber-600" />
-            )}
-            {!finished && <line x1={nowX} y1={TOP} x2={nowX} y2={BOT} strokeWidth="1" className="stroke-slate-900 dark:stroke-slate-200" />}
-            <circle cx={nowX} cy={nowY} r="4" className="fill-emerald-700 dark:fill-emerald-400" />
-            <text x={nowX - 6} y={nowY - 8} fontSize="11" textAnchor="end" fontWeight="700" className="fill-emerald-800 dark:fill-emerald-300">
-              {nf(data.output.actual)}
-            </text>
-            <text x={R} y={Y(planTotal) - 6} fontSize="10" textAnchor="end" className="fill-slate-600 dark:fill-slate-400">
-              {`${t('lineView.output.planCol')} ${nf(planTotal)}`}
-            </text>
-          </svg>
-        </div>
+        </Panel>
+        <Panel
+          title={tr('HÀNG LỖI NG THEO GIỜ (pcs)')}
+          legend={<Legend items={[{ kind: 'line', cls: 'bg-rose-600 dark:bg-rose-400', label: 'NG' }, { kind: 'dash', cls: 'border-orange-500', label: tr('Ngưỡng {0}%', o.ngTargetPct ?? 1) }]} />}
+        >
+          <div className="flex-1 flex flex-col justify-center">
+            <NgChart slots={slots} threshold={ngThreshold} width={400} height={300} />
+          </div>
+          <TopDefects items={o.defectsByType} />
+        </Panel>
+      </div>
 
-        {/* Bảng theo giờ */}
-        <div className="flex-[2] min-w-0 overflow-x-auto">
-          <table className="w-full border-collapse text-xs">
-            <caption className="text-left text-xs font-extrabold text-slate-900 dark:text-white pb-2">{t('lineView.output.hourlyTitle')}</caption>
-            <thead>
-              <tr className="text-left text-slate-500 dark:text-slate-400">
-                <th className="py-1.5 px-1.5 font-bold border-b border-slate-200 dark:border-slate-700">{t('lineView.output.hour')}</th>
-                <th className="py-1.5 px-1.5 font-bold border-b border-slate-200 dark:border-slate-700 text-right">{t('lineView.output.planCol')}</th>
-                <th className="py-1.5 px-1.5 font-bold border-b border-slate-200 dark:border-slate-700 text-right">{t('lineView.output.actualCol')}</th>
-                <th className="py-1.5 px-1.5 font-bold border-b border-slate-200 dark:border-slate-700 text-right">{t('lineView.output.pctCol')}</th>
-                <th className="py-1.5 px-1.5 font-bold border-b border-slate-200 dark:border-slate-700">{t('lineView.output.noteCol')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.hourly.map((h) => {
-                const plan = h.status === 'running' ? h.planSoFar : h.plan;
-                const pct = h.actual !== null && plan > 0 ? Math.round((h.actual / plan) * 100) : null;
-                const tone =
-                  pct === null ? '' : pct >= 97 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
-                  : pct >= 90 ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
-                  : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300';
-                const note = h.longStop
-                  ? t('lineView.output.longNote', { cause: causeText(h.longStop.causeCode), op: h.longStop.op, min: h.longStop.durationMin })
-                  : h.status === 'running'
-                    ? t('lineView.output.running')
-                    : h.shortStopCount >= 3
-                      ? t('lineView.output.shortNote', { count: h.shortStopCount })
-                      : '';
-                const end = `${String((Number(h.hour.slice(0, 2)) + 1) % 24).padStart(2, '0')}`;
-                return (
-                  <tr key={h.hour} className={h.longStop ? 'bg-rose-50 dark:bg-rose-950/20' : h.status === 'running' ? 'bg-slate-50 dark:bg-white/5' : ''}>
-                    <td className="py-1.5 px-1.5 border-b border-slate-100 dark:border-slate-800 font-mono">{h.hour.slice(0, 2)}–{end}</td>
-                    <td className="py-1.5 px-1.5 border-b border-slate-100 dark:border-slate-800 text-right font-mono text-slate-500">{nf(plan)}</td>
-                    <td className="py-1.5 px-1.5 border-b border-slate-100 dark:border-slate-800 text-right font-mono font-bold text-slate-900 dark:text-white">
-                      {h.actual === null ? t('lineView.output.future') : nf(h.actual)}
-                    </td>
-                    <td className="py-1.5 px-1.5 border-b border-slate-100 dark:border-slate-800 text-right">
-                      {pct !== null && <span className={`font-mono text-[11px] font-bold px-2 py-0.5 rounded-full ${tone}`}>{pct}%</span>}
-                    </td>
-                    <td className="py-1.5 px-1.5 border-b border-slate-100 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400">{note}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+      {/* Bảng chi tiết theo giờ (thu gọn) */}
+      <div className="rounded-xl border border-slate-200 dark:border-factory-border bg-white dark:bg-factory-card">
+        <button
+          type="button"
+          aria-expanded={showTable}
+          onClick={() => setShowTable((v) => !v)}
+          className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left cursor-pointer"
+        >
+          <span className="flex items-center gap-2 text-[13px] font-bold text-slate-800 dark:text-slate-100">
+            <Table2 className="w-4 h-4 text-slate-500" />
+            {tr('Bảng chi tiết theo giờ')}
+            <span className="font-medium text-slate-500 dark:text-slate-400">· {tr('% đạt và ghi chú dừng máy')}</span>
+          </span>
+          <span className="flex items-center gap-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
+            {showTable ? tr('Thu gọn') : tr('Mở rộng')}
+            <ChevronDown className={`w-4 h-4 transition-transform ${showTable ? 'rotate-180' : ''}`} />
+          </span>
+        </button>
+        {showTable && (
+          <div className="overflow-x-auto px-4 pb-4">
+            <table className="w-full border-collapse text-xs">
+              <thead>
+                <tr className="text-left text-slate-500 dark:text-slate-400">
+                  <th className="py-1.5 px-1.5 font-bold border-b border-slate-200 dark:border-slate-700">{t('lineView.output.hour')}</th>
+                  <th className="py-1.5 px-1.5 font-bold border-b border-slate-200 dark:border-slate-700 text-right">{t('lineView.output.planCol')}</th>
+                  <th className="py-1.5 px-1.5 font-bold border-b border-slate-200 dark:border-slate-700 text-right">{t('lineView.output.actualCol')}</th>
+                  <th className="py-1.5 px-1.5 font-bold border-b border-slate-200 dark:border-slate-700 text-right">{t('lineView.output.pctCol')}</th>
+                  <th className="py-1.5 px-1.5 font-bold border-b border-slate-200 dark:border-slate-700 text-right">NG</th>
+                  <th className="py-1.5 px-1.5 font-bold border-b border-slate-200 dark:border-slate-700">{t('lineView.output.noteCol')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.hourly.map((h) => {
+                  const plan = h.status === 'running' ? h.planSoFar : h.plan;
+                  const pct = h.actual !== null && plan > 0 ? Math.round((h.actual / plan) * 100) : null;
+                  const tone = pct === null ? null : toneOf(h.actual ?? 0, plan, target);
+                  const toneCls =
+                    tone === 'good'
+                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                      : tone === 'warn'
+                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
+                        : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300';
+                  const note = h.longStop
+                    ? t('lineView.output.longNote', { cause: causeText(h.longStop.causeCode), op: h.longStop.op, min: h.longStop.durationMin })
+                    : h.status === 'running'
+                      ? t('lineView.output.running')
+                      : h.shortStopCount >= 3
+                        ? t('lineView.output.shortNote', { count: h.shortStopCount })
+                        : '';
+                  const end = `${String((Number(h.hour.slice(0, 2)) + 1) % 24).padStart(2, '0')}`;
+                  return (
+                    <tr key={h.hour} className={h.longStop ? 'bg-rose-50 dark:bg-rose-950/20' : h.status === 'running' ? 'bg-slate-50 dark:bg-white/5' : ''}>
+                      <td className="py-1.5 px-1.5 border-b border-slate-100 dark:border-slate-800 font-mono">{h.hour.slice(0, 2)}–{end}</td>
+                      <td className="py-1.5 px-1.5 border-b border-slate-100 dark:border-slate-800 text-right font-mono text-slate-500">{nf(plan)}</td>
+                      <td className="py-1.5 px-1.5 border-b border-slate-100 dark:border-slate-800 text-right font-mono font-bold text-slate-900 dark:text-white">
+                        {h.actual === null ? t('lineView.output.future') : nf(h.actual)}
+                      </td>
+                      <td className="py-1.5 px-1.5 border-b border-slate-100 dark:border-slate-800 text-right">
+                        {pct !== null && <span className={`font-mono text-[11px] font-bold px-2 py-0.5 rounded-full ${toneCls}`}>{pct}%</span>}
+                      </td>
+                      <td className="py-1.5 px-1.5 border-b border-slate-100 dark:border-slate-800 text-right font-mono text-rose-600 dark:text-rose-300">{h.ng ?? '—'}</td>
+                      <td className="py-1.5 px-1.5 border-b border-slate-100 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400">{note}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </>
   );
 }
+

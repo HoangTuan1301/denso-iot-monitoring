@@ -4,6 +4,7 @@
  *
  *   GET  /api/production/overview                       Tổng quan nhà máy + Top 5 line dừng lâu
  *   GET  /api/production/lines/:lineId?date=&shift=     Chi tiết ca sản xuất của 1 line
+ *   GET  /api/production/lines/:lineId/daily?period=week|month&date=  Sản lượng + NG theo ngày
  *   GET  /api/production/lines/:lineId/conditions?days= Điều kiện gia công N ngày
  *   GET  /api/production/lines/:lineId/what-if?otHours=&reroutePct=&orderQty=
  *   GET  /api/production/settings                       Cài đặt (ngưỡng dừng ngắn)
@@ -12,6 +13,7 @@
 import {
   DEFAULT_PRODUCTION_SETTINGS,
   simulateLineShift,
+  simulateLineDaily,
   simulateProcessConditions,
   simulateWhatIf,
   buildFactoryOverview,
@@ -125,6 +127,26 @@ export function registerProductionRoutes(app, { authenticateToken, requireRole, 
     } catch (err) {
       console.error('[Production Line Error]:', err);
       res.status(500).json({ message: 'Lỗi tạo dữ liệu sản xuất: ' + err.message });
+    }
+  });
+
+  app.get('/api/production/lines/:lineId/daily', authenticateToken, async (req, res) => {
+    try {
+      const found = await findLine(req, res);
+      if (!found) return;
+      const settings = await loadSettings();
+      res.json(
+        simulateLineDaily({
+          line: found.line,
+          machines: machinesOf(found.machines, found.line.id),
+          period: req.query.period === 'month' ? 'month' : 'week',
+          date: validDate(req.query.date),
+          settings,
+        })
+      );
+    } catch (err) {
+      console.error('[Production Daily Error]:', err);
+      res.status(500).json({ message: 'Lỗi tạo dữ liệu sản lượng theo ngày: ' + err.message });
     }
   });
 

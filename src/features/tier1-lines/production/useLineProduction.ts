@@ -4,7 +4,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { apiClient } from '../../../services/api';
-import type { LineShiftProduction, ProcessConditionsResponse } from '../../../types/production';
+import type { LineDailyProduction, LineShiftProduction, ProcessConditionsResponse } from '../../../types/production';
 
 const REFRESH_MS = 60_000;
 
@@ -39,6 +39,37 @@ export function useLineShift(lineCode: string | null, shift?: 1 | 2 | 3, date?: 
       window.clearInterval(id);
     };
   }, [load]);
+
+  return { data, loading, error, reload: load };
+}
+
+/** Sản lượng theo ngày (tuần / tháng). `period = null` = không tải (đang xem theo ca). */
+export function useLineDaily(lineCode: string | null, period: 'week' | 'month' | null, date?: string) {
+  const [data, setData] = useState<LineDailyProduction | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    if (!lineCode || !period) return;
+    try {
+      const res = await apiClient.getLineDaily(lineCode, period, date);
+      setData(res);
+      setError(null);
+    } catch (err: any) {
+      setError(err?.message || 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, [lineCode, period, date]);
+
+  useEffect(() => {
+    if (!period) return;
+    setLoading(true);
+    setData(null);
+    load();
+    const id = window.setInterval(load, REFRESH_MS * 5);
+    return () => window.clearInterval(id);
+  }, [load, period]);
 
   return { data, loading, error, reload: load };
 }

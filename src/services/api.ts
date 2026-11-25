@@ -10,6 +10,7 @@ import type {
   ProductionSettings,
   FactoryProductionOverview,
   LineShiftProduction,
+  LineDailyProduction,
   ProcessConditionsResponse,
   WhatIfResponse,
 } from '../types/production';
@@ -731,6 +732,12 @@ export const apiClient = {
     if (params?.shift) sp.append('shift', String(params.shift));
     const qs = sp.toString();
     return request(`/api/production/lines/${encodeURIComponent(lineId)}${qs ? `?${qs}` : ''}`);
+  },
+
+  async getLineDaily(lineId: string, period: 'week' | 'month', date?: string): Promise<LineDailyProduction> {
+    const sp = new URLSearchParams({ period });
+    if (date) sp.append('date', date);
+    return request(`/api/production/lines/${encodeURIComponent(lineId)}/daily?${sp.toString()}`);
   },
 
   async getLineProcessConditions(lineId: string, days = 30): Promise<ProcessConditionsResponse> {

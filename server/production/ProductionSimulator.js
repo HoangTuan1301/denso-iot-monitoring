@@ -89,6 +89,36 @@ const LONG_STOP_CAUSES = [
   { code: 'MATERIAL', label: 'Chờ vật tư' },
   { code: 'POWER', label: 'Sự cố điện' },
 ];
+// Các loại lỗi NG (hàng hỏng) theo dõi trên dây chuyền
+const DEFECT_TYPES = [
+  { code: 'BURR', label: 'Ba via', weight: 0.4 },
+  { code: 'DIMENSION', label: 'Sai kích thước', weight: 0.28 },
+  { code: 'SCRATCH', label: 'Trầy xước', weight: 0.2 },
+  { code: 'OTHER', label: 'Khác', weight: 0.12 },
+];
+/** Mục tiêu NG tối đa (% kế hoạch) và mục tiêu sản lượng tối thiểu (% kế hoạch) */
+export const NG_TARGET_PCT = 1;
+export const OUTPUT_TARGET_PCT = 85;
+
+/** Chia `total` theo trọng số (tất định, tổng khớp tuyệt đối). */
+function splitByWeight(total, items, rng) {
+  const w = items.map((d) => d.weight * (0.75 + rng() * 0.5));
+  const sw = w.reduce((a, b) => a + b, 0);
+  const raw = w.map((x) => (total * x) / sw);
+  const out = raw.map(Math.floor);
+  let rest = total - out.reduce((a, b) => a + b, 0);
+  raw
+    .map((x, i) => [x - Math.floor(x), i])
+    .sort((a, b) => b[0] - a[0])
+    .forEach(([, i]) => {
+      if (rest > 0) {
+        out[i]++;
+        rest--;
+      }
+    });
+  return items.map((d, i) => ({ code: d.code, label: d.label, count: out[i] }));
+}
+
 const SHORT_STOP_CAUSES = [
   { code: 'SENSOR', label: 'Lỗi cảm biến' },
   { code: 'MISFEED', label: 'Cấp phôi lệch' },
@@ -300,7 +330,20 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
   const runMin = Math.max(0, elapsedMin - totalStopMin);
 
   const defectRate = range(rng, 0.008, 0.025);
-  const good = Math.round(produced * (1 - defectRate));
+  // Hàng lỗi NG theo từng giờ (RNG riêng để không làm đổi các số liệu khác của ca)
+  const ngRng = createRng(`${line.id}|${day}|${sh}|ng`);
+  const ngRate = 0.004 + ((defectRate - 0.008) / 0.017) * 0.01; // 0,4% – 1,4%
+  let defects = 0;
+  for (const h of hourly) {
+    if (h.actual === null) {
+      h.ng = null;
+      continue;
+    }
+    h.ng = Math.max(0, Math.round(h.actual * ngRate * range(ngRng, 0.4, 1.6)));
+    defects += h.ng;
+  }
+  const defectsByType = splitByWeight(defects, DEFECT_TYPES, ngRng);
+  const good = produced - defects;
   const availability = elapsedMin > 0 ? runMin / elapsedMin : 0;
   const performance = runMin > 0 ? Math.min(1, (produced * profile.idealCycleSec) / (runMin * 60)) : 0;
   const quality = produced > 0 ? good / produced : 0;
@@ -372,7 +415,11 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
       planSoFar,
       actual: produced,
       good,
-      defects: produced - good,
+      defects,
+      defectsByType,
+      ngTarget: Math.round((planTotal * NG_TARGET_PCT) / 100),
+      targetPct: OUTPUT_TARGET_PCT,
+      ngTargetPct: NG_TARGET_PCT,
       gapToPlanSoFar: produced - planSoFar,
       forecast,
       forecastPct: round((forecast / planTotal) * 100, 1),
@@ -381,6 +428,131 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
     cycleSec: round(cycleSec, 1),
     hourly,
     stops,
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* 1b. Sản lượng theo ngày (tuần / tháng) = cộng 3 ca của từng ngày      */
+/* ------------------------------------------------------------------ */
+const DAY_MS = 86400000;
+const parseYmd = (d) => {
+  const [y, m, dd] = d.split('-').map(Number);
+  return Date.UTC(y, m - 1, dd);
+};
+const fmtYmd = (ms) => new Date(ms).toISOString().slice(0, 10);
+
+/** Số tuần ISO-8601 (tuần bắt đầu thứ 2). */
+export function isoWeek(dateStr) {
+  const d = new Date(parseYmd(dateStr));
+  const wd = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - wd);
+  const yearStart = Date.UTC(d.getUTCFullYear(), 0, 1);
+  return Math.ceil(((d.getTime() - yearStart) / DAY_MS + 1) / 7);
+}
+
+/**
+ * @param {object} opts
+ * @param {'week'|'month'} opts.period  week: thứ 2 – thứ 7 của tuần chứa `date`; month: cả tháng chứa `date`
+ * @param {string} [opts.date]          Ngày neo YYYY-MM-DD (mặc định: hôm nay theo giờ VN)
+ */
+export function simulateLineDaily({ line, machines = [], period = 'week', date, now = new Date(), settings = {} }) {
+  const today = getCurrentShift(now).date;
+  const anchor = date || today;
+  const a = parseYmd(anchor);
+  let fromMs;
+  let toMs;
+  if (period === 'month') {
+    const d = new Date(a);
+    fromMs = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
+    toMs = Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0);
+  } else {
+    const wd = new Date(a).getUTCDay() || 7; // 1 = thứ 2 … 7 = CN
+    fromMs = a - (wd - 1) * DAY_MS;
+    toMs = fromMs + 5 * DAY_MS; // tới thứ 7
+  }
+
+  const days = [];
+  const typeTotals = new Map(DEFECT_TYPES.map((d) => [d.code, { code: d.code, label: d.label, count: 0 }]));
+  for (let ms = fromMs; ms <= toMs; ms += DAY_MS) {
+    const ds = fmtYmd(ms);
+    const weekday = new Date(ms).getUTCDay();
+    const week = isoWeek(ds);
+    if (weekday === 0) {
+      if (period === 'month') days.push({ date: ds, weekday, week, status: 'off', plan: 0, planSoFar: 0, actual: null, ng: null });
+      continue;
+    }
+    let plan = 0;
+    let planSoFar = 0;
+    let actual = 0;
+    let ng = 0;
+    let started = 0;
+    let finished = 0;
+    for (const sh of [1, 2, 3]) {
+      const r = simulateLineShift({ line, machines, date: ds, shift: sh, now, settings });
+      plan += r.output.planTotal;
+      if (r.state === 'NOT_STARTED') continue;
+      started++;
+      if (r.state === 'FINISHED') finished++;
+      planSoFar += r.state === 'FINISHED' ? r.output.planTotal : r.output.planSoFar;
+      actual += r.output.actual;
+      ng += r.output.defects;
+      for (const t of r.output.defectsByType) typeTotals.get(t.code).count += t.count;
+    }
+    const status = started === 0 ? 'future' : finished === 3 ? 'done' : 'running';
+    days.push({
+      date: ds,
+      weekday,
+      week,
+      status,
+      plan,
+      planSoFar,
+      actual: started ? actual : null,
+      ng: started ? ng : null,
+    });
+  }
+
+  const weeks = [];
+  for (const d of days) {
+    if (d.status === 'off') continue;
+    let w = weeks[weeks.length - 1];
+    if (!w || w.week !== d.week) {
+      w = { week: d.week, from: d.date, to: d.date, plan: 0, planSoFar: 0, actual: 0, ng: 0, started: false };
+      weeks.push(w);
+    }
+    w.to = d.date;
+    w.plan += d.plan;
+    w.planSoFar += d.planSoFar;
+    if (d.actual !== null) {
+      w.actual += d.actual;
+      w.ng += d.ng;
+      w.started = true;
+    }
+  }
+  const work = days.filter((d) => d.status !== 'off');
+  const sum = (k) => work.reduce((s, d) => s + (d[k] || 0), 0);
+  const plan = sum('plan');
+  return {
+    simulated: true,
+    lineId: line.id,
+    lineCode: line.code || line.id,
+    period,
+    from: fmtYmd(fromMs),
+    to: fmtYmd(toMs),
+    today,
+    updatedAt: fmtClock(now.getTime()),
+    targetPct: OUTPUT_TARGET_PCT,
+    ngTargetPct: NG_TARGET_PCT,
+    days,
+    weeks: weeks.map(({ started, ...w }) => ({ ...w, actual: started ? w.actual : null, ng: started ? w.ng : null })),
+    totals: {
+      plan,
+      planSoFar: sum('planSoFar'),
+      actual: sum('actual'),
+      ng: sum('ng'),
+      workDays: work.length,
+      daysDone: work.filter((d) => d.status === 'done').length,
+    },
+    defectsByType: [...typeTotals.values()],
   };
 }
 

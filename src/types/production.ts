@@ -40,6 +40,41 @@ export interface HourlyOutput {
   shortStopCount: number;
   longStop: { causeCode: string; op: string; durationMin: number } | null;
   note: string | null;
+  /** Số hàng lỗi NG trong giờ (null = giờ chưa tới) */
+  ng?: number | null;
+}
+
+export interface DefectCount {
+  code: string;
+  label: string;
+  count: number;
+}
+
+/** Sản lượng + NG theo ngày cho chế độ xem tuần / tháng */
+export interface LineDailyProduction {
+  simulated: boolean;
+  lineId: string;
+  lineCode: string;
+  period: 'week' | 'month';
+  from: string;
+  to: string;
+  today: string;
+  updatedAt: string;
+  targetPct: number;
+  ngTargetPct: number;
+  days: Array<{
+    date: string;
+    weekday: number;
+    week: number;
+    status: 'done' | 'running' | 'future' | 'off';
+    plan: number;
+    planSoFar: number;
+    actual: number | null;
+    ng: number | null;
+  }>;
+  weeks: Array<{ week: number; from: string; to: string; plan: number; planSoFar: number; actual: number | null; ng: number | null }>;
+  totals: { plan: number; planSoFar: number; actual: number; ng: number; workDays: number; daysDone: number };
+  defectsByType: DefectCount[];
 }
 
 export interface LineShiftProduction {
@@ -72,6 +107,10 @@ export interface LineShiftProduction {
     actual: number;
     good: number;
     defects: number;
+    defectsByType?: DefectCount[];
+    ngTarget?: number;
+    targetPct?: number;
+    ngTargetPct?: number;
     gapToPlanSoFar: number;
     forecast: number;
     forecastPct: number;

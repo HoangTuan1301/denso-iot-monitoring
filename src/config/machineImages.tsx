@@ -12,6 +12,7 @@
 import { useState, useMemo } from 'react';
 import { Cpu, Box } from 'lucide-react';
 import { tr } from '../i18n/tr';
+import { EXPANSION_LINE_CONFIGS } from './expansionLines';
 
 export interface MachineImageConfig {
   databaseId: string;
@@ -166,6 +167,22 @@ export const MACHINE_IMAGE_REGISTRY: Record<string, MachineImageConfig> = {
     description: tr("Băng chuyền kiểm tra tổng thể cuối chuyền TestBench"),
   },
 };
+
+// 37 máy của 10 line mở rộng: ảnh lấy từ cấu hình expansionLines (id = mã máy)
+for (const line of EXPANSION_LINE_CONFIGS) {
+  for (const st of line.stations) {
+    if (!st.image || MACHINE_IMAGE_REGISTRY[st.code]) continue;
+    MACHINE_IMAGE_REGISTRY[st.code] = {
+      databaseId: st.code,
+      machineCode: st.code,
+      machineName: st.name,
+      lineId: line.code,
+      imageFileName: st.image.split('/').pop() || '',
+      primaryPath: st.image,
+      description: st.name,
+    };
+  }
+}
 
 // Ánh xạ phụ từ Machine Code sang Database ID (Code fallback lookup)
 const CODE_TO_DB_ID_MAP: Record<string, string> = {

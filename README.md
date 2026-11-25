@@ -43,7 +43,11 @@ Dữ liệu **sản xuất** (sản lượng, OEE, dừng máy, What-If, điều
 
 - Ca làm việc: **Ca 1** 06:00–14:00 · **Ca 2** 14:00–22:00 · **Ca 3** 22:00–06:00.
 - Ngưỡng phân biệt dừng ngắn / dừng dài mặc định **10 phút**, lưu trong bảng `app_settings`, đổi qua `PUT /api/production/settings` (ADMIN).
-- Ngoài 3 dây chuyền thật trong CSDL (`LN-PRS-01`, `LN-PNT-02`, `LN-ASM-03`), hệ thống thêm **2 dây chuyền ảo** `LN-AT-04`, `LN-AFM-05` để đủ Top 5.
+- Có **13 dây chuyền** trong CSDL: 3 dây chuyền gốc (`LN-PRS-01`, `LN-PNT-02`, `LN-ASM-03`) và **10 dây chuyền mở rộng** gắn với các ô trên sơ đồ nhà máy: AT (`LN-AT-04`), AFM (`LN-AFM-05`), JATCO (`LN-JAT-06`), AVS (`LN-AVS-07`), HOUSING (`LN-HSG-08`), Decast 1 (`LN-DCS-09`), DCT (`LN-DCT-10`), H1 (`LN-MH1-11`), WS7 (`LN-WS7-12`), OCV3 (`LN-OCV-13`) — tổng 37 máy, kèm thông số, ngưỡng và lịch sử mẫu.
+  - Cấu hình: `server/production/expansionLines.js` (CSDL + mô phỏng) và `src/config/expansionLines.ts` (sơ đồ băng chuyền, ảnh máy `public/images/machines/cutout/N01–N16.webp`).
+  - Backend **tự thêm khi khởi động nếu chưa có** (không sửa dữ liệu cũ). Tắt bằng biến môi trường `SEED_EXPANSION_LINES=false`.
+  - Ô nhỏ trên sơ đồ = line ít máy / máy nhỏ (VD OCV3 có 2 máy để bàn). Các ô khác vẫn là "Chưa kết nối IoT".
+  - Khi CSDL không kết nối, AT và AFM vẫn hiện dưới dạng dây chuyền ảo để đủ Top 5.
 - Bảng Unipulse đang dùng dữ liệu giả lập; khi có file CSV mẫu thật sẽ đổi cột cho khớp.
 
 Danh sách dây chuyền, máy, thông số, ngưỡng, check sheet, tài liệu, tài khoản, audit log là **dữ liệu thật trong MySQL**.

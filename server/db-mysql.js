@@ -4,6 +4,7 @@
  * và seeding tài khoản mặc định (Admin, Operator, Maintenance).
  */
 
+import { ensureExpansionLines } from './production/expansionLines.js';
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
 import path from 'path';
@@ -393,6 +394,16 @@ export async function initDatabase() {
         `, m);
       }
       console.log(`[MySQL] Đã khởi tạo ${defaultMetrics.length} metric mẫu vào metric_catalog.`);
+    }
+
+    // 16. 10 dây chuyền mở rộng gắn với sơ đồ nhà máy (chỉ thêm khi chưa có)
+    try {
+      const st = await ensureExpansionLines(pool, { insertTelemetryBatch });
+      if (!st.skipped && (st.lines || st.machines || st.mappings)) {
+        console.log(`[MySQL] Đã thêm dây chuyền mở rộng: ${st.lines} line, ${st.machines} máy, ${st.mappings} thông số, ${st.history} bản ghi lịch sử.`);
+      }
+    } catch (err) {
+      console.warn('[MySQL] Không thêm được dây chuyền mở rộng:', err.message);
     }
 
     console.log('[MySQL] Cơ sở dữ liệu và các bảng đã sẵn sàng!');

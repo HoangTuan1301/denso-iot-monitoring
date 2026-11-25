@@ -36,6 +36,8 @@ import { useAlarmStore } from '../../stores/useAlarmStore';
 import { resolveMachineMonitoringState } from '../../utils/machineStatusResolver';
 import { MachineImage } from '../../config/machineImages';
 import { Line1PhotorealisticView } from './Line1PhotorealisticView';
+import { LineGenericPhotorealisticView } from './LineGenericPhotorealisticView';
+import { findExpansionLine } from '../../config/expansionLines';
 import { LineProductionKpis } from './production/LineProductionKpis';
 import { LineOutputMonitor } from './production/LineOutputMonitor';
 import { ProcessConditionsTable } from './production/ProcessConditionsTable';
@@ -101,6 +103,12 @@ export function LineDetailView({
       currentLine?.id === 'LINE-03'
     );
   }, [lineId, currentLine]);
+
+  // 10 line mở rộng (AT, AFM, JATCO, AVS, Housing, Decast, DCT, H1, WS7, OCV3): sơ đồ băng chuyền theo cấu hình
+  const expansion = useMemo(
+    () => findExpansionLine(currentLine?.id) || findExpansionLine(currentLine?.code) || findExpansionLine(lineId),
+    [currentLine, lineId]
+  );
 
   // Dữ liệu sản xuất (mô phỏng) theo ca: KPI, giám sát sản lượng, điều kiện gia công 30 ngày
   const [selectedShift, setSelectedShift] = useState<1 | 2 | 3 | null>(null);
@@ -329,6 +337,19 @@ export function LineDetailView({
           flowStations={flowStations}
           onSelectMachine={onSelectMachine}
           currentLine={currentLine}
+        />
+      ) : expansion ? (
+        <LineGenericPhotorealisticView
+          lineId={expansion.code}
+          lineCode={expansion.code}
+          lineTitle={tr("Sơ đồ dây chuyền & trạng thái thiết bị - {0}", expansion.code)}
+          lineSubtitle={expansion.subtitle}
+          bgImageUrl=""
+          stationConfigs={expansion.stations}
+          flowStations={flowStations}
+          onSelectMachine={onSelectMachine}
+          currentLine={currentLine}
+          imageWidthPct={expansion.imageWidthPct}
         />
       ) : (
       <div className="w-full p-4 sm:p-5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-factory-card shadow-xs space-y-4">

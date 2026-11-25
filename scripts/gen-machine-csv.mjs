@@ -6,6 +6,7 @@
 // Chạy lại: node scripts/gen-machine-csv.mjs
 import fs from 'node:fs';
 import path from 'node:path';
+import { EXPANSION_LINES, TEMPLATES, MTR_INFO } from '../server/production/expansionLines.js';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const OUT = path.join(ROOT, 'public/data/machine-csv');
@@ -62,6 +63,18 @@ const MACHINES = {
   'SIM-LN-AFM-05-M3': [P.temp(115, 125), P.power(4, 8)],
   'SIM-LN-AFM-05-M4': [P.temp(23, 27), P.voltage()],
 };
+
+// 37 máy của 10 line mở rộng: quy cách lấy từ ngưỡng cảnh báo trong expansionLines.js
+for (const line of EXPANSION_LINES) {
+  for (const [code, , type] of line.machines) {
+    MACHINES[code] = (TEMPLATES[type] || []).map(([metricId, wMin, wMax]) => {
+      const [name, unit] = MTR_INFO[metricId];
+      const span = wMax - wMin;
+      const dec = span >= 100 ? 0 : span >= 10 ? 1 : 2;
+      return { name, unit, min: wMin, max: wMax, dec };
+    });
+  }
+}
 
 // RNG tất định theo chuỗi
 function rng(seed) {

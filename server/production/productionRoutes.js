@@ -43,7 +43,11 @@ export function registerProductionRoutes(app, { authenticateToken, requireRole, 
     const vLines = VIRTUAL_LINES.map(({ machines: _m, ...l }) => l);
     if (!dbReady()) return { lines: vLines, machines: virtualMachines() };
     const [lines, machines] = await Promise.all([mysqlDb.getProductionLines({}), mysqlDb.getMachines({})]);
-    return { lines: [...lines, ...vLines], machines: [...machines, ...virtualMachines()] };
+    // Line ảo chỉ dùng khi CSDL chưa có line cùng mã (AT, AFM nay đã là line thật trong CSDL)
+    const codes = new Set(lines.map((l) => l.code));
+    const extra = vLines.filter((l) => !codes.has(l.code));
+    const extraIds = new Set(extra.map((l) => l.id));
+    return { lines: [...lines, ...extra], machines: [...machines, ...virtualMachines().filter((m) => extraIds.has(m.lineId))] };
   }
 
   // Giữ nguyên thứ tự máy như API /api/machines trả về (trùng với cách giao diện đánh số OP10, OP20, ...)

@@ -282,6 +282,18 @@ export function resolveMetricNominalBaseline(metric: {
     };
   }
 
+  // 1b. Có đủ ngưỡng cảnh báo 2 phía (min & max): lấy giữa khoảng làm giá trị danh định
+  if (
+    metric.warningMin != null &&
+    metric.warningMax != null &&
+    Number.isFinite(Number(metric.warningMin)) &&
+    Number.isFinite(Number(metric.warningMax)) &&
+    Number(metric.warningMax) > Number(metric.warningMin)
+  ) {
+    const mid = (Number(metric.warningMin) + Number(metric.warningMax)) / 2;
+    return { nominal: Math.round(mid * 100) / 100, source: 'DENSO_EQUIPMENT_SPEC' };
+  }
+
   // 2. Tra cứu theo từ khóa tên hoặc đơn vị
   const upperName = (metric.name || '').toUpperCase();
   const upperCode = (key || '').toUpperCase();

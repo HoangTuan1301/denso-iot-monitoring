@@ -13,6 +13,8 @@
  * - OEE = Availability × Performance × Quality.
  */
 
+import { EXPANSION_PROFILES, EXPANSION_ZONES } from './expansionLines.js';
+
 export const VN_OFFSET_MIN = 7 * 60; // Asia/Ho_Chi_Minh (UTC+7, không có giờ mùa hè)
 
 export const DEFAULT_PRODUCTION_SETTINGS = {
@@ -32,8 +34,8 @@ const LINE_PROFILES = {
   'LN-PNT-02': { planPerHour: 320, idealCycleSec: 10.8, orderCode: 'VN229700-7311', product: 'Vỏ sơn tĩnh điện' },
   'LN-ASM-03': { planPerHour: 360, idealCycleSec: 9.6, orderCode: 'VN229700-8102', product: 'Cụm lắp ráp hoàn thiện' },
   // 2 line mô phỏng (không có trong CSDL) – tỉ lệ sự cố cao hơn để demo line bất thường
-  'LN-AT-04': { planPerHour: 300, idealCycleSec: 11.4, orderCode: 'VN229700-9025', product: 'Cụm hộp số AT', trouble: 1.8 },
-  'LN-AFM-05': { planPerHour: 280, idealCycleSec: 12.3, orderCode: 'VN229700-9310', product: 'Cảm biến lưu lượng khí AFM', trouble: 1.4 },
+  // 10 line mở rộng (AT, AFM, JATCO, AVS, Housing, Decast, DCT, H1, WS7, OCV3)
+  ...EXPANSION_PROFILES,
 };
 
 /** Vị trí từng line trên sơ đồ nhà máy (id khu vực trong factoryMapConfig.ts). */
@@ -41,8 +43,7 @@ export const LINE_ZONES = {
   'LN-PRS-01': 'CVT',
   'LN-PNT-02': 'APM',
   'LN-ASM-03': 'CVT_MID',
-  'LN-AT-04': 'AT',
-  'LN-AFM-05': 'AFM',
+  ...EXPANSION_ZONES,
 };
 
 /** Các line chỉ tồn tại trong mô phỏng (bổ sung để đủ Top 5 khi demo). */

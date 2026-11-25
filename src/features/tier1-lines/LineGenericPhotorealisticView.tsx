@@ -58,6 +58,8 @@ export interface LineGenericPhotorealisticViewProps {
   flowStations: StationFlowData[];
   onSelectMachine: (machineId: string) => void;
   currentLine?: any;
+  /** Độ rộng ảnh máy (% sơ đồ); line nhiều máy dùng nhỏ hơn */
+  imageWidthPct?: number;
 }
 
 export function LineGenericPhotorealisticView({
@@ -69,6 +71,7 @@ export function LineGenericPhotorealisticView({
   flowStations,
   onSelectMachine,
   currentLine,
+  imageWidthPct,
 }: LineGenericPhotorealisticViewProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [hoveredOp, setHoveredOp] = useState<string | null>(null);
@@ -167,7 +170,7 @@ export function LineGenericPhotorealisticView({
           <div className="relative min-w-[940px] lg:min-w-0 w-full aspect-[1024/240] rounded-xl overflow-hidden bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
             {/* 1. NỀN DÂY CHUYỀN: vẽ bằng SVG khi có ảnh máy tách nền, ngược lại dùng ảnh nền cũ */}
             {stations.every((st) => st.image) ? (
-              <ConveyorScene stations={stations} hoveredOp={hoveredOp} />
+              <ConveyorScene stations={stations} hoveredOp={hoveredOp} imageWidthPct={imageWidthPct} />
             ) : (
               <img
                 src={bgImageUrl}

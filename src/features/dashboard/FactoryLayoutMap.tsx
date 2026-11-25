@@ -317,6 +317,9 @@ export function FactoryLayoutMap({
                   if (prod) onSelectProductionLine?.(prod.lineCode);
                   if (zone.mappedLineId) {
                     onOpenLineOverview(zone.mappedLineId);
+                  } else if (prod && !prod.virtual && prod.lineId) {
+                    // Line mở rộng có trong CSDL (AT, AFM, JATCO…): mở chi tiết dây chuyền
+                    onOpenLineOverview(prod.lineId);
                   }
                 }}
                 onMouseEnter={() => setHoveredZone(zone)}

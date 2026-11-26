@@ -261,7 +261,6 @@ export function LineOutputMonitor({ data, loading, shift, onChangeShift, lineCod
       : daily.data
         ? `${daily.data.lineCode} · ${periodLabel} · ${tr('cập nhật {0}', daily.data.updatedAt)}`
         : '';
-  const simulated = mode === 'shift' ? data?.simulated : daily.data?.simulated;
 
   const header = (
     <div className="flex flex-wrap items-end justify-between gap-3">
@@ -269,7 +268,6 @@ export function LineOutputMonitor({ data, loading, shift, onChangeShift, lineCod
         <h3 className="text-base font-extrabold text-slate-900 dark:text-white">{t('lineView.output.title')}</h3>
         <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5">
           {subtitle}
-          {simulated && <span className="ml-1.5 font-bold text-violet-700 dark:text-violet-300">· {t('lineView.simulated')}</span>}
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-2">

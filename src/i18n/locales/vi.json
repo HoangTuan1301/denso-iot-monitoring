@@ -128,7 +128,6 @@
     },
     "axisFrom": "Trục bắt đầu từ {{value}} pcs",
     "due": "{{time}} · ca {{shift}}",
-    "top5Sub": "Xếp theo OEE từ thấp lên · tên theo ô trên sơ đồ nhà máy",
     "stopMinutes": "{{count}} phút dừng"
   },
   "cause": {

@@ -128,7 +128,6 @@
     },
     "axisFrom": "縦軸は {{value}} 個から",
     "due": "{{time}}・{{shift}}直",
-    "top5Sub": "OEEの低い順 · 名称は工場マップと同じ",
     "stopMinutes": "停止 {{count}} 分"
   },
   "cause": {

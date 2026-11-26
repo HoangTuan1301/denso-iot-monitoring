@@ -77,7 +77,6 @@ export function ProductionDecisionPanel({ overview, loading, error, onRetry, sel
             <span className="text-[10px] text-slate-500">{t('dashboard.kpi.shift', { shift: overview.shift.shift, label: overview.shift.label })}</span>
           )}
         </div>
-        <p className="-mt-1.5 mb-2.5 text-[10.5px] text-slate-500 dark:text-slate-400">{t('decision.top5Sub')}</p>
         {loading && !overview ? (
           <div className="space-y-2 animate-pulse">{[0, 1, 2, 3, 4].map((i) => <div key={i} className="h-11 rounded-lg bg-slate-100 dark:bg-white/5" />)}</div>
         ) : (

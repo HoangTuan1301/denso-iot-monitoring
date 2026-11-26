@@ -128,7 +128,6 @@
     },
     "axisFrom": "Axis starts at {{value}} pcs",
     "due": "{{time}} · shift {{shift}}",
-    "top5Sub": "Sorted by OEE, lowest first · names match the factory map",
     "stopMinutes": "{{count}} min stopped"
   },
   "cause": {

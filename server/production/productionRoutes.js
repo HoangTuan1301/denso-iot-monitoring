@@ -63,7 +63,17 @@ export function registerProductionRoutes(app, { authenticateToken, requireRole, 
   // Line thật từ CSDL + 2 line mô phỏng (đánh dấu virtual: true) để đủ Top 5 khi demo
   async function loadLinesAndMachines() {
     const vLines = VIRTUAL_LINES.map(({ machines: _m, ...l }) => l);
-    if (!dbReady()) return { lines: vLines, machines: virtualMachines() };
+    if (!dbReady()) {
+      // Máy chủ vừa khởi động, CSDL đang khởi tạo: báo "đang khởi động" thay vì trả về
+      // chỉ 2 line ảo (làm giao diện hiện "Chưa có dữ liệu" cho các line thật).
+      if (process.env.DB_HOST) {
+        const err = new Error('Máy chủ đang khởi động, CSDL chưa sẵn sàng. Vui lòng thử lại sau ít giây.');
+        err.status = 503;
+        err.errorCode = 'DB_STARTING';
+        throw err;
+      }
+      return { lines: vLines, machines: virtualMachines() };
+    }
     const [lines, machines] = await Promise.all([mysqlDb.getProductionLines({}), mysqlDb.getMachines({})]);
     // Line ảo chỉ dùng khi CSDL chưa có line cùng mã (AT, AFM nay đã là line thật trong CSDL)
     const codes = new Set(lines.map((l) => l.code));
@@ -102,7 +112,7 @@ export function registerProductionRoutes(app, { authenticateToken, requireRole, 
           })
           .catch(() => {});
       } catch (err) {
-        return res.status(500).json({ message: 'Không lưu được cài đặt: ' + err.message });
+        return res.status(err.status || 500).json({ message: err.status ? err.message : 'Không lưu được cài đặt: ' + err.message, errorCode: err.errorCode });
       }
     }
     res.json({ settings: next });
@@ -119,7 +129,7 @@ export function registerProductionRoutes(app, { authenticateToken, requireRole, 
       res.json(buildFactoryOverview({ lineShifts, machines, lines }));
     } catch (err) {
       console.error('[Production Overview Error]:', err);
-      res.status(500).json({ message: 'Lỗi tạo tổng quan sản xuất: ' + err.message });
+      res.status(err.status || 500).json({ message: err.status ? err.message : 'Lỗi tạo tổng quan sản xuất: ' + err.message, errorCode: err.errorCode });
     }
   });
 
@@ -209,7 +219,7 @@ export function registerProductionRoutes(app, { authenticateToken, requireRole, 
       );
     } catch (err) {
       console.error('[Production Plan Error]:', err);
-      res.status(500).json({ message: 'Không lưu được kế hoạch: ' + err.message });
+      res.status(err.status || 500).json({ message: err.status ? err.message : 'Không lưu được kế hoạch: ' + err.message, errorCode: err.errorCode });
     }
   });
 
@@ -229,7 +239,7 @@ export function registerProductionRoutes(app, { authenticateToken, requireRole, 
       );
     } catch (err) {
       console.error('[Production Line Error]:', err);
-      res.status(500).json({ message: 'Lỗi tạo dữ liệu sản xuất: ' + err.message });
+      res.status(err.status || 500).json({ message: err.status ? err.message : 'Lỗi tạo dữ liệu sản xuất: ' + err.message, errorCode: err.errorCode });
     }
   });
 
@@ -249,7 +259,7 @@ export function registerProductionRoutes(app, { authenticateToken, requireRole, 
       );
     } catch (err) {
       console.error('[Production Daily Error]:', err);
-      res.status(500).json({ message: 'Lỗi tạo dữ liệu sản lượng theo ngày: ' + err.message });
+      res.status(err.status || 500).json({ message: err.status ? err.message : 'Lỗi tạo dữ liệu sản lượng theo ngày: ' + err.message, errorCode: err.errorCode });
     }
   });
 
@@ -260,7 +270,7 @@ export function registerProductionRoutes(app, { authenticateToken, requireRole, 
       res.json(simulateProcessConditions({ line: found.line, days: req.query.days }));
     } catch (err) {
       console.error('[Production Conditions Error]:', err);
-      res.status(500).json({ message: 'Lỗi tạo dữ liệu điều kiện gia công: ' + err.message });
+      res.status(err.status || 500).json({ message: err.status ? err.message : 'Lỗi tạo dữ liệu điều kiện gia công: ' + err.message, errorCode: err.errorCode });
     }
   });
 
@@ -283,7 +293,7 @@ export function registerProductionRoutes(app, { authenticateToken, requireRole, 
       );
     } catch (err) {
       console.error('[Production What-If Error]:', err);
-      res.status(500).json({ message: 'Lỗi mô phỏng What-If: ' + err.message });
+      res.status(err.status || 500).json({ message: err.status ? err.message : 'Lỗi mô phỏng What-If: ' + err.message, errorCode: err.errorCode });
     }
   });
 }

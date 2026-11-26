@@ -16,14 +16,19 @@ export function useProductionOverview() {
   const [error, setError] = useState<string | null>(null);
   const alive = useRef(true);
 
+  const retry = useRef<number | undefined>(undefined);
   const load = useCallback(async () => {
+    window.clearTimeout(retry.current);
     try {
       const res = await apiClient.getProductionOverview();
       if (!alive.current) return;
       setData(res);
       setError(null);
     } catch (err: any) {
-      if (alive.current) setError(err?.message || 'error');
+      if (!alive.current) return;
+      setError(err?.message || 'error');
+      // Máy chủ vừa khởi động lại (CSDL chưa sẵn sàng): giữ số liệu cũ và thử lại sau 10 giây
+      retry.current = window.setTimeout(() => load(), 10_000);
     } finally {
       if (alive.current) setLoading(false);
     }
@@ -38,6 +43,7 @@ export function useProductionOverview() {
     return () => {
       alive.current = false;
       window.clearInterval(id);
+      window.clearTimeout(retry.current);
       window.removeEventListener(PRODUCTION_REFRESH_EVENT, onRefresh);
     };
   }, [load]);

@@ -40,7 +40,7 @@
   "header": {
     "emergency": "Simulate Incident",
     "emergencyShort": "Incident",
-    "emergencyTitle": "Trigger a random over-threshold incident on one machine (admin demo only)",
+    "emergencyTitle": "Simulate an incident: one machine on a healthy line exceeds the critical threshold – the line stops, turns red on the map and enters the Top 5 (admin demo)",
     "restore": "Restore",
     "restoreNow": "Restore now",
     "restoreTitle": "Restore all machines and safety scores to normal",
@@ -53,7 +53,15 @@
     "toLight": "Switch to light theme",
     "toDark": "Switch to dark theme",
     "logout": "Sign out",
-    "restoreIncident": "Restore incident"
+    "restoreIncident": "Restore incident",
+    "rtLive": "Live",
+    "rtReconnecting": "Reconnecting",
+    "rtPaused": "Paused {{time}}",
+    "rtLiveTitle": "Receiving live data: machine parameters every second, output every minute.",
+    "rtReconnectTitle": "Lost connection to the server, reconnecting automatically; data still refreshes periodically.",
+    "rtClickPause": "Click to pause all updates.",
+    "rtPausedTitle": "Updates paused at {{time}} – figures on screen are frozen. Click to resume.",
+    "emergencyNotice2": "Simulated incident on {{line}} · {{machine}}: {{metric}} spiked to {{value}} {{unit}}!"
   },
   "dashboard": {
     "kpi": {
@@ -137,7 +145,8 @@
     "SHORT_STOP": "Minor stops (チョコ停)",
     "SPEED_QUALITY": "Speed & quality loss",
     "LOW_OEE": "Low OEE",
-    "SHORT_STOP_COUNT": "Minor stops × {{count}}"
+    "SHORT_STOP_COUNT": "Minor stops × {{count}}",
+    "EMERGENCY": "Simulated incident"
   },
   "lineView": {
     "kpi": {

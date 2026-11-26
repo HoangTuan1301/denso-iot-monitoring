@@ -11,6 +11,7 @@ import type {
   FactoryProductionOverview,
   LineShiftProduction,
   LineDailyProduction,
+  ProductionEmergency,
   ProcessConditionsResponse,
   WhatIfResponse,
 } from '../types/production';
@@ -724,6 +725,17 @@ export const apiClient = {
 
   async getProductionOverview(): Promise<FactoryProductionOverview> {
     return request('/api/production/overview');
+  },
+
+  /** Sự cố giả lập đang chạy (nút "Giả lập sự cố") */
+  async getEmergency(): Promise<{ emergency: ProductionEmergency | null }> {
+    return request('/api/production/emergency');
+  },
+  async startEmergency(body: { lineId: string; lineCode?: string; machineId?: string; machineName?: string; metricName?: string }): Promise<{ emergency: ProductionEmergency }> {
+    return request('/api/production/emergency', { method: 'POST', body: JSON.stringify(body) });
+  },
+  async stopEmergency(): Promise<{ emergency: null }> {
+    return request('/api/production/emergency', { method: 'DELETE' });
   },
 
   /** Sửa kế hoạch 1 giờ trong ca (qty = null → về mặc định). Trả về dữ liệu ca đã tính lại. */

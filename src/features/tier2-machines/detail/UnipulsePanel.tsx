@@ -4,6 +4,7 @@
  * (thu gọn mặc định, bấm ▾ để xem).
  * Hiện dùng dữ liệu mô phỏng; cột sẽ chỉnh theo file CSV mẫu thật.
  */
+import { PRODUCTION_REFRESH_EVENT, isAutoRefreshOn } from '../../../utils/productionRefresh';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '../../../services/api';
@@ -28,10 +29,13 @@ export function UnipulsePanel({ machineId, className = '' }: { machineId: string
         .then((d) => alive && setData(d))
         .catch(() => {});
     load();
-    const id = window.setInterval(load, REFRESH_MS);
+    const id = window.setInterval(() => isAutoRefreshOn() && load(), REFRESH_MS);
+    const onRefresh = () => load();
+    window.addEventListener(PRODUCTION_REFRESH_EVENT, onRefresh);
     return () => {
       alive = false;
       window.clearInterval(id);
+      window.removeEventListener(PRODUCTION_REFRESH_EVENT, onRefresh);
     };
   }, [machineId]);
 

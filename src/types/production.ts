@@ -132,6 +132,8 @@ export interface FactoryProductionOverview {
   oee: OeeBreakdown;
   lines: { total: number; producing: number };
   machines: { total: number; running: number; alarmStop: number; offline: number };
+  emergency?: ProductionEmergency | null;
+  troubleLines?: string[];
   lineStates: Array<{
     lineId: string;
     lineCode: string;
@@ -154,6 +156,8 @@ export interface FactoryProductionOverview {
     zoneId: string | null;
     productionStatus: LineProductionStatus;
     oee?: number | null;
+    /** Line đang có sự cố giả lập */
+    emergency?: boolean;
     longStopMinutes: number;
     totalStopMinutes: number;
     mainCauseCode: string | null;
@@ -223,4 +227,15 @@ export interface WhatIfResponse {
     type: 'TOTAL' | 'LOSS' | 'GAIN';
     kind?: 'LONG_STOP' | 'SHORT_STOP' | 'SPEED_QUALITY';
   }>;
+}
+
+/** Sự cố giả lập đang diễn ra (nút "Giả lập sự cố" trên thanh tiêu đề) */
+export interface ProductionEmergency {
+  lineId: string;
+  lineCode: string;
+  machineId: string | null;
+  machineName: string | null;
+  metricName: string | null;
+  startedAt: string;
+  by: string | null;
 }

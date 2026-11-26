@@ -6,7 +6,9 @@
 
 import { lineDisplayName } from '../../config/lineDisplayName';
 import { useState, useEffect } from "react";
-import { Sun, Moon, RefreshCw, LogOut, Radio, Menu } from "lucide-react";
+import { Sun, Moon, RefreshCw, LogOut, Radio, Menu, Flame, RotateCcw, Pause, AlertOctagon } from "lucide-react";
+import { apiClient } from "../../services/api";
+import { requestProductionRefresh } from "../../utils/productionRefresh";
 import { useUiStore, useIsDesktop } from "../../stores/useUiStore";
 import { useMonitoringStore } from "../../stores/useMonitoringStore";
 import { useAuthStore }       from "../../stores/useAuthStore";
@@ -50,6 +52,10 @@ export function Header() {
     lines,
     setDashboardViewLevel,
     setSelectedLineId,
+    activeEmergencyMetricId,
+    triggerEmergencyDemo,
+    resetEmergencyDemo,
+    setActiveTab,
   } = useMonitoringStore();
   const setMobileNavOpen = useUiStore((s) => s.setMobileNavOpen);
   const isDesktop = useIsDesktop();
@@ -59,6 +65,91 @@ export function Header() {
 
   const [timeStr, setTimeStr]       = useState("");
   const [isWsConnected, setIsWsConnected] = useState(false);
+  const [pausedAt, setPausedAt] = useState<string | null>(null);
+  const [serverEmergency, setServerEmergency] = useState(false);
+  const [emgBusy, setEmgBusy] = useState(false);
+  const [notice, setNotice] = useState<{ text: string; tone: "alarm" | "ok" } | null>(null);
+  const isAdmin = (currentUser?.role || "").toUpperCase() === "ADMIN";
+  const isEmergencyActive = serverEmergency || !!activeEmergencyMetricId;
+
+  /* Trạng thái sự cố giả lập phía máy chủ (để mọi trang / mọi người dùng thấy cùng một sự cố) */
+  useEffect(() => {
+    let alive = true;
+    const load = () =>
+      apiClient
+        .getEmergency()
+        .then((r) => alive && setServerEmergency(!!r.emergency))
+        .catch(() => {});
+    load();
+    const id = window.setInterval(load, 30_000);
+    return () => {
+      alive = false;
+      window.clearInterval(id);
+    };
+  }, []);
+
+  const flash = (text: string, tone: "alarm" | "ok", ms: number) => {
+    setNotice({ text, tone });
+    window.setTimeout(() => setNotice((n) => (n && n.text === text ? null : n)), ms);
+  };
+
+  /* Giả lập sự cố: chọn 1 line đang chạy tốt (hoặc line đang xem) → 1 máy vượt ngưỡng nguy hiểm */
+  const handleTriggerEmergency = async () => {
+    setEmgBusy(true);
+    try {
+      let target = selectedLineId || undefined;
+      if (!target) {
+        const ov = await apiClient.getProductionOverview().catch(() => null);
+        const withMetrics = new Set(
+          lines.filter((l) => l.machines.some((m) => m.metrics?.length && m.status !== "no_data")).map((l) => l.id)
+        );
+        const healthy = (ov?.lineStates || []).filter((x) => !x.virtual && x.productionStatus === "RUNNING" && withMetrics.has(x.lineId));
+        const pool = healthy.length ? healthy.map((x) => x.lineId) : [...withMetrics];
+        target = pool[Math.floor(Math.random() * pool.length)];
+      }
+      const info = triggerEmergencyDemo(target);
+      if (!info) return;
+      await apiClient
+        .startEmergency({ lineId: info.lineId, lineCode: info.lineCode, machineId: info.machineId, machineName: info.machineName, metricName: info.metricName })
+        .then(() => setServerEmergency(true))
+        .catch(() => {});
+      requestProductionRefresh();
+      flash(
+        t("header.emergencyNotice2", { line: lineDisplayName(info.lineCode, info.lineName), machine: info.machineName, metric: info.metricName, value: info.value, unit: info.unit }),
+        "alarm",
+        10000
+      );
+    } finally {
+      setEmgBusy(false);
+    }
+  };
+
+  const handleRestoreEmergency = async () => {
+    setEmgBusy(true);
+    try {
+      resetEmergencyDemo();
+      await apiClient.stopEmergency().catch(() => {});
+      setServerEmergency(false);
+      requestProductionRefresh();
+      flash(t("header.restoredNotice"), "ok", 3500);
+    } finally {
+      setEmgBusy(false);
+    }
+  };
+
+  /* Realtime: tạm dừng / tiếp tục toàn bộ cập nhật (thông số máy + sản lượng) */
+  const handleToggleRealtime = () => {
+    if (isRealtimeActive) {
+      const d = new Date();
+      setPausedAt(`${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`);
+      toggleRealtime(false);
+    } else {
+      setPausedAt(null);
+      toggleRealtime(true);
+      simulateTick();
+      requestProductionRefresh();
+    }
+  };
 
   /* Lắng nghe trạng thái kết nối WebSocket Realtime */
   useEffect(() => {
@@ -116,6 +207,31 @@ export function Header() {
 
   return (
     <header className="relative flex h-[60px] shrink-0 items-center justify-between border-b border-factory-border bg-factory-card gap-2 px-3 sm:px-6 z-20">
+      {notice && (
+        <div
+          role="status"
+          className={`absolute top-[66px] right-6 z-50 flex items-center gap-2.5 rounded-xl px-4 py-2.5 shadow-2xl text-xs font-semibold text-white ${
+            notice.tone === "alarm" ? "bg-gradient-to-r from-rose-600 to-red-600 shadow-rose-950/40" : "bg-emerald-600 shadow-emerald-950/30"
+          }`}
+        >
+          {notice.tone === "alarm" && <AlertOctagon className="w-4 h-4 shrink-0 animate-bounce" />}
+          <span
+            onClick={() => notice.tone === "alarm" && setActiveTab("alarms")}
+            className={notice.tone === "alarm" ? "cursor-pointer hover:underline" : ""}
+          >
+            {notice.text}
+          </span>
+          {notice.tone === "alarm" && isAdmin && (
+            <button
+              type="button"
+              onClick={handleRestoreEmergency}
+              className="ml-2 px-2.5 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-[11px] font-bold cursor-pointer"
+            >
+              {t("header.restoreNow")}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* ---- Nút mở menu (điện thoại / máy tính bảng) ---- */}
       <button
@@ -198,51 +314,67 @@ export function Header() {
       {/* ---- Góc phải: các pill & nút ---- */}
       <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
 
-        {/* Pill Stream — Bật / Tắt cập nhật tự động */}
-        <button
-          onClick={() => toggleRealtime()}
-          title={t("header.streamTitle")}
-          className={[
-            "hidden md:flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-mono transition-colors cursor-pointer",
-            isRealtimeActive
-              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold hover:bg-emerald-500/20"
-              : "border-slate-300 dark:border-factory-border bg-slate-100 dark:bg-factory-surface text-slate-600 dark:text-slate-400 hover:border-slate-400",
-          ].join(" ")}
-        >
-          <span
-            className={[
-              "h-1.5 w-1.5 rounded-full",
-              isRealtimeActive ? "bg-emerald-500 animate-pulse" : "bg-slate-400",
-            ].join(" ")}
-          />
-          {isRealtimeActive ? "Stream: ON" : "Stream: OFF"}
-        </button>
+        {/* Nút Giả lập sự cố (chỉ Admin) – bấm lần nữa để khôi phục */}
+        {isAdmin &&
+          (isEmergencyActive ? (
+            <button
+              type="button"
+              onClick={handleRestoreEmergency}
+              disabled={emgBusy}
+              title={t("header.restoreTitle")}
+              className="flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border border-emerald-500/50 bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 active:scale-95 transition-all cursor-pointer disabled:opacity-60"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{t("header.restoreIncident")}</span>
+              <span className="sm:hidden">{t("header.restore")}</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleTriggerEmergency}
+              disabled={emgBusy}
+              title={t("header.emergencyTitle")}
+              className="flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border border-rose-500/40 bg-rose-500/10 px-3 py-1 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 active:scale-95 transition-all cursor-pointer disabled:opacity-60"
+            >
+              <Flame className="h-3.5 w-3.5 text-rose-500 animate-pulse" />
+              <span className="hidden sm:inline">{t("header.emergency")}</span>
+              <span className="sm:hidden">{t("header.emergencyShort")}</span>
+            </button>
+          ))}
 
-        {/* Trạng thái kết nối WebSocket IoT */}
-        <div
+        {/* Realtime = Stream + WS gộp lại: trạng thái kết nối + bấm để tạm dừng / tiếp tục mọi cập nhật */}
+        <button
+          type="button"
+          onClick={handleToggleRealtime}
+          aria-pressed={isRealtimeActive}
           title={
-            isWsConnected
-              ? t("header.wsOnline")
-              : t("header.wsOffline")
+            isRealtimeActive
+              ? `${isWsConnected ? t("header.rtLiveTitle") : t("header.rtReconnectTitle")} ${t("header.rtClickPause")}`
+              : t("header.rtPausedTitle", { time: pausedAt || "" })
           }
           className={[
-            "hidden md:flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-mono transition-colors select-none",
-            isWsConnected
-              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium"
-              : "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium",
+            "hidden md:flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors cursor-pointer",
+            !isRealtimeActive
+              ? "border-slate-300 dark:border-factory-border bg-slate-100 dark:bg-factory-surface text-slate-600 dark:text-slate-400 hover:border-slate-400"
+              : isWsConnected
+                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20"
+                : "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20",
           ].join(" ")}
         >
-          <span
-            className={[
-              "h-1.5 w-1.5 rounded-full",
-              isWsConnected ? "bg-emerald-500 animate-pulse" : "bg-amber-500",
-            ].join(" ")}
-          />
+          {isRealtimeActive ? (
+            <span className={["h-1.5 w-1.5 rounded-full", isWsConnected ? "bg-emerald-500 animate-pulse" : "bg-amber-500"].join(" ")} />
+          ) : (
+            <Pause className="h-3 w-3" />
+          )}
           <Radio className="h-3 w-3 shrink-0" />
-          <span className="hidden md:inline">
-            <span className="hidden 2xl:inline">{isWsConnected ? "WS: Live" : "WS: Reconnecting"}</span><span className="2xl:hidden">WS</span>
+          <span>
+            {!isRealtimeActive
+              ? t("header.rtPaused", { time: pausedAt || "" })
+              : isWsConnected
+                ? t("header.rtLive")
+                : t("header.rtReconnecting")}
           </span>
-        </div>
+        </button>
 
         {/* Chọn ngôn ngữ VI / EN / 日本語 */}
         <LanguageSwitcher compact={!isDesktop} />
@@ -283,7 +415,10 @@ export function Header() {
 
         {/* Refresh thủ công */}
         <button
-          onClick={() => simulateTick()}
+          onClick={() => {
+            simulateTick();
+            requestProductionRefresh();
+          }}
           title={t("header.refreshTitle")}
           className="hidden sm:flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 dark:border-factory-border bg-slate-100 dark:bg-factory-surface text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 transition-colors cursor-pointer"
         >

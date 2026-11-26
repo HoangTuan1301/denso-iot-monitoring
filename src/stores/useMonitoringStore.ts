@@ -179,7 +179,10 @@ interface MonitoringState {
   simulateTick: () => void;
 
   // Giả lập sự cố khẩn cấp ngẫu nhiên phục vụ demo thuyết trình
-  triggerEmergencyDemo: () => {
+  triggerEmergencyDemo: (lineId?: string) => {
+    lineId: string;
+    lineCode: string;
+    machineId: string;
     lineName: string;
     machineName: string;
     metricName: string;
@@ -973,8 +976,11 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
    * Duy trì trạng thái nguy hiểm liên tục cho đến khi bấm Khôi phục Sự cố
    * Đảm bảo tính nhất quán: Mỗi lần kích hoạt chỉ tác động đúng DUY NHẤT 1 máy mục tiêu (Single target)
    */
-  triggerEmergencyDemo: () => {
+  triggerEmergencyDemo: (lineIdArg?: string) => {
     let triggeredInfo: {
+      lineId: string;
+      lineCode: string;
+      machineId: string;
       lineName: string;
       machineName: string;
       metricName: string;
@@ -1015,7 +1021,8 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
       }));
 
       // 2. Tìm dây chuyền và máy mục tiêu
-      let lineIdx = baseLines.findIndex((l) => l.id === state.selectedLineId || l.code === state.selectedLineId);
+      const wantLine = lineIdArg || state.selectedLineId;
+      let lineIdx = baseLines.findIndex((l) => l.id === wantLine || l.code === wantLine);
       if (lineIdx === -1) lineIdx = 0;
       const targetLine = baseLines[lineIdx];
       if (targetLine.machines.length === 0) return { lines: baseLines };
@@ -1029,7 +1036,7 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
         const found = targetLine.machines.find((m) => m.id === state.selectedMachineId || m.code === state.selectedMachineId);
         targetMachine = found && found.metrics.length > 0 ? found : validMachines[0];
       } else {
-        targetMachine = validMachines[0];
+        targetMachine = validMachines[Math.floor(Math.random() * validMachines.length)];
       }
 
       const machineIdx = targetLine.machines.findIndex((m) => m.id === targetMachine.id);
@@ -1050,6 +1057,9 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 
       triggeredInfo = {
+        lineId: targetLine.id,
+        lineCode: targetLine.code,
+        machineId: targetMachine.id,
         lineName: targetLine.name,
         machineName: targetMachine.name,
         metricName: targetMetric.name,

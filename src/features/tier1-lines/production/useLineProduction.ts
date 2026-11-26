@@ -2,6 +2,7 @@
  * @file useLineProduction.ts
  * @description Hook lấy dữ liệu sản xuất (mô phỏng) của 1 dây chuyền: ca sản xuất + điều kiện gia công.
  */
+import { PRODUCTION_REFRESH_EVENT, isAutoRefreshOn } from '../../../utils/productionRefresh';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { apiClient } from '../../../services/api';
 import type { LineDailyProduction, LineShiftProduction, ProcessConditionsResponse } from '../../../types/production';
@@ -33,10 +34,13 @@ export function useLineShift(lineCode: string | null, shift?: 1 | 2 | 3, date?: 
     alive.current = true;
     setLoading(true);
     load();
-    const id = window.setInterval(load, REFRESH_MS);
+    const id = window.setInterval(() => isAutoRefreshOn() && load(), REFRESH_MS);
+    const onRefresh = () => load();
+    window.addEventListener(PRODUCTION_REFRESH_EVENT, onRefresh);
     return () => {
       alive.current = false;
       window.clearInterval(id);
+      window.removeEventListener(PRODUCTION_REFRESH_EVENT, onRefresh);
     };
   }, [load]);
 
@@ -67,8 +71,11 @@ export function useLineDaily(lineCode: string | null, period: 'week' | 'month' |
     setLoading(true);
     setData(null);
     load();
-    const id = window.setInterval(load, REFRESH_MS * 5);
+    const id = window.setInterval(() => isAutoRefreshOn() && load(), REFRESH_MS * 5);
+    const onRefresh = () => load();
+    window.addEventListener(PRODUCTION_REFRESH_EVENT, onRefresh);
     return () => window.clearInterval(id);
+      window.removeEventListener(PRODUCTION_REFRESH_EVENT, onRefresh);
   }, [load, period]);
 
   return { data, loading, error, reload: load };

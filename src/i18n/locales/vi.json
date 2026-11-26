@@ -40,7 +40,7 @@
   "header": {
     "emergency": "Giả lập Sự cố",
     "emergencyShort": "Sự cố",
-    "emergencyTitle": "Kích hoạt sự cố vượt ngưỡng khẩn cấp ngẫu nhiên ở một máy (Dành riêng cho Admin demo)",
+    "emergencyTitle": "Giả lập sự cố: một máy ở một line đang chạy tốt vượt ngưỡng nguy hiểm – line dừng, sơ đồ chuyển đỏ, vào Top 5 (dành cho Admin demo)",
     "restore": "Khôi phục",
     "restoreNow": "Khôi phục ngay",
     "restoreTitle": "Khôi phục ngay toàn bộ máy và điểm an toàn về trạng thái chuẩn",
@@ -53,7 +53,15 @@
     "toLight": "Chuyển sang giao diện Sáng",
     "toDark": "Chuyển sang giao diện Tối",
     "logout": "Đăng xuất khỏi phiên làm việc",
-    "restoreIncident": "Khôi phục Sự cố"
+    "restoreIncident": "Khôi phục Sự cố",
+    "rtLive": "Trực tiếp",
+    "rtReconnecting": "Đang kết nối lại",
+    "rtPaused": "Tạm dừng {{time}}",
+    "rtLiveTitle": "Đang nhận dữ liệu trực tiếp: thông số máy cập nhật mỗi giây, sản lượng mỗi phút.",
+    "rtReconnectTitle": "Mất kết nối tới máy chủ, đang tự kết nối lại; dữ liệu vẫn tải lại theo chu kỳ.",
+    "rtClickPause": "Bấm để tạm dừng mọi cập nhật.",
+    "rtPausedTitle": "Đã tạm dừng cập nhật lúc {{time}} – số liệu trên màn hình đang đứng yên. Bấm để tiếp tục.",
+    "emergencyNotice2": "Sự cố giả lập tại {{line}} · {{machine}}: {{metric}} tăng vọt {{value}} {{unit}}!"
   },
   "dashboard": {
     "kpi": {
@@ -137,7 +145,8 @@
     "SHORT_STOP": "Dừng ngắn (チョコ停)",
     "SPEED_QUALITY": "Giảm tốc & hàng lỗi",
     "LOW_OEE": "OEE thấp",
-    "SHORT_STOP_COUNT": "Dừng ngắn × {{count}}"
+    "SHORT_STOP_COUNT": "Dừng ngắn × {{count}}",
+    "EMERGENCY": "Sự cố giả lập"
   },
   "lineView": {
     "kpi": {

@@ -2,6 +2,7 @@
  * @file useProduction.ts
  * @description Hook lấy dữ liệu sản xuất (mô phỏng) cho Dashboard: tổng quan nhà máy và What-If của 1 line.
  */
+import { PRODUCTION_REFRESH_EVENT, isAutoRefreshOn } from '../../../utils/productionRefresh';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '../../../services/api';
@@ -31,10 +32,13 @@ export function useProductionOverview() {
   useEffect(() => {
     alive.current = true;
     load();
-    const id = window.setInterval(load, OVERVIEW_REFRESH_MS);
+    const id = window.setInterval(() => isAutoRefreshOn() && load(), OVERVIEW_REFRESH_MS);
+    const onRefresh = () => load();
+    window.addEventListener(PRODUCTION_REFRESH_EVENT, onRefresh);
     return () => {
       alive.current = false;
       window.clearInterval(id);
+      window.removeEventListener(PRODUCTION_REFRESH_EVENT, onRefresh);
     };
   }, [load]);
 

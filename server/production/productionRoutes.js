@@ -9,6 +9,7 @@
  *   GET  /api/production/lines/:lineId/what-if?otHours=&reroutePct=&orderQty=
  *   GET  /api/production/settings                       Cài đặt (ngưỡng dừng ngắn)
  *   PUT  /api/production/settings                       Cập nhật cài đặt (ADMIN)
+ *   GET|POST|DELETE /api/production/emergency          Sự cố giả lập (nút "Giả lập sự cố", ADMIN)
  *   PUT  /api/production/lines/:lineId/plan             Sửa kế hoạch 1 giờ của ca {date, shift, hour, qty|null, reason}
  */
 import {
@@ -20,6 +21,8 @@ import {
   buildFactoryOverview,
   setPlanOverrides,
   getPlanOverrides,
+  setEmergency,
+  getEmergency,
   VIRTUAL_LINES,
   virtualMachines,
 } from './ProductionSimulator.js';
@@ -132,6 +135,31 @@ export function registerProductionRoutes(app, { authenticateToken, requireRole, 
 
   const validDate = (d) => (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : undefined);
   const validShift = (s) => (['1', '2', '3'].includes(String(s)) ? Number(s) : undefined);
+
+  app.get('/api/production/emergency', authenticateToken, (req, res) => {
+    res.json({ emergency: getEmergency() });
+  });
+
+  app.post('/api/production/emergency', authenticateToken, requireRole(['ADMIN']), async (req, res) => {
+    const b = req.body || {};
+    if (!b.lineId && !b.lineCode) return res.status(400).json({ message: 'Thiếu dây chuyền.', errorCode: 'NO_LINE' });
+    const e = {
+      lineId: String(b.lineId || ''),
+      lineCode: String(b.lineCode || ''),
+      machineId: b.machineId ? String(b.machineId) : null,
+      machineName: b.machineName ? String(b.machineName).slice(0, 120) : null,
+      metricName: b.metricName ? String(b.metricName).slice(0, 120) : null,
+      startedAt: new Date().toISOString(),
+      by: req.user?.fullName || req.user?.email || null,
+    };
+    setEmergency(e);
+    res.json({ emergency: e });
+  });
+
+  app.delete('/api/production/emergency', authenticateToken, requireRole(['ADMIN']), (req, res) => {
+    setEmergency(null);
+    res.json({ emergency: null });
+  });
 
   app.put('/api/production/lines/:lineId/plan', authenticateToken, requireRole(['ADMIN', 'MAINTENANCE']), async (req, res) => {
     try {

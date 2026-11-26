@@ -40,7 +40,7 @@
   "header": {
     "emergency": "異常シミュレーション",
     "emergencyShort": "異常",
-    "emergencyTitle": "任意の設備でしきい値超過の異常をランダムに発生させます（管理者デモ専用）",
+    "emergencyTitle": "異常の模擬：正常稼働中ラインの設備1台が危険しきい値を超過 – ライン停止、マップで赤表示、ワースト5に入ります（管理者デモ用）",
     "restore": "復旧",
     "restoreNow": "今すぐ復旧",
     "restoreTitle": "全設備と安全スコアを正常状態に戻します",
@@ -53,7 +53,15 @@
     "toLight": "ライトテーマに切替",
     "toDark": "ダークテーマに切替",
     "logout": "ログアウト",
-    "restoreIncident": "異常を復旧"
+    "restoreIncident": "異常を復旧",
+    "rtLive": "ライブ",
+    "rtReconnecting": "再接続中",
+    "rtPaused": "一時停止 {{time}}",
+    "rtLiveTitle": "ライブデータ受信中：設備パラメータは毎秒、出来高は毎分更新。",
+    "rtReconnectTitle": "サーバーとの接続が切れました。自動で再接続中です（データは定期的に更新されます）。",
+    "rtClickPause": "クリックで全更新を一時停止。",
+    "rtPausedTitle": "{{time}} に更新を一時停止中 – 画面の数値は固定されています。クリックで再開。",
+    "emergencyNotice2": "{{line}} · {{machine}} で異常を模擬：{{metric}} が {{value}} {{unit}} に急上昇！"
   },
   "dashboard": {
     "kpi": {
@@ -137,7 +145,8 @@
     "SHORT_STOP": "チョコ停",
     "SPEED_QUALITY": "速度・品質ロス",
     "LOW_OEE": "OEE低下",
-    "SHORT_STOP_COUNT": "チョコ停 × {{count}}"
+    "SHORT_STOP_COUNT": "チョコ停 × {{count}}",
+    "EMERGENCY": "模擬異常"
   },
   "lineView": {
     "kpi": {

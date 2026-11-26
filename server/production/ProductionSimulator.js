@@ -219,6 +219,34 @@ function fmtClock(utcMs) {
 /* key `${lineId}|${date}|${shift}` → { [hourIndex 0–7]: { qty, reason, by, at } } */
 /* ------------------------------------------------------------------ */
 let PLAN_OVERRIDES = {};
+
+/* ------------------------------------------------------------------ */
+/* 5 line "có vấn đề" mỗi ngày (cố định trong ngày, đổi theo ngày)      */
+/* Các line còn lại chạy bình thường: vượt nhẹ kế hoạch, OEE ≥ 85 %.    */
+/* ------------------------------------------------------------------ */
+export const TROUBLE_LINES_PER_DAY = 5;
+const troubleCache = new Map();
+export function troubleLinesFor(day) {
+  if (troubleCache.has(day)) return troubleCache.get(day);
+  const codes = [...new Set(Object.keys(LINE_PROFILES))].sort();
+  const ranked = codes.map((c) => ({ c, r: hashString(`${day}|trouble|${c}`) })).sort((a, b) => a.r - b.r);
+  const set = new Set(ranked.slice(0, TROUBLE_LINES_PER_DAY).map((x) => x.c));
+  troubleCache.set(day, set);
+  if (troubleCache.size > 200) troubleCache.delete(troubleCache.keys().next().value);
+  return set;
+}
+
+/* ------------------------------------------------------------------ */
+/* Sự cố giả lập (nút "Giả lập sự cố" trên thanh tiêu đề)              */
+/* { lineId, lineCode, machineId, machineName, metricName, startedAt }  */
+/* ------------------------------------------------------------------ */
+let EMERGENCY = null;
+export function setEmergency(e) {
+  EMERGENCY = e || null;
+}
+export function getEmergency() {
+  return EMERGENCY;
+}
 export function setPlanOverrides(map) {
   PLAN_OVERRIDES = map && typeof map === 'object' ? map : {};
 }
@@ -247,12 +275,13 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
 
   // --- Sinh sự kiện dừng máy trên toàn ca (tất định), sau đó chỉ lấy phần đã xảy ra ---
   const events = [];
-  // Dừng dài: 0–2 lần/ca (line "trouble" nhiều hơn), (ngưỡng + 5) – 40 phút
-  const trouble = profile.trouble || 1;
-  const longCount = rng() < 0.3 / trouble ? 0 : rng() < 0.8 / trouble ? 1 : trouble > 1.5 ? 3 : 2;
+  // Line có vấn đề trong ngày: 1–3 lần dừng dài, chạy chậm; line bình thường: không dừng dài
+  const isTrouble = troubleLinesFor(day).has(line.code || line.id);
+  const trouble = isTrouble ? Math.max(1.6, profile.trouble || 1) : 0.5;
+  const longCount = isTrouble ? (rng() < 0.55 ? 1 : 2) : 0;
   for (let i = 0; i < longCount; i++) {
     const at = Math.floor(range(rng, 40, SHIFT_MINUTES - 60));
-    const dur = Math.round(range(rng, cfg.shortStopThresholdMin + 5, 40 * Math.min(trouble, 1.5)));
+    const dur = Math.round(range(rng, cfg.shortStopThresholdMin + 5, 32));
     const st = pick(rng, stations);
     events.push({ at, dur, station: st, cause: pick(rng, LONG_STOP_CAUSES) });
   }
@@ -263,6 +292,16 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
     const dur = Math.max(1, Math.round(range(rng, 1, maxShort)));
     events.push({ at: t, dur, station: pick(rng, stations), cause: pick(rng, SHORT_STOP_CAUSES) });
     t += Math.floor(range(rng, 25, 60) / trouble);
+  }
+  // Sự cố giả lập đang diễn ra trên line này: dừng từ lúc kích hoạt tới hiện tại
+  const emg = EMERGENCY && (EMERGENCY.lineId === line.id || EMERGENCY.lineCode === line.code) ? EMERGENCY : null;
+  if (emg) {
+    // Tính tối thiểu 1 phút để sự cố hiện ngay khi vừa kích hoạt
+    const at = Math.min(Math.floor((Date.parse(emg.startedAt) - startMs) / 60000), elapsedMin - 1);
+    if (at >= 0 && at < SHIFT_MINUTES && Date.parse(emg.startedAt) < endMs) {
+      const st = stations.find((x) => x.id === emg.machineId) || stations[0];
+      events.push({ at, dur: SHIFT_MINUTES - at, station: st, cause: { code: 'EMERGENCY', label: 'Sự cố giả lập' }, forced: true });
+    }
   }
   events.sort((a, b) => a.at - b.at);
 
@@ -280,14 +319,17 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
     op: e.station.op,
     startedAt: fmtClock(startMs + e.at * 60000),
     durationMin: e.dur,
-    type: e.dur >= cfg.shortStopThresholdMin ? 'LONG' : 'SHORT',
+    type: e.forced || e.dur >= cfg.shortStopThresholdMin ? 'LONG' : 'SHORT',
     causeCode: e.cause.code,
     cause: e.cause.label,
   }));
 
   // --- Sản lượng theo giờ ---
-  const perfFactorBase = range(rng, 0.93, 0.985);
-  const idealPerHour = 3600 / profile.idealCycleSec;
+  // Line bình thường: công suất lý tưởng cao hơn kế hoạch 13–19 % → sản lượng vượt nhẹ kế hoạch (≈102–108 %), OEE ≈ 87–93 %
+  const perfFactorBase = isTrouble ? range(rng, 0.89, 0.95) : range(rng, 0.915, 0.955);
+  const idealPerHour = isTrouble
+    ? 3600 / profile.idealCycleSec
+    : Math.max(3600 / profile.idealCycleSec, profile.planPerHour * range(rng, 1.13, 1.19));
   const overrides = PLAN_OVERRIDES[`${line.id}|${day}|${sh}`] || {};
   const hourly = [];
   let produced = 0;
@@ -313,7 +355,7 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
       const f = Math.min(e.at + e.dur, hEnd, elapsedMin);
       if (f > s) {
         stopMin += f - s;
-        if (e.dur >= cfg.shortStopThresholdMin && !longNote) {
+        if ((e.forced || e.dur >= cfg.shortStopThresholdMin) && !longNote) {
           longNote = `${e.cause.label} ${e.station.op} (${e.dur}')`;
           longStop = { causeCode: e.cause.code, op: e.station.op, durationMin: e.dur };
         }
@@ -353,7 +395,7 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
   const totalStopMin = sum(stops);
   const runMin = Math.max(0, elapsedMin - totalStopMin);
 
-  const defectRate = range(rng, 0.008, 0.025);
+  const defectRate = isTrouble ? range(rng, 0.012, 0.025) : range(rng, 0.008, 0.012);
   // Hàng lỗi NG theo từng giờ (RNG riêng để không làm đổi các số liệu khác của ca)
   const ngRng = createRng(`${line.id}|${day}|${sh}|ng`);
   const ngRate = 0.004 + ((defectRate - 0.008) / 0.017) * 0.01; // 0,4% – 1,4%
@@ -369,18 +411,20 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
   const defectsByType = splitByWeight(defects, DEFECT_TYPES, ngRng);
   const good = produced - defects;
   const availability = elapsedMin > 0 ? runMin / elapsedMin : 0;
-  const performance = runMin > 0 ? Math.min(1, (produced * profile.idealCycleSec) / (runMin * 60)) : 0;
+  const performance = runMin > 0 ? Math.min(1, (produced * (3600 / idealPerHour)) / (runMin * 60)) : 0;
   const quality = produced > 0 ? good / produced : 0;
   const oee = availability * performance * quality;
 
   const remainingMin = SHIFT_MINUTES - elapsedMin;
   const recentRate = elapsedMin > 0 ? produced / elapsedMin : profile.planPerHour / 60 * 0.9;
   const forecast = isFinished ? produced : Math.round(produced + recentRate * remainingMin);
-  const cycleSec = produced > 0 ? (runMin * 60) / produced : profile.idealCycleSec;
+  const cycleSec = produced > 0 ? (runMin * 60) / produced : 3600 / idealPerHour;
   const longest = longStops.slice().sort((a, b) => b.durationMin - a.durationMin)[0] || null;
 
   // Trạng thái sản xuất hiện tại của line (dùng tô màu sơ đồ nhà máy)
-  const ongoing = happened.find((e) => e.dur >= cfg.shortStopThresholdMin && e.at + e.dur >= elapsedMin && !isFinished);
+  const ongoing =
+    happened.find((e) => e.forced && !isFinished) ||
+    happened.find((e) => e.dur >= cfg.shortStopThresholdMin && e.at + e.dur >= elapsedMin && !isFinished);
   const recentLong = longStops.length > 0 && happened.some(
     (e) => e.dur >= cfg.shortStopThresholdMin && elapsedMin - (e.at + e.dur) <= 90
   );
@@ -413,6 +457,7 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
     lineName: line.name || line.id,
     virtual: !!line.virtual,
     zoneId: LINE_ZONES[line.code] || LINE_ZONES[line.id] || null,
+    emergency: !!(emg && ongoing && ongoing.forced),
     productionStatus,
     statusNote,
     statusCode,
@@ -793,6 +838,10 @@ export function buildFactoryOverview({ lineShifts, machines = [], lines = [] }) 
   const status = { running: 0, alarmStop: 0, offline: 0 };
   for (const m of machines) {
     const s = String(m.status || '').toUpperCase();
+    if (EMERGENCY && EMERGENCY.machineId && m.id === EMERGENCY.machineId) {
+      status.alarmStop++;
+      continue;
+    }
     if (m.virtual) {
       const stoppedHere = lineShifts.find((l) => l.lineId === m.lineId)?.statusNote?.includes(m.code?.split('-').pop());
       if (alarmLines.has(m.lineId) && stoppedHere) status.alarmStop++;
@@ -828,10 +877,13 @@ export function buildFactoryOverview({ lineShifts, machines = [], lines = [] }) 
       oee: l.oee.oee,
       longStopMinutes: l.longStops.minutes,
       totalStopMinutes: l.longStops.minutes + l.shortStops.minutes,
-      mainCauseCode: l.longStops.longest ? l.longStops.longest.causeCode : l.shortStops.count ? 'SHORT_STOP' : null,
-      mainCauseOp: l.longStops.longest ? l.longStops.longest.op : null,
+      emergency: !!l.emergency,
+      mainCauseCode: l.emergency ? 'EMERGENCY' : l.longStops.longest ? l.longStops.longest.causeCode : l.shortStops.count ? 'SHORT_STOP' : null,
+      mainCauseOp: l.emergency ? l.statusOp : l.longStops.longest ? l.longStops.longest.op : null,
       shortStopCount: l.shortStops.count,
-      mainCause: l.longStops.longest
+      mainCause: l.emergency
+        ? `Sự cố giả lập ${l.statusOp || ''}`.trim()
+        : l.longStops.longest
         ? `${l.longStops.longest.cause} ${l.longStops.longest.op}`
         : l.shortStops.count
           ? `Dừng ngắn × ${l.shortStops.count}`
@@ -839,7 +891,7 @@ export function buildFactoryOverview({ lineShifts, machines = [], lines = [] }) 
     }))
     // Góp ý mentor 26/11: Top 5 = 5 line hiệu suất (OEE) thấp nhất, kèm thời gian dừng
     .filter((l) => l.oee !== null && l.oee !== undefined)
-    .sort((a, b) => a.oee - b.oee || b.totalStopMinutes - a.totalStopMinutes)
+    .sort((a, b) => Number(b.emergency) - Number(a.emergency) || a.oee - b.oee || b.totalStopMinutes - a.totalStopMinutes)
     .slice(0, 5);
 
   return {
@@ -858,6 +910,8 @@ export function buildFactoryOverview({ lineShifts, machines = [], lines = [] }) 
     machines: { total: machines.length, ...status },
     lineStates,
     topDowntime,
+    emergency: EMERGENCY,
+    troubleLines: [...troubleLinesFor(lineShifts[0]?.date || getCurrentShift().date)],
   };
 }
 

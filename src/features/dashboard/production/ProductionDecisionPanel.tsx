@@ -84,7 +84,7 @@ export function ProductionDecisionPanel({ overview, loading, error, onRetry, sel
           <ol className="flex flex-col gap-1.5">
             {top.map((l, i) => {
               const active = l.lineCode === selectedLineCode;
-              const lv = oeeLevel(l.oee);
+              const lv = l.emergency || l.productionStatus === 'ALARM' ? 'low' : oeeLevel(l.oee);
               const color = lv === 'none' ? STATUS_COLOR[l.productionStatus] || STATUS_COLOR.RUNNING : OEE_COLOR[lv];
               const minutes = l.totalStopMinutes;
               return (

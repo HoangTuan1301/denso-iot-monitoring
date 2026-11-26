@@ -12,7 +12,7 @@
  * - TUYỆT ĐỐI KHÔNG CÓ OEE, Availability, Performance, Quality
  */
 
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import {
   ArrowLeft,
   ClipboardList,
@@ -32,6 +32,7 @@ import { useTranslation } from 'react-i18next';
 import { EmbeddedCheckSheet } from './detail/EmbeddedCheckSheet';
 import { MachineDocuments } from './detail/MachineDocuments';
 import { UnipulsePanel } from './detail/UnipulsePanel';
+import { ExpandToggle } from './detail/ExpandToggle';
 import { tr } from '../../i18n/tr';
 import { downloadMachineCsv } from './detail/machineCsv';
 import { useLiveMetrics, fmtNum } from './detail/useLiveMetrics';
@@ -49,6 +50,9 @@ export function MachineDetailView({
 }: MachineDetailViewProps) {
   const { t } = useTranslation();
   const { lines, fetchMachines, isRealtimeActive } = useMonitoringStore();
+  // Phần chi tiết của 2 ô mặc định thu gọn (bấm ▾ để xem)
+  const [showSpecs, setShowSpecs] = useState(false);
+  const [showTelemetry, setShowTelemetry] = useState(false);
 
   // Tìm máy trong danh sách các dây chuyền
   const { machine, parentLine } = useMemo(() => {
@@ -233,15 +237,15 @@ export function MachineDetailView({
         </div>
       </div>
 
-      {/* 3. THÔNG TIN THIẾT BỊ | THÔNG SỐ VẬN HÀNH + UNIPULSE — khung cao cố định, có thanh cuộn */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+      {/* 3. THÔNG TIN THIẾT BỊ | THÔNG SỐ VẬN HÀNH + UNIPULSE — 2 cột cao bằng nhau; phần chi tiết thu gọn, bấm ▾ để xem */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         {/* Cột trái (4/12): Thông tin thiết bị + Tài liệu máy */}
         <section className="lg:col-span-4 p-4 rounded-2xl border border-slate-200/90 dark:border-factory-border bg-white dark:bg-factory-card shadow-xs flex flex-col gap-3">
           <div className="flex items-center justify-between gap-2">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               {tr("Thông tin kỹ thuật thiết bị")}
             </h3>
-            <span className="text-[11px] text-slate-400">{tr("Cuộn để xem thêm")}</span>
+            <ExpandToggle open={showSpecs} onToggle={() => setShowSpecs((v) => !v)} controls="machine-specs" />
           </div>
 
           <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50/70 dark:bg-factory-surface border border-slate-200/80 dark:border-factory-border">
@@ -264,8 +268,10 @@ export function MachineDetailView({
             </div>
           </div>
 
-          {/* Danh sách thuộc tính (cuộn) */}
+          {/* Danh sách thuộc tính (ẩn mặc định, bấm ▾ để xem) */}
+          {showSpecs && (
           <dl
+            id="machine-specs"
             tabIndex={0}
             aria-label={tr("Thông tin kỹ thuật thiết bị")}
             className="h-[196px] overflow-y-auto pr-1.5 divide-y divide-slate-100 dark:divide-factory-border text-xs [scrollbar-width:thin]"
@@ -290,6 +296,7 @@ export function MachineDetailView({
               </div>
             ))}
           </dl>
+          )}
 
           {/* Tài liệu máy: Bản vẽ / Chương trình / Khác */}
           <MachineDocuments machineId={machine.id} />
@@ -325,17 +332,25 @@ export function MachineDetailView({
                     <span className={`w-1.5 h-1.5 rounded-full bg-emerald-500 ${isRealtimeActive ? 'animate-pulse' : 'opacity-40'}`} />
                     {tr("Chu kỳ cập nhật 1s")}
                   </span>
+                  <ExpandToggle open={showTelemetry} onToggle={() => setShowTelemetry((v) => !v)} controls="machine-telemetry" />
                 </div>
               )}
             </div>
 
-            {live.length > 0 ? (
+            {live.length > 0 ? (showTelemetry && (
               <div
+                id="machine-telemetry"
                 tabIndex={0}
                 aria-label={tr("Thông số vận hành (Realtime Telemetry)")}
                 className="max-h-[232px] overflow-auto rounded-xl border border-slate-200 dark:border-slate-700 [scrollbar-width:thin]"
               >
-                <table className="w-full text-left text-xs border-collapse">
+                <table className="w-full table-fixed text-left text-xs border-collapse">
+                  <colgroup>
+                    <col />
+                    <col className="w-[22%]" />
+                    <col className="w-[20%]" />
+                    <col className="w-[18%]" />
+                  </colgroup>
                   <thead>
                     <tr className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                       <th className="sticky top-0 z-[1] bg-slate-50 dark:bg-slate-800 py-2 px-3 border-b border-slate-200 dark:border-slate-700">{tr("Thông số")}</th>
@@ -377,7 +392,7 @@ export function MachineDetailView({
                   </tbody>
                 </table>
               </div>
-            ) : (
+            )) : (
               <div className="py-8 text-center space-y-2">
                 <Info className="w-8 h-8 mx-auto text-slate-300 dark:text-slate-600" />
                 <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
@@ -391,7 +406,7 @@ export function MachineDetailView({
           </section>
 
           {/* Dữ liệu đo từ file CSV thiết bị Unipulse */}
-          <UnipulsePanel machineId={machine.id} />
+          <UnipulsePanel machineId={machine.id} className="flex-1" />
         </div>
       </div>
 

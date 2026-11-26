@@ -1,18 +1,21 @@
 /**
  * @file UnipulsePanel.tsx
- * @description Dữ liệu đo từ file CSV của thiết bị Unipulse: 4 ô tóm tắt + bảng 40 lần đo gần nhất có thanh cuộn.
+ * @description Dữ liệu đo từ file CSV của thiết bị Unipulse: 4 ô tóm tắt (luôn hiện) + bảng 40 lần đo gần nhất
+ * (thu gọn mặc định, bấm ▾ để xem).
  * Hiện dùng dữ liệu mô phỏng; cột sẽ chỉnh theo file CSV mẫu thật.
  */
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '../../../services/api';
 import type { UnipulseData } from '../../../types/machineDetail';
+import { ExpandToggle } from './ExpandToggle';
 
 const REFRESH_MS = 15_000;
 
-export function UnipulsePanel({ machineId }: { machineId: string }) {
+export function UnipulsePanel({ machineId, className = '' }: { machineId: string; className?: string }) {
   const { t } = useTranslation();
   const [data, setData] = useState<UnipulseData | null>(null);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -29,7 +32,7 @@ export function UnipulsePanel({ machineId }: { machineId: string }) {
     };
   }, [machineId]);
 
-  if (!data) return <div className="h-72 rounded-2xl bg-slate-100 dark:bg-white/5 animate-pulse" />;
+  if (!data) return <div className={`h-40 rounded-2xl bg-slate-100 dark:bg-white/5 animate-pulse ${className}`} />;
 
   const okPct = data.summary.count ? ((data.summary.count - data.summary.ng) / data.summary.count) * 100 : 0;
   const tile = (label: string, value: string, tone: string) => (
@@ -41,12 +44,15 @@ export function UnipulsePanel({ machineId }: { machineId: string }) {
   const th = 'sticky top-0 z-[1] bg-slate-50 dark:bg-slate-800 py-2 px-3 text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700';
 
   return (
-    <section className="p-5 rounded-2xl border border-slate-200/90 dark:border-factory-border bg-white dark:bg-factory-card shadow-xs flex flex-col gap-3">
+    <section className={`p-5 rounded-2xl border border-slate-200/90 dark:border-factory-border bg-white dark:bg-factory-card shadow-xs flex flex-col gap-3 ${className}`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('machine.unipulse.title')}</h3>
-        <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400 truncate">
-          {t('machine.unipulse.file', { file: data.fileName, time: data.importedAt })}
-        </span>
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400 truncate">
+            {t('machine.unipulse.file', { file: data.fileName, time: data.importedAt })}
+          </span>
+          <ExpandToggle open={open} onToggle={() => setOpen((v) => !v)} controls={`unipulse-${machineId}`} />
+        </div>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
         {tile(t('machine.unipulse.count'), String(data.summary.count), 'border-slate-200 bg-slate-50 text-slate-800 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-100')}
@@ -58,12 +64,21 @@ export function UnipulsePanel({ machineId }: { machineId: string }) {
           'border-slate-200 bg-slate-50 text-slate-800 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-100',
         )}
       </div>
+      {open && (
+      <>
       <div
+        id={`unipulse-${machineId}`}
         tabIndex={0}
         aria-label={t('machine.unipulse.title')}
         className="h-[214px] overflow-auto rounded-xl border border-slate-200 dark:border-slate-700 [scrollbar-width:thin]"
       >
-        <table className="w-full text-xs border-collapse">
+        <table className="w-full table-fixed text-xs border-collapse">
+          <colgroup>
+            <col className="w-[28%]" />
+            <col className="w-[24%]" />
+            <col className="w-[28%]" />
+            <col className="w-[20%]" />
+          </colgroup>
           <thead>
             <tr>
               <th className={`${th} text-left`}>{t('machine.unipulse.time')}</th>
@@ -100,6 +115,8 @@ export function UnipulsePanel({ machineId }: { machineId: string }) {
         {t('machine.unipulse.note')}
         {data.simulated && ` · ${t('lineView.simulated')}`}
       </p>
+      </>
+      )}
     </section>
   );
 }

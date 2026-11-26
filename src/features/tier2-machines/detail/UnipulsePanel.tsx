@@ -136,7 +136,6 @@ export function UnipulsePanel({ machineId, className = '' }: { machineId: string
       </div>
       <p className="text-[10px] text-slate-500 dark:text-slate-400">
         {t('machine.unipulse.note')}
-        {data.simulated && ` · ${t('lineView.simulated')}`}
       </p>
       </>
       )}

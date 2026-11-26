@@ -42,7 +42,6 @@ import { ProductionKpiRow } from '../dashboard/production/ProductionKpiRow';
 import { ProductionDecisionPanel } from '../dashboard/production/ProductionDecisionPanel';
 import { useProductionOverview, useCauseText } from '../dashboard/production/useProduction';
 import type { ZoneProductionState } from '../dashboard/FactoryLayoutMap';
-import { useTranslation } from 'react-i18next';
 import { FACTORY_ZONES, FactoryZone } from '../dashboard/factoryMapConfig';
 
 // Import các màn hình con phân tầng
@@ -75,7 +74,6 @@ function FactoryLayoutMainView() {
   });
 
   // Dữ liệu sản xuất (mô phỏng): KPI, trạng thái line trên sơ đồ, Top 5, What-If
-  const { t } = useTranslation();
   const causeText = useCauseText();
   const production = useProductionOverview();
   const [selectedLineCode, setSelectedLineCode] = useState<string | null>(null);
@@ -197,9 +195,6 @@ function FactoryLayoutMainView() {
     <div className="space-y-4 animate-in fade-in duration-200">
       {/* KHU VỰC 1: THẺ KPI SẢN XUẤT (OEE nhà máy · line · máy · trạng thái máy · offline) */}
       <ProductionKpiRow data={production.data} loading={production.loading} />
-      {production.data?.simulated && (
-        <p className="-mt-2 text-[10px] text-slate-500 dark:text-slate-400 text-right">* {t('common.simulatedData')}</p>
-      )}
 
       {/* ========================================================================= */}
       {/* THANH CHUYỂN ĐỔI CHẾ ĐỘ XEM: SƠ ĐỒ MẶT BẰNG (MẶC ĐỊNH) vs PHÂN TÍCH       */}

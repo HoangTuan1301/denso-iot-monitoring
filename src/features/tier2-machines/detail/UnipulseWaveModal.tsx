@@ -184,7 +184,6 @@ export function UnipulseWaveModal({
           )}
           <span className="ml-auto text-[10.5px] text-slate-400">{index + 1} / {data.rows.length}</span>
         </div>
-        <p className="text-[10.5px] text-slate-400">{t('machine.unipulse.wave.note')}</p>
       </div>
     </div>
   );

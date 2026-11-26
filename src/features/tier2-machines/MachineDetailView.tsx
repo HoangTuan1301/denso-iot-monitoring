@@ -23,7 +23,6 @@ import {
   CheckCircle2,
   AlertTriangle,
   Info,
-  Sparkles,
 } from 'lucide-react';
 import { useMonitoringStore } from '../../stores/useMonitoringStore';
 import { resolveMachineMonitoringState } from '../../utils/machineStatusResolver';
@@ -128,13 +127,6 @@ export function MachineDetailView({
                 {machine.name}
               </h1>
 
-              {/* Huy hiệu chế độ mô phỏng nếu có */}
-              {resolved.isSimulated && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
-                  <Sparkles className="w-3 h-3" />
-                  <span>{tr("Dữ liệu Mô phỏng")}</span>
-                </span>
-              )}
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               {tr("Chi tiết thiết bị trong dây chuyền")} {parentLine?.name || machine.lineName || tr("LN-PRS-01 – Dập & Hàn")}

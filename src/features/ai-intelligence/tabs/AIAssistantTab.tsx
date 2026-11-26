@@ -1,45 +1,46 @@
 /**
  * @file AIAssistantTab.tsx
- * @description Tab 4: Trợ lý AI KaiLink (DENSO KaiLink AI Copilot)
- * Chuẩn thiết kế tham chiếu Image 4 (media_1794454594254_56cbba06.jpg).
- * 
- * TÍNH NĂNG CHÍNH:
- * 1. Bố cục 2 cột chuyên nghiệp: Khung hội thoại AI (trái ~65%) + Panel Ngữ cảnh Thiết bị (phải ~35%).
- * 2. Welcome Card với 4 pill năng lực: Dữ liệu thời gian thực, Phân tích & Giải thích, Dự đoán & Khuyến nghị, Hỗ trợ kỹ thuật.
- * 3. 4 Thẻ câu hỏi gợi ý nhanh trực quan (Prompt Chips).
- * 4. Tin nhắn phản hồi có cấu trúc công nghiệp 4 phần:
- *    - Kết luận (Finding) + Badge trạng thái
- *    - Dữ liệu xác thực (Supporting Data) kèm Mini Sparkline 24h
- *    - Nguyên nhân khả dĩ (Possible Cause)
- *    - Đề xuất hành động (Recommended Action) + Nút Tạo phiếu bảo trì
- * 5. Panel Ngữ cảnh Thiết bị: Bộ chọn máy, 4 badge kết nối/trạng thái/nguồn dữ liệu, thông số Realtime có sparkline.
- * 6. Tự động phản ánh trung thực khi có sự cố giả lập Header hoặc máy no_data.
+ * @description Tab 4: Trợ lý AI KaiLink – hỏi đáp văn xuôi như nói chuyện với một kỹ sư.
+ *
+ * - Màn hình bắt đầu: lời chào + tóm tắt nhanh + 6 nhóm câu hỏi mẫu (bấm là hỏi).
+ * - Hội thoại: câu trả lời văn xuôi tính từ dữ liệu trực tiếp (assistant/assistantEngine.ts),
+ *   kèm dòng nguồn dữ liệu, nút sao chép, câu hỏi gợi ý tiếp theo và dòng thời gian cho câu dự báo.
+ * - Cột phải: Bộ câu hỏi mẫu 32 câu (assistant/questionBank.ts), mở / thu gọn theo nhóm.
+ * - Gõ tự do vẫn hiểu: matchIntent đoán ý theo từ khóa + mã máy / tên dây chuyền.
  */
-
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Bot,
   Send,
-  Paperclip,
-  ThumbsUp,
-  ThumbsDown,
-  Activity,
-  CheckCircle2,
-  Cpu,
-  TrendingUp,
-  ArrowRight,
   Sparkles,
-  Search,
+  Database,
+  Copy,
+  Check,
   ChevronDown,
-  Info,
-  Calendar,
-  Eye,
+  ChevronRight,
+  Wrench,
+  Activity,
   BarChart3,
+  Cpu,
+  BookOpen,
   FileText,
+  Info,
+  Plus,
 } from 'lucide-react';
 import { AIProcessedMachine } from '../adapters/aiTelemetryAdapter';
-import { useAIStore } from '../stores/useAIStore';
+import { useMonitoringStore } from '../../../stores/useMonitoringStore';
+import { useAlarmStore } from '../../../stores/useAlarmStore';
+import { useAuthStore } from '../../../stores/useAuthStore';
+import { apiClient as api } from '../../../services/api';
+import type { FactoryProductionOverview, LineShiftProduction } from '../../../types/production';
 import { tr } from '../../../i18n/tr';
+import { QUESTION_GROUPS, TOTAL_QUESTIONS, GroupKey, IntentId, IntentParams } from '../assistant/questionBank';
+import {
+  AssistantAnswer,
+  AssistantContext,
+  answerQuestion,
+  matchIntent,
+  quickStats,
+} from '../assistant/assistantEngine';
 
 interface AIAssistantTabProps {
   allMachines: AIProcessedMachine[];
@@ -48,810 +49,445 @@ interface AIAssistantTabProps {
   onNavigateToTab?: (tab: 'overview' | 'anomaly' | 'predictive' | 'assistant') => void;
 }
 
-interface StructuredAIChatItem {
+interface ChatMessage {
   id: string;
   sender: 'user' | 'assistant';
-  timestamp: string;
-  text?: string;
-  structured?: {
-    machineCode: string;
-    machineName: string;
-    statusBadge: 'NORMAL' | 'WARNING' | 'CRITICAL' | 'NO_DATA';
-    finding: string;
-    supportingData: {
-      metrics: string[];
-      sparklineValues: number[];
-    };
-    possibleCauses: string[];
-    recommendedActions: string[];
-  };
+  time: string;
+  text: string;
+  answer?: AssistantAnswer;
 }
 
-export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
-  allMachines,
-  selectedMachineId: propSelectedMachineId,
-  onSelectMachine,
-  onNavigateToTab,
-}) => {
-  const { selectedMachineId: storeSelectedMachineId, setSelectedMachineId } = useAIStore();
-  const currentMachineId = propSelectedMachineId || storeSelectedMachineId || (allMachines[0]?.machineId ?? '');
+const GROUP_STYLE: Record<GroupKey, { icon: React.ElementType; cls: string }> = {
+  predict: { icon: Wrench, cls: 'bg-red-500/10 text-red-600 dark:text-red-400' },
+  status: { icon: Activity, cls: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
+  output: { icon: BarChart3, cls: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
+  machine: { icon: Cpu, cls: 'bg-violet-500/10 text-violet-600 dark:text-violet-400' },
+  guide: { icon: BookOpen, cls: 'bg-amber-500/10 text-amber-600 dark:text-amber-400' },
+  report: { icon: FileText, cls: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400' },
+};
 
-  // Thiết bị đang chọn để hiển thị ngữ cảnh
-  const currentMachine = useMemo(() => {
-    return allMachines.find((m) => m.machineId === currentMachineId) || allMachines[0];
-  }, [allMachines, currentMachineId]);
+const pad = (n: number) => String(n).padStart(2, '0');
+const hhmm = (d = new Date()) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 
-  const [inputQuery, setInputQuery] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const [feedbackGiven, setFeedbackGiven] = useState<{ [msgId: string]: 'up' | 'down' }>({});
-  const chatBottomRef = useRef<HTMLDivElement>(null);
+/** Logo chữ D đỏ – giống logo ở thanh bên trái */
+export const KaiLinkAvatar: React.FC<{ size?: 'sm' | 'lg' }> = ({ size = 'sm' }) => (
+  <div
+    className={`${size === 'lg' ? 'h-14 w-14 rounded-2xl' : 'h-9 w-9 rounded-xl'} flex shrink-0 items-center justify-center bg-white dark:bg-slate-900 border border-red-500/30 shadow-sm shadow-red-500/10`}
+    aria-hidden="true"
+  >
+    <span className={`${size === 'lg' ? 'text-3xl' : 'text-xl'} font-black italic tracking-tighter text-[#E60012] select-none leading-none pr-0.5`}>D</span>
+  </div>
+);
 
-  // Lịch sử tin nhắn mặc định chuẩn theo Image 4
-  const [messages, setMessages] = useState<StructuredAIChatItem[]>([
-    {
-      id: 'msg-user-1',
-      sender: 'user',
-      timestamp: '09:35',
-      text: tr("Máy MCH-PRS-01 hiện có nguy cơ cao không? Hãy phân tích và đề xuất xử lý."),
-    },
-    {
-      id: 'msg-ai-1',
-      sender: 'assistant',
-      timestamp: '09:35',
-      structured: {
-        machineCode: 'MCH-PRS-01',
-        machineName: tr("Máy Dập Thủy Lực 500T Komatsu"),
-        statusBadge: 'WARNING',
-        finding: tr("Máy MCH-PRS-01 đang có dấu hiệu bất thường mức nhẹ (mức cảnh báo)."),
-        supportingData: {
-          metrics: [
-            tr("Nhiệt độ dầu thủy lực: 52.4 °C (ngưỡng cảnh báo: 45.0 °C, ngưỡng nguy hiểm: 60.0 °C)"),
-            tr("Độ rung RMS: 2.2 mm/s (bình thường: < 4.5 mm/s)"),
-            tr("Điểm sức khỏe AI: 97 / 100 (giảm 1 điểm so với 24h trước)"),
-          ],
-          sparklineValues: [48, 49, 49.5, 50, 50.8, 51.5, 52.4],
-        },
-        possibleCauses: [
-          tr("Nhiệt độ dầu tăng nhẹ so với mức vận hành thông thường."),
-          tr("Có thể do tải công việc tăng, hiệu quả tản nhiệt giảm hoặc lọc dầu bắt đầu bẩn."),
-        ],
-        recommendedActions: [
-          tr("Kiểm tra tình trạng lọc dầu thủy lực và vệ sinh nếu cần."),
-          tr("Đảm bảo hệ thống làm mát hoạt động bình thường."),
-          tr("Theo dõi thêm trong 24–48 giờ; nếu nhiệt độ tiếp tục tăng > 55 °C, lập phiếu bảo trì P2."),
-        ],
-      },
-    },
-  ]);
+// ---------------------------------------------------------------------------
+// Hiển thị văn bản: **đậm**, đoạn văn, danh sách "1. " / "- "
+// ---------------------------------------------------------------------------
+function inline(s: string, key: string) {
+  return s.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+    part.startsWith('**') && part.endsWith('**') ? (
+      <strong key={`${key}-${i}`} className="font-bold text-slate-900 dark:text-slate-50 tabular-nums">
+        {part.slice(2, -2)}
+      </strong>
+    ) : (
+      <React.Fragment key={`${key}-${i}`}>{part}</React.Fragment>
+    )
+  );
+}
 
-  // Cuộn xuống tin nhắn mới nhất
-  useEffect(() => {
-    chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
+const RichText: React.FC<{ text: string }> = ({ text }) => (
+  <>
+    {text.split(/\n{2,}/).map((block, bi) => {
+      const lines = block.split('\n').filter(Boolean);
+      if (lines.length && lines.every((l) => /^\d+\.\s/.test(l))) {
+        return (
+          <ol key={bi} className="list-decimal pl-5 space-y-1.5 marker:font-semibold marker:text-slate-500">
+            {lines.map((l, i) => (
+              <li key={i} className="pl-1">{inline(l.replace(/^\d+\.\s/, ''), `${bi}-${i}`)}</li>
+            ))}
+          </ol>
+        );
+      }
+      if (lines.length && lines.every((l) => l.startsWith('- '))) {
+        return (
+          <ul key={bi} className="list-disc pl-5 space-y-1 marker:text-slate-400">
+            {lines.map((l, i) => (
+              <li key={i} className="pl-1">{inline(l.slice(2), `${bi}-${i}`)}</li>
+            ))}
+          </ul>
+        );
+      }
+      return (
+        <p key={bi}>
+          {lines.map((l, i) => (
+            <React.Fragment key={i}>
+              {i > 0 && <br />}
+              {inline(l, `${bi}-${i}`)}
+            </React.Fragment>
+          ))}
+        </p>
+      );
+    })}
+  </>
+);
 
-  // Đổi máy đang chọn
-  const handleMachineChange = (mId: string) => {
-    if (onSelectMachine) onSelectMachine(mId);
-    setSelectedMachineId(mId);
+/** Dòng thời gian nhỏ cho câu trả lời dự báo */
+const ForecastTimeline: React.FC<{ hours: number; items: NonNullable<AssistantAnswer['timeline']>['items'] }> = ({ hours, items }) => {
+  const W = 560;
+  const L = 24;
+  const R = W - 24;
+  const X = (h: number) => L + (Math.min(Math.max(h, 0), hours) / hours) * (R - L);
+  const now = new Date();
+  const step = hours <= 8 ? 1 : hours <= 24 ? 4 : 12;
+  const ticks: number[] = [];
+  for (let h = 0; h <= hours; h += step) ticks.push(h);
+  const label = (h: number) => hhmm(new Date(now.getTime() + h * 3600_000));
+  // Tránh nhãn đè nhau: đẩy nhãn lên hàng trên khi quá gần
+  const placed: Array<{ x: number; row: number }> = [];
+  const rowOf = (x: number) => {
+    const row = placed.some((p) => Math.abs(p.x - x) < 70 && p.row === 0) ? 1 : 0;
+    placed.push({ x, row });
+    return row;
   };
-
-  // Tạo câu trả lời thông minh dựa trên tình trạng thực tế của thiết bị
-  const generateAIResponse = (_query: string): StructuredAIChatItem => {
-    const now = new Date();
-    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    const target = currentMachine;
-
-    if (!target || target.isNoData) {
-      return {
-        id: `msg-ai-${Date.now()}`,
-        sender: 'assistant',
-        timestamp: timeStr,
-        structured: {
-          machineCode: target ? target.machineCode : tr("THIẾT BỊ"),
-          machineName: target ? target.machineName : tr("Chưa xác định"),
-          statusBadge: 'NO_DATA',
-          finding: tr("Thiết bị {0} hiện đang ở trạng thái NO_DATA (Chưa có bản ghi PLC).", target?.machineCode),
-          supportingData: {
-            metrics: [
-              tr("Trạng thái kết nối PLC: Chưa cấu hình trạm PLC"),
-              tr("Điểm sức khỏe AI: N/A (Không gán điểm số ảo)"),
-              tr("Dữ liệu cảm biến: 0 bản ghi đo lường"),
-            ],
-            sparklineValues: [0, 0, 0, 0, 0, 0, 0],
-          },
-          possibleCauses: [
-            tr("Máy mới được đồng bộ từ Migration 005 và đang chờ tích hợp giao tiếp PLC vật lý."),
-            tr("Cần cấu hình địa chỉ IP hoặc Modbus / OPC-UA trạm trong Cấu hình Dây chuyền."),
-          ],
-          recommendedActions: [
-            tr("Vào menu \"Cấu hình → Dây chuyền & Thiết bị\" để ánh xạ trạm PLC."),
-            tr("Sau khi có dữ liệu đo lường, phân hệ AI sẽ tự động kích hoạt Z-score đánh giá."),
-          ],
-        },
-      };
-    }
-
-    if (target.hasActiveSpike) {
-      return {
-        id: `msg-ai-${Date.now()}`,
-        sender: 'assistant',
-        timestamp: timeStr,
-        structured: {
-          machineCode: target.machineCode,
-          machineName: target.machineName,
-          statusBadge: 'CRITICAL',
-          finding: tr("CẢNH BÁO KHẨN CẤP: Thiết bị {0} đang xuất hiện đột biến chỉ số nguy hiểm (Mô phỏng diễn tập).", target.machineCode),
-          supportingData: {
-            metrics: [
-              tr("{0}: {1} {2} (Vượt ngưỡng nguy hiểm)", target.keyMetricName, target.keyMetricValue, target.keyMetricUnit),
-              tr("Thuật toán Z-score: +4.2σ (Đột biến tức thời cấp độ khẩn cấp)"),
-              tr("Điểm sức khỏe AI: {0} / 100 (Sụt giảm nghiêm trọng)", target.healthScore),
-            ],
-            sparklineValues: [50, 52, 51, 53, 52, 75, 95],
-          },
-          possibleCauses: [
-            tr("Kịch bản sự cố khẩn cấp đang được kích hoạt từ Header điều hành (Diễn tập ứng phó)."),
-            tr("Nguy cơ quá áp hoặc nghẽn mạch dầu thủy lực trong điều kiện vận hành cực đoan."),
-          ],
-          recommendedActions: [
-            tr("Kích hoạt quy trình E-Stop dừng khẩn cấp thiết bị kiểm tra an toàn."),
-            tr("Hạ áp và kiểm tra đường xả khẩn cấp của van tỉ lệ."),
-            tr("Sau khi diễn tập xong, nhấn nút \"Khôi phục ngay\" trên Header để đưa hệ thống về chuẩn."),
-          ],
-        },
-      };
-    }
-
-    if (target.riskLevel === 'HIGH') {
-      return {
-        id: `msg-ai-${Date.now()}`,
-        sender: 'assistant',
-        timestamp: timeStr,
-        structured: {
-          machineCode: target.machineCode,
-          machineName: target.machineName,
-          statusBadge: 'WARNING',
-          finding: tr("Thiết bị {0} đang tiệm cận ngưỡng cảnh báo vận hành.", target.machineCode),
-          supportingData: {
-            metrics: [
-              `${target.keyMetricName}: ${target.keyMetricValue} ${target.keyMetricUnit}`,
-              tr("Thuật toán Z-score: +2.6σ (Dấu hiệu trôi dạt thông số)"),
-              tr("Điểm sức khỏe AI: {0} / 100", target.healthScore),
-            ],
-            sparklineValues: [48, 50, 51, 52, 53, 54, 55],
-          },
-          possibleCauses: [
-            tr("Hiệu suất làm mát hoặc bôi trơn bắt đầu suy giảm sau ca làm việc kéo dài."),
-            tr("Bộ lọc có dấu hiệu tích tụ cặn bẩn làm tăng trở lực."),
-          ],
-          recommendedActions: [
-            tr("Kiểm tra và vệ sinh bộ lọc trong thời gian giao ca."),
-            tr("Lập phiếu bảo trì P2 nếu thông số tiếp tục tăng trong 24 giờ tới."),
-          ],
-        },
-      };
-    }
-
-    // Trạng thái bình thường
-    return {
-      id: `msg-ai-${Date.now()}`,
-      sender: 'assistant',
-      timestamp: timeStr,
-      structured: {
-        machineCode: target.machineCode,
-        machineName: target.machineName,
-        statusBadge: 'NORMAL',
-        finding: tr("Thiết bị {0} đang vận hành hoàn toàn ổn định và an toàn.", target.machineCode),
-        supportingData: {
-          metrics: [
-            tr("{0}: {1} {2} (Trong giới hạn chuẩn)", target.keyMetricName, target.keyMetricValue, target.keyMetricUnit),
-            tr("Thuật toán Z-score: +0.4σ (Biến thiên tự nhiên)"),
-            tr("Điểm sức khỏe AI: {0} / 100 (Tối ưu)", target.healthScore),
-          ],
-          sparklineValues: [96, 97, 98, 97, 98, 98, 98],
-        },
-        possibleCauses: [
-          tr("Chế độ bôi trơn và tản nhiệt đang hoạt động đạt hiệu suất thiết kế tiêu chuẩn DENSO."),
-        ],
-        recommendedActions: [
-          tr("Duy trì chế độ quan trắc tự động và thực hiện kiểm tra định kỳ theo kế hoạch."),
-        ],
-      },
-    };
-  };
-
-  const handleSend = (textToSend?: string) => {
-    const q = textToSend || inputQuery;
-    if (!q.trim() || isTyping) return;
-
-    const now = new Date();
-    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-
-    const userMsg: StructuredAIChatItem = {
-      id: `msg-user-${Date.now()}`,
-      sender: 'user',
-      timestamp: timeStr,
-      text: q,
-    };
-
-    setMessages((prev) => [...prev, userMsg]);
-    if (!textToSend) setInputQuery('');
-    setIsTyping(true);
-
-    setTimeout(() => {
-      const response = generateAIResponse(q);
-      setMessages((prev) => [...prev, response]);
-      setIsTyping(false);
-    }, 700);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
-  // Mini sparkline SVG renderer
-  const renderMiniSparkline = (values: number[], strokeColor = '#10b981') => {
-    if (!values || values.length < 2) return null;
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const range = max - min || 1;
-    const width = 80;
-    const height = 24;
-
-    const points = values
-      .map((val, idx) => {
-        const x = (idx / (values.length - 1)) * width;
-        const y = height - ((val - min) / range) * (height - 6) - 3;
-        return `${x.toFixed(1)},${y.toFixed(1)}`;
-      })
-      .join(' ');
-
-    return (
-      <svg width={width} height={height} className="overflow-visible">
-        <polyline
-          fill="none"
-          stroke={strokeColor}
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          points={points}
-        />
+  return (
+    <div className="mt-1 rounded-xl border border-slate-200 dark:border-slate-700/70 bg-slate-50 dark:bg-slate-950/60 px-3 pt-2">
+      <svg viewBox={`0 0 ${W} 92`} width="100%" role="img" aria-label={tr('Dòng thời gian {0} giờ tới', hours)} className="block">
+        {ticks.map((h) => (
+          <g key={h}>
+            <line x1={X(h)} y1={34} x2={X(h)} y2={70} className="stroke-slate-200 dark:stroke-slate-700" />
+            <text x={X(h)} y={86} fontSize={10.5} textAnchor="middle" className="fill-slate-400 font-mono">{label(h)}</text>
+          </g>
+        ))}
+        <rect x={L} y={48} width={R - L} height={8} rx={4} className="fill-slate-200 dark:fill-slate-800" />
+        <circle cx={L} cy={52} r={5} className="fill-emerald-500" />
+        <text x={L} y={14} fontSize={10.5} fontWeight={700} className="fill-emerald-600 dark:fill-emerald-400">{tr('Bây giờ {0}', hhmm(now))}</text>
+        {items.map((it, i) => {
+          const x = X(it.hours);
+          const row = rowOf(x);
+          const color = it.severity === 'critical' ? '#EF4444' : '#F59E0B';
+          return (
+            <g key={i}>
+              <circle cx={x} cy={52} r={7} fill={color} className="stroke-white dark:stroke-slate-950" strokeWidth={3} />
+              <text x={x} y={row ? 42 : 28} fontSize={11} fontWeight={800} textAnchor="middle" fill={color}>{it.label}</text>
+            </g>
+          );
+        })}
       </svg>
-    );
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Component chính
+// ---------------------------------------------------------------------------
+export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({ allMachines }) => {
+  const lines = useMonitoringStore((s) => s.lines);
+  const alarms = useAlarmStore((s) => s.alarms);
+  const currentUser = useAuthStore((s) => s.currentUser);
+  const userName = currentUser?.fullName || currentUser?.email || '';
+  const initials = (userName.split(/\s+/).filter(Boolean).slice(-2).map((w) => w[0]).join('') || 'U').toUpperCase();
+  const firstName = userName.includes('@') ? '' : userName.split(/\s+/).filter(Boolean).pop() || '';
+
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [openGroup, setOpenGroup] = useState<GroupKey | null>('predict');
+  const [copied, setCopied] = useState<string | null>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Bộ nhớ đệm 30 giây cho dữ liệu sản lượng để trả lời liên tiếp không phải tải lại
+  const cache = useRef<{ ov?: { t: number; p: Promise<FactoryProductionOverview | null> }; ln: Record<string, { t: number; p: Promise<LineShiftProduction | null> }> }>({ ln: {} });
+  const getOverview = useCallback(() => {
+    const c = cache.current.ov;
+    if (c && Date.now() - c.t < 30_000) return c.p;
+    const p = api.getProductionOverview().catch(() => null);
+    cache.current.ov = { t: Date.now(), p };
+    return p;
+  }, []);
+  const getLineShift = useCallback((lineId: string) => {
+    const c = cache.current.ln[lineId];
+    if (c && Date.now() - c.t < 30_000) return c.p;
+    const p = api.getLineProduction(lineId).catch(() => null);
+    cache.current.ln[lineId] = { t: Date.now(), p };
+    return p;
+  }, []);
+
+  const ctx = useMemo<AssistantContext>(
+    () => ({ machines: allMachines, lines, alarms, now: new Date(), getOverview, getLineShift }),
+    [allMachines, lines, alarms, getOverview, getLineShift]
+  );
+  const stats = useMemo(() => quickStats(ctx), [ctx]);
+
+  useEffect(() => {
+    if (messages.length) bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [messages, busy]);
+
+  const ask = useCallback(
+    async (text: string, intent?: IntentId, params?: IntentParams) => {
+      const q = text.trim();
+      if (!q || busy) return;
+      const t = hhmm();
+      setMessages((m) => [...m, { id: `u-${Date.now()}`, sender: 'user', time: t, text: q }]);
+      setInput('');
+      setBusy(true);
+      const liveCtx = { ...ctx, now: new Date() };
+      const matched = intent ? { intent, params: params || {} } : matchIntent(liveCtx, q);
+      const started = Date.now();
+      let answer: AssistantAnswer;
+      try {
+        answer = await answerQuestion(liveCtx, matched.intent, matched.params, firstName || undefined);
+      } catch {
+        answer = { text: tr('Xin lỗi, mình gặp lỗi khi tổng hợp dữ liệu. Bạn thử hỏi lại nhé.'), sources: tr('KaiLink'), chips: [] };
+      }
+      // Giữ hiệu ứng "đang soạn" tối thiểu 0,7 giây cho tự nhiên
+      const wait = Math.max(0, 700 - (Date.now() - started));
+      await new Promise((r) => setTimeout(r, wait));
+      setMessages((m) => [...m, { id: `a-${Date.now()}`, sender: 'assistant', time: hhmm(), text: answer.text, answer }]);
+      setBusy(false);
+    },
+    [busy, ctx, firstName]
+  );
+
+  const copy = (id: string, text: string) => {
+    const plain = text.replace(/\*\*/g, '');
+    try {
+      void navigator.clipboard?.writeText(plain);
+    } catch {
+      /* trình duyệt chặn clipboard */
+    }
+    setCopied(id);
+    setTimeout(() => setCopied((c) => (c === id ? null : c)), 1500);
   };
 
+  const inputBar = (
+    <div className="space-y-2">
+      <form
+        className="flex items-center gap-2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pl-4 pr-2 py-2 focus-within:ring-2 focus-within:ring-emerald-500/40"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void ask(input);
+        }}
+      >
+        <label htmlFor="kailink-ask" className="sr-only">{tr('Câu hỏi cho trợ lý')}</label>
+        <input
+          id="kailink-ask"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder={tr('Hỏi về dây chuyền, máy, sản lượng, bảo trì…')}
+          autoComplete="off"
+          className="flex-1 bg-transparent text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none py-1.5"
+        />
+        <button
+          type="submit"
+          disabled={!input.trim() || busy}
+          aria-label={tr('Gửi')}
+          className="h-10 w-10 shrink-0 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white flex items-center justify-center transition-colors"
+        >
+          <Send className="h-4 w-4" />
+        </button>
+      </form>
+      <p className="text-center text-[11px] text-slate-400">
+        {tr('Câu trả lời được tính từ dữ liệu trực tiếp của hệ thống · có thể gõ tự do, không cần đúng nguyên văn câu mẫu')}
+      </p>
+    </div>
+  );
+
+  const toolbar = (
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+        <span className="h-2 w-2 rounded-full bg-emerald-500" />
+        {tr('Dữ liệu trực tiếp · {0} dây chuyền · {1} máy', stats.lines, stats.machines)}
+      </span>
+      {messages.length > 0 && (
+        <button
+          type="button"
+          onClick={() => setMessages([])}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+        >
+          <Plus className="h-3.5 w-3.5" /> {tr('Cuộc trò chuyện mới')}
+        </button>
+      )}
+    </div>
+  );
+
+  // ------------------------- Màn hình bắt đầu -------------------------
+  if (!messages.length) {
+    return (
+      <div className="space-y-4">
+        {toolbar}
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50/60 dark:bg-slate-950/40 p-5 sm:p-6 space-y-6">
+          <div className="flex flex-col items-center text-center gap-3 pt-2">
+            <KaiLinkAvatar size="lg" />
+            <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
+              {firstName ? tr('Chào {0}, hôm nay mình giúp gì được?', firstName) : tr('Xin chào, hôm nay mình giúp gì được?')}
+            </h3>
+            <div className="max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+              <RichText
+                text={tr('Mình đang theo dõi {0} dây chuyền và {1} máy. Hiện có **{2} cảnh báo** chưa xử lý và **{3} dây chuyền** dự báo cần bảo trì trong 6 giờ tới. Bạn có thể chọn một câu bên dưới hoặc gõ tự do.', stats.lines, stats.machines, stats.openAlarms, stats.linesNeedMaintenance)}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            {QUESTION_GROUPS.map((g) => {
+              const st = GROUP_STYLE[g.key];
+              const Icon = st.icon;
+              return (
+                <section key={g.key} className="rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-900 p-3.5 space-y-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <span className={`h-8 w-8 rounded-lg flex items-center justify-center ${st.cls}`}><Icon className="h-4 w-4" /></span>
+                    <h4 className="flex-1 text-sm font-bold text-slate-900 dark:text-white">{g.title}</h4>
+                    <span className="text-[11px] text-slate-400">{tr('{0} câu', g.questions.length)}</span>
+                  </div>
+                  {g.questions.slice(0, 3).map((q) => (
+                    <button
+                      key={q.text}
+                      type="button"
+                      onClick={() => void ask(q.text, q.intent, q.params)}
+                      className="w-full flex items-center justify-between gap-2 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 px-3 py-2 text-left text-[13px] text-slate-700 dark:text-slate-300 hover:border-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
+                    >
+                      <span>{q.text}</span>
+                      <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                    </button>
+                  ))}
+                </section>
+              );
+            })}
+          </div>
+          {inputBar}
+        </div>
+      </div>
+    );
+  }
+
+  // ------------------------- Hội thoại -------------------------
   return (
     <div className="space-y-4">
-      {/* ========================================================================= */}
-      {/* BỐ CỤC 2 CỘT: KHUNG CHAT (Trái 65%) + NGỮ CẢNH THIẾT BỊ (Phải 35%)        */}
-      {/* ========================================================================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        {/* CỘT TRÁI (8 COLS): KHUNG HỘI THOẠI AI */}
-        <div className="lg:col-span-8 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/90 dark:border-slate-700/80 shadow-xs flex flex-col min-h-[640px] max-h-[780px] overflow-hidden">
-          {/* Vùng cuộn tin nhắn */}
-          <div className="flex-1 p-4 sm:p-5 overflow-y-auto space-y-4">
-            {/* Khối lời chào Welcome Card */}
-            <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-900/50 border border-slate-200/80 dark:border-slate-700/70 space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
-                  <Bot className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                    {tr("Xin chào! Tôi là KaiLink, trợ lý AI của DENSO Smart Factory. 👋")}
-                  </h3>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
-                    {tr("Tôi có thể giúp bạn phân tích tình trạng thiết bị, giải thích bất thường, đánh giá rủi ro và đề xuất kế hoạch bảo trì dựa trên dữ liệu thời gian thực từ nhà máy.")}
-                  </p>
-                </div>
-              </div>
-
-              {/* 4 Năng lực cốt lõi */}
-              <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-200/60 dark:border-slate-800">
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800/60">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> {tr("Dữ liệu thời gian thực")}
-                </span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border border-sky-200/70 dark:border-sky-800/60">
-                  <BarChart3 className="w-3.5 h-3.5" /> {tr("Phân tích & Giải thích")}
-                </span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200/70 dark:border-purple-800/60">
-                  <TrendingUp className="w-3.5 h-3.5" /> {tr("Dự đoán & Khuyến nghị")}
-                </span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                  <FileText className="w-3.5 h-3.5" /> {tr("Hỗ trợ kỹ thuật")}
-                </span>
-              </div>
-            </div>
-
-            {/* Khối gợi ý câu hỏi: Bạn có thể thử hỏi */}
-            <div className="space-y-2">
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                {tr("Bạn có thể thử hỏi:")}
-              </span>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {[
-                  {
-                    q: tr("Máy ROB-01 hiện có nguy cơ cao không?"),
-                    sub: tr("Độ rung & mòn ổ bi trục J6"),
-                  },
-                  {
-                    q: tr("Giải thích cảnh báo nhiệt độ máy MCH-PRS-01"),
-                    sub: tr("Dầu thủy lực tiệm cận 54.2 °C"),
-                  },
-                  {
-                    q: tr("Đề xuất kế hoạch bảo trì cho 14 máy"),
-                    sub: tr("Phân loại P1 đến P4 theo độ suy giảm"),
-                  },
-                  {
-                    q: tr("Tổng quan sức khỏe thiết bị hiện tại"),
-                    sub: tr("7 máy có dữ liệu, 7 máy chưa kết nối"),
-                  },
-                ].map((item, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleSend(item.q)}
-                    disabled={isTyping}
-                    className="p-3 rounded-xl border border-slate-200/80 dark:border-slate-700/70 hover:border-emerald-500/80 dark:hover:border-emerald-500/80 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/30 transition-all text-left flex items-center justify-between group shadow-2xs"
-                  >
-                    <div>
-                      <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
-                        {item.q}
-                      </p>
-                      <span className="text-[11px] text-slate-400">{item.sub}</span>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition-transform group-hover:translate-x-0.5" />
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Luồng tin nhắn thực tế */}
-            <div className="space-y-4 pt-2">
-              {messages.map((msg) => {
-                const isUser = msg.sender === 'user';
-
-                if (isUser) {
-                  return (
-                    <div key={msg.id} className="flex justify-end items-end gap-2">
-                      <div className="bg-sky-600 text-white px-4 py-2.5 rounded-2xl rounded-br-none text-xs leading-relaxed max-w-[85%] shadow-xs">
-                        <p>{msg.text}</p>
-                        <span className="block text-[10px] text-sky-200 mt-1 text-right">
-                          {msg.timestamp}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                }
-
-                // Render phản hồi của AI có cấu trúc 4 phần
-                const s = msg.structured;
-                if (!s) return null;
-
-                const isWarning = s.statusBadge === 'WARNING';
-                const isCritical = s.statusBadge === 'CRITICAL';
-                const isNoData = s.statusBadge === 'NO_DATA';
-
-                return (
-                  <div key={msg.id} className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
-                      <Bot className="w-4 h-4" />
-                    </div>
-
-                    <div className="flex-1 bg-white dark:bg-slate-850 rounded-2xl border border-slate-200/90 dark:border-slate-700/80 shadow-xs overflow-hidden">
-                      {/* Header tin nhắn AI */}
-                      <div className="px-4 py-2.5 border-b border-slate-100 dark:border-slate-700/70 flex items-center justify-between bg-slate-50/60 dark:bg-slate-900/30">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                          <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                            {tr("Phân tích tình trạng máy")} {s.machineCode}
-                          </h4>
-                        </div>
-                        <span className="text-[11px] text-slate-400">{msg.timestamp}</span>
-                      </div>
-
-                      <div className="p-4 space-y-3.5 text-xs">
-                        {/* 1. KẾT LUẬN (FINDING) */}
-                        <div className="p-3 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-800/60 flex items-center justify-between gap-3">
-                          <div className="flex items-start gap-2">
-                            <Search className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                            <div>
-                              <span className="font-bold text-amber-900 dark:text-amber-200 block">
-                                {tr("Kết luận (Finding)")}
-                              </span>
-                              <p className="text-slate-800 dark:text-slate-200 mt-0.5 leading-snug">
-                                {s.finding}
-                              </p>
-                            </div>
-                          </div>
-                          <span
-                            className={`px-2 py-0.5 rounded text-[11px] font-bold shrink-0 ${
-                              isCritical
-                                ? 'bg-rose-500 text-white'
-                                : isWarning
-                                ? 'bg-amber-500 text-white'
-                                : isNoData
-                                ? 'bg-slate-500 text-white'
-                                : 'bg-emerald-500 text-white'
-                            }`}
-                          >
-                            {s.statusBadge}
-                          </span>
-                        </div>
-
-                        {/* 2. DỮ LIỆU XÁC THỰC (SUPPORTING DATA) */}
-                        <div className="p-3 rounded-xl bg-sky-50/50 dark:bg-sky-950/20 border border-sky-200/70 dark:border-sky-800/60">
-                          <div className="flex items-center justify-between pb-2 mb-2 border-b border-sky-100 dark:border-sky-900/40">
-                            <div className="flex items-center gap-2 font-bold text-sky-900 dark:text-sky-200">
-                              <BarChart3 className="w-4 h-4 text-sky-600" />
-                              <span>{tr("Dữ liệu xác thực (Supporting Data)")}</span>
-                            </div>
-
-                            {/* Mini Sparkline 24h */}
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] text-slate-400 font-medium">{tr("Xu hướng 24h")}</span>
-                              {renderMiniSparkline(s.supportingData.sparklineValues, isCritical ? '#f43f5e' : isWarning ? '#f59e0b' : '#10b981')}
-                            </div>
-                          </div>
-
-                          <ul className="space-y-1 text-slate-700 dark:text-slate-300">
-                            {s.supportingData.metrics.map((item, mIdx) => (
-                              <li key={mIdx} className="flex items-start gap-1.5">
-                                <span className="text-sky-500 font-bold">•</span>
-                                <span>{item}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        {/* 3. NGUYÊN NHÂN KHẢ DĨ (POSSIBLE CAUSE) */}
-                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/70 dark:border-slate-800">
-                          <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 mb-1.5">
-                            <TrendingUp className="w-4 h-4 text-slate-500" />
-                            <span>{tr("Nguyên nhân khả dĩ (Possible Cause)")}</span>
-                          </div>
-                          <ul className="space-y-1 text-slate-600 dark:text-slate-300">
-                            {s.possibleCauses.map((cause, cIdx) => (
-                              <li key={cIdx} className="flex items-start gap-1.5">
-                                <span className="text-slate-400 font-bold">•</span>
-                                <span>{cause}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        {/* 4. ĐỀ XUẤT HÀNH ĐỘNG (RECOMMENDED ACTION) */}
-                        <div className="p-3 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/70 dark:border-emerald-800/60">
-                          <div className="flex items-center justify-between pb-2 mb-2 border-b border-emerald-100 dark:border-emerald-900/40">
-                            <div className="flex items-center gap-2 font-bold text-emerald-900 dark:text-emerald-200">
-                              <Activity className="w-4 h-4 text-emerald-600" />
-                              <span>{tr("Đề xuất hành động (Recommended Action)")}</span>
-                            </div>
-
-                            {/* Nút Tạo phiếu bảo trì */}
-                            <button
-                              onClick={() => {
-                                if (onNavigateToTab) onNavigateToTab('predictive');
-                              }}
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-2xs"
-                            >
-                              <Calendar className="w-3.5 h-3.5" />
-                              {tr("Tạo phiếu bảo trì")}
-                            </button>
-                          </div>
-
-                          <ol className="space-y-1 text-emerald-900 dark:text-emerald-300 list-decimal pl-4">
-                            {s.recommendedActions.map((action, aIdx) => (
-                              <li key={aIdx} className="leading-relaxed">
-                                {action}
-                              </li>
-                            ))}
-                          </ol>
-                        </div>
-
-                        {/* Footer tin nhắn: Phản hồi + Quick Action Pills */}
-                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
-                          <div className="flex items-center gap-2">
-                            <span>{tr("Câu trả lời có hữu ích không?")}</span>
-                            <button
-                              onClick={() => setFeedbackGiven({ ...feedbackGiven, [msg.id]: 'up' })}
-                              className={`p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 ${feedbackGiven[msg.id] === 'up' ? 'text-emerald-600' : ''}`}
-                              title={tr("Hữu ích")}
-                            >
-                              <ThumbsUp className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={() => setFeedbackGiven({ ...feedbackGiven, [msg.id]: 'down' })}
-                              className={`p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 ${feedbackGiven[msg.id] === 'down' ? 'text-rose-500' : ''}`}
-                              title={tr("Chưa hữu ích")}
-                            >
-                              <ThumbsDown className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              onClick={() => {
-                                if (onNavigateToTab) onNavigateToTab('anomaly');
-                              }}
-                              className="px-2 py-0.5 rounded text-[11px] bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition-colors flex items-center gap-1"
-                            >
-                              <Eye className="w-3 h-3" /> {tr("Xem dữ liệu chi tiết")}
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (onNavigateToTab) onNavigateToTab('anomaly');
-                              }}
-                              className="px-2 py-0.5 rounded text-[11px] bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition-colors flex items-center gap-1"
-                            >
-                              <TrendingUp className="w-3 h-3" /> {tr("Phân tích sâu hơn")}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+      {toolbar}
+      <div className="flex flex-col xl:flex-row gap-4 items-start">
+        <div className="flex-1 min-w-0 w-full rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50/60 dark:bg-slate-950/40 flex flex-col">
+          <div ref={scrollRef} className="max-h-[calc(100vh-300px)] min-h-[520px] overflow-y-auto p-4 sm:p-5 space-y-6" aria-live="polite">
+            {messages.map((msg) =>
+              msg.sender === 'user' ? (
+                <div key={msg.id} className="flex justify-end items-end gap-2.5">
+                  <div className="flex max-w-[75%] flex-col items-end gap-1">
+                    <div className="rounded-2xl rounded-br-md bg-blue-600 px-4 py-2.5 text-sm leading-relaxed text-white">{msg.text}</div>
+                    <span className="text-[11px] text-slate-400">{msg.time}{userName ? ` · ${userName}` : ''}</span>
                   </div>
-                );
-              })}
-
-              {/* Trạng thái đang phân tích */}
-              {isTyping && (
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
-                    <Bot className="w-4 h-4" />
-                  </div>
-                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-500 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                    <span>{tr("KaiLink đang phân tích dữ liệu cảm biến & mô hình nội tại...")}</span>
-                  </div>
+                  <span className="h-9 w-9 shrink-0 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center text-xs font-extrabold text-slate-500 dark:text-slate-300">{initials}</span>
                 </div>
-              )}
-
-              <div ref={chatBottomRef} />
-            </div>
-          </div>
-
-          {/* Ô nhập tin nhắn cố định dưới chân khung chat */}
-          <div className="p-3 sm:p-4 border-t border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-800 shrink-0">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shrink-0"
-                title={tr("Đính kèm tệp dữ liệu hoặc ảnh cảm biến")}
-              >
-                <Paperclip className="w-4 h-4" />
-              </button>
-
-              <input
-                type="text"
-                placeholder={tr("Nhập câu hỏi hoặc yêu cầu phân tích thiết bị...")}
-                value={inputQuery}
-                onChange={(e) => setInputQuery(e.target.value)}
-                onKeyDown={handleKeyDown}
-                disabled={isTyping}
-                className="flex-1 px-4 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-              />
-
-              <button
-                onClick={() => handleSend()}
-                disabled={!inputQuery.trim() || isTyping}
-                className="w-9 h-9 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0 shadow-2xs"
-                title={tr("Gửi câu hỏi")}
-              >
-                <Send className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* CỘT PHẢI (4 COLS): PANEL NGỮ CẢNH THIẾT BỊ (Tham chiếu Image 4) */}
-        <div className="lg:col-span-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/90 dark:border-slate-700/80 shadow-xs p-4 sm:p-5 space-y-4">
-          <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-700/70">
-            <Cpu className="w-5 h-5 text-emerald-600" />
-            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-              {tr("Ngữ cảnh Thiết bị")}
-            </h3>
-          </div>
-
-          {/* Bộ chọn thiết bị đang xem */}
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-medium text-slate-400">{tr("Chọn thiết bị phân tích:")}</label>
-            <div className="relative">
-              <select
-                aria-label={tr("Chọn thiết bị để xem ngữ cảnh")}
-                value={currentMachine?.machineId}
-                onChange={(e) => handleMachineChange(e.target.value)}
-                className="w-full text-xs font-bold pl-3 pr-8 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer appearance-none"
-              >
-                {allMachines.map((m) => (
-                  <option key={m.machineId} value={m.machineId}>
-                    {m.machineCode} — {m.machineName} {m.isNoData ? '(No Data)' : ''}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
-          </div>
-
-          {/* 4 Thẻ trạng thái kết nối & nguồn dữ liệu (2x2 grid) */}
-          <div className="grid grid-cols-2 gap-2">
-            {/* Kết nối PLC */}
-            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
-              <span className="text-[10px] text-slate-400 font-medium block">{tr("Kết nối PLC")}</span>
-              <div className="mt-1 flex items-center gap-1.5 text-xs font-bold">
-                {currentMachine?.isNoData ? (
-                  <span className="text-slate-400 flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-slate-400" /> {tr("Chưa kết nối")}
-                  </span>
-                ) : (
-                  <span className="text-emerald-600 flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> {tr("Đã kết nối")}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Nguồn dữ liệu */}
-            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
-              <span className="text-[10px] text-slate-400 font-medium block">{tr("Nguồn dữ liệu")}</span>
-              <div className="mt-1 text-xs font-bold truncate">
-                {currentMachine?.dataSource === 'SIMULATION' ? (
-                  <span className="text-amber-600">{tr("Giả lập (Simulation)")}</span>
-                ) : currentMachine?.dataSource === 'PRODUCTION' ? (
-                  <span className="text-sky-600">{tr("Dữ liệu thực (Production)")}</span>
-                ) : (
-                  <span className="text-slate-400">{tr("Chưa có (NO_DATA)")}</span>
-                )}
-              </div>
-            </div>
-
-            {/* Cập nhật lần cuối */}
-            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
-              <span className="text-[10px] text-slate-400 font-medium block">{tr("Cập nhật lần cuối")}</span>
-              <div className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">
-                {currentMachine?.isNoData ? tr("Chưa có") : tr("Vừa xong (Live)")}
-              </div>
-            </div>
-
-            {/* Trạng thái vận hành */}
-            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
-              <span className="text-[10px] text-slate-400 font-medium block">{tr("Trạng thái")}</span>
-              <div className="mt-1 text-xs font-bold text-emerald-600">
-                {currentMachine?.isNoData ? 'NO_DATA' : currentMachine?.hasActiveSpike ? 'CRITICAL' : tr("Hoạt động (RUN)")}
-              </div>
-            </div>
-          </div>
-
-          {/* Bảng Thông tin thiết bị */}
-          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 space-y-2 text-xs">
-            <h4 className="font-bold text-slate-900 dark:text-slate-100 text-[11px] uppercase tracking-wider text-slate-400">
-              {tr("Thông tin thiết bị")}
-            </h4>
-
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">{tr("Dây chuyền:")}</span>
-              <span className="font-medium text-slate-700 dark:text-slate-300">
-                {currentMachine?.lineName}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">{tr("Cụm thiết bị:")}</span>
-              <span className="font-medium text-slate-700 dark:text-slate-300">
-                {currentMachine?.rawMetrics[0]?.name || tr("Bộ truyền động chính")}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">{tr("Điểm sức khỏe AI:")}</span>
-              <span
-                className={`font-black ${
-                  currentMachine?.isNoData
-                    ? 'text-slate-400'
-                    : (currentMachine?.healthScore || 0) >= 80
-                    ? 'text-emerald-600'
-                    : 'text-rose-600'
-                }`}
-              >
-                {currentMachine?.isNoData ? 'N/A' : `${currentMachine?.healthScore} / 100`}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">{tr("Mức rủi ro hiện tại:")}</span>
-              <span
-                className={`font-bold ${
-                  currentMachine?.isNoData
-                    ? 'text-slate-400'
-                    : currentMachine?.riskLevel === 'CRITICAL'
-                    ? 'text-rose-600'
-                    : currentMachine?.riskLevel === 'HIGH'
-                    ? 'text-amber-500'
-                    : 'text-emerald-600'
-                }`}
-              >
-                {currentMachine?.isNoData
-                  ? tr("Chưa đánh giá")
-                  : currentMachine?.riskLevel === 'CRITICAL'
-                  ? tr("• Khẩn cấp (Critical)")
-                  : currentMachine?.riskLevel === 'HIGH'
-                  ? tr("• Trung bình (Warning)")
-                  : tr("• An toàn (Low)")}
-              </span>
-            </div>
-          </div>
-
-          {/* Bảng Thông số giám sát Realtime kèm Sparkline */}
-          <div className="space-y-2">
-            <h4 className="font-bold text-[11px] uppercase tracking-wider text-slate-400">
-              {tr("Thông số giám sát (Realtime)")}
-            </h4>
-
-            <div className="space-y-1.5">
-              {currentMachine?.rawMetrics && currentMachine.rawMetrics.length > 0 ? (
-                currentMachine.rawMetrics.map((mtr, mIdx) => {
-                  const val = Number(mtr.currentValue);
-                  const isCrit = mtr.status === 'critical' || mtr.isEmergencySpike;
-                  const isWarn = mtr.status === 'warning';
-
-                  // Tạo 5 điểm sparkline giả lập từ metric
-                  const sparkValues = [
-                    val * 0.96,
-                    val * 0.98,
-                    val * 0.97,
-                    val * 0.99,
-                    val,
-                  ];
-
-                  return (
-                    <div
-                      key={mIdx}
-                      className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs"
-                    >
-                      <div>
-                        <span className="text-slate-700 dark:text-slate-300 font-medium block">
-                          {mtr.name}
-                        </span>
-                        <span
-                          className={`font-black text-sm ${
-                            isCrit
-                              ? 'text-rose-600'
-                              : isWarn
-                              ? 'text-amber-500'
-                              : 'text-slate-900 dark:text-slate-100'
-                          }`}
-                        >
-                          {mtr.currentValue} {mtr.unit}
-                        </span>
-                      </div>
-
-                      <div className="shrink-0">
-                        {renderMiniSparkline(sparkValues, isCrit ? '#f43f5e' : isWarn ? '#f59e0b' : '#10b981')}
-                      </div>
-                    </div>
-                  );
-                })
               ) : (
-                <div className="p-4 text-center text-xs text-slate-400 bg-slate-50 dark:bg-slate-900/30 rounded-xl border border-slate-100 dark:border-slate-800">
-                  {tr("Chưa có thông số đo lường từ PLC.")}
+                <div key={msg.id} className="flex items-start gap-3">
+                  <KaiLinkAvatar />
+                  <div className="min-w-0 max-w-[88%] space-y-2.5">
+                    <div className="flex items-center gap-2">
+                      <strong className="text-[13px] text-slate-900 dark:text-white">{tr('Trợ lý KaiLink')}</strong>
+                      <span className="text-[11px] text-slate-400">{msg.time}</span>
+                    </div>
+                    <div className="rounded-2xl rounded-tl-md border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-900 px-4 sm:px-5 py-4 text-sm leading-7 text-slate-700 dark:text-slate-300 space-y-2.5">
+                      <RichText text={msg.text} />
+                      {msg.answer?.timeline && msg.answer.timeline.items.length > 0 && (
+                        <ForecastTimeline hours={msg.answer.timeline.hours} items={msg.answer.timeline.items} />
+                      )}
+                      <div className="mt-1 flex items-center justify-between gap-3 border-t border-slate-100 dark:border-slate-800 pt-2.5">
+                        <span className="flex items-center gap-1.5 text-[11.5px] text-slate-400">
+                          <Database className="h-3.5 w-3.5 shrink-0" />
+                          {tr('Nguồn: {0}', msg.answer?.sources || '')}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => copy(msg.id, msg.text)}
+                          className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                          aria-label={tr('Sao chép câu trả lời')}
+                          title={tr('Sao chép câu trả lời')}
+                        >
+                          {copied === msg.id ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    {!!msg.answer?.chips.length && (
+                      <div className="flex flex-wrap gap-2">
+                        {msg.answer.chips.map((c) => (
+                          <button
+                            key={c.label}
+                            type="button"
+                            disabled={busy}
+                            onClick={() => void ask(c.label, c.intent, c.params)}
+                            className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-[12.5px] font-semibold text-slate-700 dark:text-slate-200 hover:border-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 disabled:opacity-50 transition-colors"
+                          >
+                            <Sparkles className="h-3 w-3 text-emerald-500" />
+                            {c.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
+              )
+            )}
+            {busy && (
+              <div className="flex items-center gap-3">
+                <KaiLinkAvatar />
+                <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-md border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-900 px-4 py-3" aria-label={tr('Trợ lý đang soạn câu trả lời')}>
+                  {[0, 1, 2].map((i) => (
+                    <span key={i} className="h-2 w-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                  ))}
+                </div>
+              </div>
+            )}
+            <div ref={bottomRef} />
           </div>
-
-          {/* Footer note minh bạch */}
-          <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-800 text-[11px] text-slate-400 leading-relaxed flex items-start gap-1.5">
-            <Info className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
-            <span>
-              {tr("Lưu ý: Thiết bị sử dụng dữ liệu thực từ PLC. Các phân tích được tạo bởi mô hình AI nội bộ của DENSO.")}
-            </span>
-          </div>
+          <div className="border-t border-slate-200 dark:border-slate-800 p-4">{inputBar}</div>
         </div>
+
+        {/* Bộ câu hỏi mẫu */}
+        <aside className="w-full xl:w-[330px] shrink-0 space-y-2.5">
+          <div className="flex items-baseline justify-between">
+            <h3 className="text-xs font-extrabold tracking-wider text-slate-800 dark:text-slate-100">{tr('BỘ CÂU HỎI MẪU')}</h3>
+            <span className="text-xs text-slate-400">{tr('{0} câu · {1} nhóm', TOTAL_QUESTIONS, QUESTION_GROUPS.length)}</span>
+          </div>
+          {QUESTION_GROUPS.map((g) => {
+            const st = GROUP_STYLE[g.key];
+            const Icon = st.icon;
+            const open = openGroup === g.key;
+            return (
+              <div key={g.key} className={`overflow-hidden rounded-xl border bg-white dark:bg-slate-900 ${open ? 'border-blue-500' : 'border-slate-200 dark:border-slate-700/80'}`}>
+                <button
+                  type="button"
+                  aria-expanded={open}
+                  onClick={() => setOpenGroup(open ? null : g.key)}
+                  className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left"
+                >
+                  <span className={`h-7 w-7 rounded-lg flex items-center justify-center ${st.cls}`}><Icon className="h-3.5 w-3.5" /></span>
+                  <span className="flex-1 text-[13px] font-bold text-slate-900 dark:text-white">{g.title}</span>
+                  <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">{g.questions.length}</span>
+                  <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+                </button>
+                {open && (
+                  <div className="space-y-1.5 px-3 pb-3">
+                    {g.questions.map((q) => (
+                      <button
+                        key={q.text}
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void ask(q.text, q.intent, q.params)}
+                        className="w-full rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 px-3 py-2 text-left text-[12.5px] leading-snug text-slate-700 dark:text-slate-300 hover:border-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 disabled:opacity-50 transition-colors"
+                      >
+                        {q.text}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          <div className="flex gap-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 px-3 py-2.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+            <Info className="h-4 w-4 shrink-0" />
+            <span>{tr('Bấm một câu để hỏi ngay. Bạn cũng có thể gõ tự do, kể cả mã máy như {0}.', 'DCS-DCM-01')}</span>
+          </div>
+        </aside>
       </div>
     </div>
   );
 };
+
+export default AIAssistantTab;

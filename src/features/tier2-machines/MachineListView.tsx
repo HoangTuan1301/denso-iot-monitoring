@@ -14,7 +14,6 @@ import {
   Plus, 
   LineChart, 
   QrCode, 
-  ArrowRight, 
   Edit3,
   Cpu,
   RefreshCw,
@@ -33,6 +32,9 @@ import { CreateMachineModal } from './CreateMachineModal';
 import { EditMachineModal } from './EditMachineModal';
 import { MachineImage } from '../../config/machineImages';
 import { tr } from '../../i18n/tr';
+import { useProductionOverview } from '../dashboard/production/useProduction';
+import { OEE_CARD, OEE_COLOR, oeeLevel } from '../dashboard/production/oeeTone';
+import { lineDisplayName } from '../../config/lineDisplayName';
 
 export function MachineListView() {
   const { 
@@ -98,6 +100,13 @@ export function MachineListView() {
 
   // Dây chuyền đang được chọn để hiển thị danh sách máy
   const currentLineId = selectedLineId || lines[0]?.id || 'LINE-01';
+  // OEE ca hiện tại của từng line (cùng nguồn với Dashboard) thay cho "điểm an toàn" luôn 100%
+  const production = useProductionOverview();
+  const lineOee = new Map<string, { oee: number; productionStatus: string; stopped?: boolean }>();
+  for (const st of production.data?.lineStates || []) {
+    lineOee.set(st.lineId, st);
+    lineOee.set(st.lineCode, st);
+  }
   const currentLine: ProductionLine = lines.find((l) => l.id === currentLineId) || lines[0] || {
     id: 'LINE-01',
     name: tr("Đang tải luồng..."),
@@ -233,74 +242,42 @@ export function MachineListView() {
       {/* ========================================================================= */}
       {/* THANH PIPELINE CÁC LUỒNG NGANG (TẦNG 1 - LUỒNG / DÂY CHUYỀN)               */}
       {/* ========================================================================= */}
-      <div className="bg-factory-card p-5 rounded-2xl border border-factory-border shadow-xs">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-3 overflow-x-auto pb-1">
-          {lines.map((line, index) => {
+      <div className="bg-factory-card p-4 rounded-2xl border border-factory-border shadow-xs flex flex-col gap-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">{tr('OEE dây chuyền · ca hiện tại')}</h3>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400">
+            {tr('Xanh ≥ 85% · Cam 80–85% · Đỏ < 80% · cùng số liệu với Dashboard')}
+          </span>
+        </div>
+        <div className="flex gap-2.5 overflow-x-auto pb-1.5 [scrollbar-width:thin]">
+          {lines.map((line) => {
             const isSelected = line.id === currentLineId;
-            const isCrit = line.status === 'critical';
-            const isWarn = line.status === 'warning';
-
+            const st = lineOee.get(line.id) || lineOee.get(line.code);
+            const oee = st?.oee ?? null;
+            const lv = st?.productionStatus === 'ALARM' && st?.stopped ? 'low' : oeeLevel(oee);
             return (
-              <div key={line.id} className="flex items-center gap-3 w-full lg:w-auto flex-1">
-                {/* Thẻ Card Luồng */}
-                <div
-                  onClick={() => setSelectedLineId(line.id)}
-                  className={`flex-1 p-4 rounded-xl border cursor-pointer transition-all duration-200 text-center select-none ${
-                    isSelected
-                      ? 'border-emerald-500 bg-emerald-500/10 ring-2 ring-emerald-500/50 shadow-md'
-                      : 'bg-factory-card border-factory-border hover:border-slate-400 dark:hover:border-gray-500'
-                  }`}
-                >
-                  {/* % Điểm an toàn lớn trên đỉnh */}
-                  <div
-                    className={`font-mono text-base font-extrabold mb-1.5 ${
-                      isCrit
-                        ? 'text-rose-600 dark:text-rose-500'
-                        : isWarn
-                        ? 'text-amber-600 dark:text-amber-500'
-                        : 'text-emerald-600 dark:text-emerald-500'
-                    }`}
-                  >
-                    {line.safetyScore}%
-                  </div>
-
-                  {/* Tên mã Luồng */}
-                  <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">
-                    {line.code}
-                  </h3>
-
-                  {/* Mô tả ngắn */}
-                  <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 line-clamp-1">
-                    {line.name}
-                  </p>
-
-                  {/* Nhãn trạng thái */}
-                  <div className="mt-2 flex justify-center">
-                    {line.status === 'normal' && (
-                      <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                        {tr("Bình thường")}
-                      </span>
-                    )}
-                    {line.status === 'warning' && (
-                      <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
-                        {tr("Cảnh báo • 1")}
-                      </span>
-                    )}
-                    {line.status === 'critical' && (
-                      <span className="text-[11px] font-semibold text-rose-600 dark:text-rose-400 animate-pulse">
-                        {tr("Nghiêm trọng • 1")}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Mũi tên kết nối giữa các luồng */}
-                {index < lines.length - 1 && (
-                  <div className="hidden lg:flex text-slate-400 dark:text-gray-500 shrink-0">
-                    <ArrowRight className="w-4 h-4 opacity-70" />
-                  </div>
-                )}
-              </div>
+              <button
+                type="button"
+                key={line.id}
+                onClick={() => setSelectedLineId(line.id)}
+                aria-pressed={isSelected}
+                title={`${line.code} – ${line.name}`}
+                className={`shrink-0 w-[124px] px-3 py-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                  isSelected ? 'ring-2 ring-emerald-500/60 border-emerald-500' : 'hover:border-slate-400 dark:hover:border-slate-500'
+                } ${OEE_CARD[lv].box}`}
+              >
+                <span className="flex items-center justify-between gap-1">
+                  <strong className="text-[13px] font-extrabold text-slate-900 dark:text-white truncate">{lineDisplayName(line.code, line.code)}</strong>
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: OEE_COLOR[lv] }} />
+                </span>
+                <span className="block font-mono text-[10px] text-slate-500 dark:text-slate-400 truncate">{line.code}</span>
+                <span className={`block mt-1.5 font-mono text-lg font-extrabold leading-none ${OEE_CARD[lv].value}`}>
+                  {oee === null ? '—' : `${oee.toFixed(1)}%`}
+                </span>
+                <span className="block mt-1 text-[10px] font-semibold text-slate-600 dark:text-slate-300 truncate">
+                  {st?.stopped ? tr('Đang dừng') : oee === null ? tr('Chưa có dữ liệu') : lv === 'ok' ? tr('Đạt mục tiêu') : lv === 'near' ? tr('Sát mục tiêu') : tr('Dưới 80%')}
+                </span>
+              </button>
             );
           })}
         </div>

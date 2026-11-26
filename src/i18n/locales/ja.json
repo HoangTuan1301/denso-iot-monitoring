@@ -85,7 +85,7 @@
     }
   },
   "decision": {
-    "top5Title": "稼働効率ワースト5ライン",
+    "top5Title": "ドカ停時間 上位5ライン",
     "minutes": "{{count}} 分",
     "virtualTag": "シミュレーション",
     "whatIfTitle": "What‑If シミュレーション · {{line}}",

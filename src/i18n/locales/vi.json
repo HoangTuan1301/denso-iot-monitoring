@@ -85,7 +85,7 @@
     }
   },
   "decision": {
-    "top5Title": "Top 5 line hiệu suất thấp nhất",
+    "top5Title": "Top 5 line có thời gian dừng dài",
     "minutes": "{{count}} phút",
     "virtualTag": "mô phỏng",
     "whatIfTitle": "Mô phỏng What‑If · {{line}}",

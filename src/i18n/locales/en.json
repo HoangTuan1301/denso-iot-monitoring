@@ -85,7 +85,7 @@
     }
   },
   "decision": {
-    "top5Title": "Top 5 lowest-performing lines",
+    "top5Title": "Top 5 lines by long downtime",
     "minutes": "{{count}} min",
     "virtualTag": "simulated",
     "whatIfTitle": "What‑If simulation · {{line}}",

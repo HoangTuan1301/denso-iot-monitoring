@@ -240,7 +240,7 @@ export function MachineDetailView({
       {/* 3. THÔNG TIN THIẾT BỊ | THÔNG SỐ VẬN HÀNH + UNIPULSE — 2 cột cao bằng nhau; phần chi tiết thu gọn, bấm ▾ để xem */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         {/* Cột trái (4/12): Thông tin thiết bị + Tài liệu máy */}
-        <section className="lg:col-span-4 p-4 rounded-2xl border border-slate-200/90 dark:border-factory-border bg-white dark:bg-factory-card shadow-xs flex flex-col gap-3">
+        <section className="lg:col-span-5 p-4 rounded-2xl border border-slate-200/90 dark:border-factory-border bg-white dark:bg-factory-card shadow-xs flex flex-col gap-3">
           <div className="flex items-center justify-between gap-2">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               {tr("Thông tin kỹ thuật thiết bị")}
@@ -248,21 +248,26 @@ export function MachineDetailView({
             <ExpandToggle open={showSpecs} onToggle={() => setShowSpecs((v) => !v)} controls="machine-specs" />
           </div>
 
-          <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50/70 dark:bg-factory-surface border border-slate-200/80 dark:border-factory-border">
-            <MachineImageViewer
-              machineId={machine.id}
-              machineCode={machine.code}
-              imageUrl={machine.imageUrl}
-              alt={machine.name}
-              name={machine.name}
-              code={machine.code || machine.id}
-              className="max-h-24 w-auto object-contain"
-              containerClassName="w-32 h-24 shrink-0"
-              showFallbackLabel={false}
-            />
-            <div className="min-w-0">
-              <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{machine.model || machine.name}</p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2">
+          {/* Ảnh máy lớn + tên máy */}
+          <div className="rounded-xl border border-slate-200/80 dark:border-factory-border overflow-hidden">
+            <div className="h-56 sm:h-64 flex items-center justify-center bg-[radial-gradient(120%_90%_at_50%_100%,#E2E8F0_0%,#F8FAFC_70%)] dark:bg-[radial-gradient(120%_90%_at_50%_100%,#1E293B_0%,#0F172A_75%)]">
+              <MachineImageViewer
+                machineId={machine.id}
+                machineCode={machine.code}
+                imageUrl={machine.imageUrl}
+                alt={machine.name}
+                name={machine.name}
+                code={machine.code || machine.id}
+                className="max-h-52 sm:max-h-60 w-auto max-w-full object-contain drop-shadow-[0_12px_14px_rgba(15,23,42,0.22)]"
+                containerClassName="w-full h-full flex items-center justify-center p-3"
+                showFallbackLabel={false}
+              />
+            </div>
+            <div className="px-3.5 py-2.5 border-t border-slate-200/80 dark:border-factory-border bg-slate-50/60 dark:bg-factory-surface">
+              <p className="text-base font-bold text-slate-900 dark:text-white truncate">{machine.model || machine.name}</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                <span className="font-mono font-semibold text-blue-700 dark:text-blue-300">{machine.code || machine.id}</span>
+                {' · '}
                 {tr("Hệ thống cảm biến IoT đa điểm chuẩn kết nối Modbus TCP / OPC-UA")}
               </p>
             </div>
@@ -303,14 +308,16 @@ export function MachineDetailView({
         </section>
 
         {/* Cột phải (8/12) */}
-        <div className="lg:col-span-8 flex flex-col gap-4 min-w-0">
+        <div className="lg:col-span-7 flex flex-col gap-4 min-w-0">
           {/* Thông số vận hành (Realtime) */}
           <section className="p-4 rounded-2xl border border-slate-200/90 dark:border-factory-border bg-white dark:bg-factory-card shadow-xs flex flex-col gap-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-2">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 {tr("Thông số vận hành (Realtime Telemetry)")}
               </h3>
-              {live.length > 0 && (
+              {live.length > 0 && <ExpandToggle open={showTelemetry} onToggle={() => setShowTelemetry((v) => !v)} controls="machine-telemetry" />}
+            </div>
+            {live.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 text-[11px] font-bold">
                   <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
                     {tr("{0} thông số", live.length)}
@@ -332,10 +339,8 @@ export function MachineDetailView({
                     <span className={`w-1.5 h-1.5 rounded-full bg-emerald-500 ${isRealtimeActive ? 'animate-pulse' : 'opacity-40'}`} />
                     {tr("Chu kỳ cập nhật 1s")}
                   </span>
-                  <ExpandToggle open={showTelemetry} onToggle={() => setShowTelemetry((v) => !v)} controls="machine-telemetry" />
                 </div>
-              )}
-            </div>
+            )}
 
             {live.length > 0 ? (showTelemetry && (
               <div
@@ -347,9 +352,9 @@ export function MachineDetailView({
                 <table className="w-full table-fixed text-left text-xs border-collapse">
                   <colgroup>
                     <col />
+                    <col className="w-[24%]" />
                     <col className="w-[22%]" />
-                    <col className="w-[20%]" />
-                    <col className="w-[18%]" />
+                    <col className="w-[19%]" />
                   </colgroup>
                   <thead>
                     <tr className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">

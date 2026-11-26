@@ -45,16 +45,16 @@ export function UnipulsePanel({ machineId, className = '' }: { machineId: string
 
   return (
     <section className={`p-5 rounded-2xl border border-slate-200/90 dark:border-factory-border bg-white dark:bg-factory-card shadow-xs flex flex-col gap-3 ${className}`}>
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('machine.unipulse.title')}</h3>
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400 truncate">
-            {t('machine.unipulse.file', { file: data.fileName, time: data.importedAt })}
-          </span>
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('machine.unipulse.title')}</h3>
           <ExpandToggle open={open} onToggle={() => setOpen((v) => !v)} controls={`unipulse-${machineId}`} />
         </div>
+        <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400 truncate">
+          {t('machine.unipulse.file', { file: data.fileName, time: data.importedAt })}
+        </span>
       </div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1.7fr] gap-2">
         {tile(t('machine.unipulse.count'), String(data.summary.count), 'border-slate-200 bg-slate-50 text-slate-800 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-100')}
         {tile(t('machine.unipulse.okRate'), `${okPct.toFixed(1)}%`, 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/30 dark:text-emerald-300')}
         {tile('NG', t('machine.unipulse.times', { count: data.summary.ng }), 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-800/60 dark:bg-rose-950/30 dark:text-rose-300')}
@@ -74,10 +74,10 @@ export function UnipulsePanel({ machineId, className = '' }: { machineId: string
       >
         <table className="w-full table-fixed text-xs border-collapse">
           <colgroup>
+            <col className="w-[27%]" />
+            <col className="w-[22%]" />
             <col className="w-[28%]" />
-            <col className="w-[24%]" />
-            <col className="w-[28%]" />
-            <col className="w-[20%]" />
+            <col className="w-[23%]" />
           </colgroup>
           <thead>
             <tr>

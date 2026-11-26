@@ -286,9 +286,6 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({ allMachines }) =
           <Send className="h-4 w-4" />
         </button>
       </form>
-      <p className="text-center text-[11px] text-slate-400">
-        {tr('Câu trả lời được tính từ dữ liệu trực tiếp của hệ thống · có thể gõ tự do, không cần đúng nguyên văn câu mẫu')}
-      </p>
     </div>
   );
 
@@ -323,7 +320,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({ allMachines }) =
             </h3>
             <div className="max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">
               <RichText
-                text={tr('Mình đang theo dõi {0} dây chuyền và {1} máy. Hiện có **{2} cảnh báo** chưa xử lý và **{3} dây chuyền** dự báo cần bảo trì trong 6 giờ tới. Bạn có thể chọn một câu bên dưới hoặc gõ tự do.', stats.lines, stats.machines, stats.openAlarms, stats.linesNeedMaintenance)}
+                text={tr('Mình đang theo dõi {0} dây chuyền và {1} máy. Hiện có **{2} cảnh báo** chưa xử lý và **{3} dây chuyền** dự báo cần bảo trì trong 6 giờ tới.', stats.lines, stats.machines, stats.openAlarms, stats.linesNeedMaintenance)}
               />
             </div>
           </div>
@@ -336,7 +333,6 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({ allMachines }) =
                   <div className="flex items-center gap-2.5">
                     <span className={`h-8 w-8 rounded-lg flex items-center justify-center ${st.cls}`}><Icon className="h-4 w-4" /></span>
                     <h4 className="flex-1 text-sm font-bold text-slate-900 dark:text-white">{g.title}</h4>
-                    <span className="text-[11px] text-slate-400">{tr('{0} câu', g.questions.length)}</span>
                   </div>
                   {g.questions.slice(0, 3).map((q) => (
                     <button

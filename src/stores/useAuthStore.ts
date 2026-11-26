@@ -8,6 +8,7 @@ import { UserProfile, UserRole } from '../types/auth';
 import { apiClient, tokenStorage } from '../services/api';
 import { mockUsers } from '../utils/mockData';
 import { tr } from '../i18n/tr';
+import { useMonitoringStore } from './useMonitoringStore';
 
 interface AuthState {
   currentUser: UserProfile;
@@ -62,6 +63,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     try {
       const res = await apiClient.login(normalizedEmail, password);
+      // Tài khoản mới luôn bắt đầu ở Dashboard tổng quan (không giữ màn hình của phiên trước)
+      useMonitoringStore.getState().resetNavigation();
       set({
         currentUser: res.user,
         token: res.accessToken,
@@ -84,6 +87,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (matchedMock && isDemoPass) {
         console.warn('[Auth Store] Máy chủ đang khởi động hoặc ngủ, kích hoạt phiên Demo nội bộ:', matchedMock.email);
         const demoToken = 'demo-jwt-token-' + Date.now();
+        useMonitoringStore.getState().resetNavigation();
         tokenStorage.setSession({
           message: 'Demo login successful',
           user: matchedMock,
@@ -119,6 +123,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     // 1. Dọn dẹp session cục bộ ngay lập tức để UI chuyển về LoginPage tức thì
     tokenStorage.clearSession();
+    useMonitoringStore.getState().resetNavigation();
     set({
       currentUser: defaultAdmin,
       isAuthenticated: false,

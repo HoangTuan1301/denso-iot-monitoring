@@ -101,6 +101,8 @@ interface MonitoringState {
 
   // Điều hướng phân tầng
   setActiveTab: (tab: NavigationTab, group?: 'config' | 'monitoring') => void;
+  /** Về Dashboard tổng quan (sơ đồ nhà máy), bỏ line/máy đang chọn — dùng khi đăng nhập / đăng xuất */
+  resetNavigation: () => void;
   setSelectedLineId: (lineId: string | null) => void;
   setSelectedMachineId: (machineId: string | null) => void;
   setSelectedMetricId: (metricId: string | null) => void;
@@ -564,6 +566,15 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
     activeNavGroup: group || (['dashboard', 'alarms', 'history', 'devices'].includes(tab) ? 'monitoring' : (tab === 'lines' ? state.activeNavGroup : 'config')),
     dashboardViewLevel: tab === 'dashboard' ? 'factory_layout' : state.dashboardViewLevel,
   })),
+
+  resetNavigation: () => set({
+    activeTab: 'dashboard',
+    activeNavGroup: 'monitoring',
+    dashboardViewLevel: 'factory_layout',
+    selectedLineId: null,
+    selectedMachineId: null,
+    selectedMetricId: null,
+  }),
 
   setDashboardViewLevel: (level) => set({ dashboardViewLevel: level }),
 

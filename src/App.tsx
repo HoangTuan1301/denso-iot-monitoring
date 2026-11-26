@@ -170,12 +170,29 @@ export default function App() {
   ]);
 
   // Màn hình Đăng nhập mặc định khi chưa xác thực
+  // Chặn sẵn: nếu đang đứng ở màn hình tài khoản này không có quyền (VD còn sót từ phiên trước
+  // hoặc khôi phục sau khi đổi ngôn ngữ) thì đưa về Dashboard thay vì hiện trang 403.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const role = (currentUser?.role || 'OPERATOR').toUpperCase();
+    const admin = role === 'ADMIN';
+    const canConfig = admin || role === 'MAINTENANCE';
+    const configOnly =
+      activeTab === 'thresholds' ||
+      activeTab === 'metrics' ||
+      activeTab === 'settings' ||
+      activeTab === 'audit' ||
+      (activeTab === 'lines' && activeNavGroup !== 'monitoring');
+    if ((activeTab === 'users' && !admin) || (configOnly && !canConfig)) setActiveTab('dashboard');
+  }, [activeTab, activeNavGroup, currentUser?.role, isAuthenticated, setActiveTab]);
+
   if (!isAuthenticated) {
     return <LoginPage />;
   }
 
   const userRole = (currentUser?.role || 'OPERATOR').toUpperCase();
   const isAdmin = userRole === 'ADMIN';
+
 
   // Điều hướng hiển thị theo Tab kèm rào chắn phân quyền RBAC
   const renderTabContent = () => {

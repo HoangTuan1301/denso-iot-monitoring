@@ -44,6 +44,7 @@ import { ProcessConditionsTable } from './production/ProcessConditionsTable';
 import { useLineShift, useProcessConditions } from './production/useLineProduction';
 import { Line2PhotorealisticView } from './Line2PhotorealisticView';
 import { Line3PhotorealisticView } from './Line3PhotorealisticView';
+import { LINE_DISPLAY_NAME, lineDisplayName } from '../../config/lineDisplayName';
 import { tr } from '../../i18n/tr';
 // [PERF] Three.js (~600KB) chỉ tải khi người dùng bật chế độ 3D
 const Line3DView = lazy(() => import('./3d/Line3DView').then((m) => ({ default: m.Line3DView })));
@@ -302,8 +303,13 @@ export function LineDetailView({
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
-              {currentLine.code || lineId} – {currentLine.name || tr("Dây chuyền sản xuất")}
+              {lineDisplayName(currentLine.code, currentLine.code || lineId)} – {currentLine.name || tr("Dây chuyền sản xuất")}
             </h1>
+            {currentLine.code && LINE_DISPLAY_NAME[currentLine.code] && (
+              <span className="font-mono text-[11px] font-bold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5">
+                {currentLine.code}
+              </span>
+            )}
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             {tr("Line Overview – Giám sát và hiệu suất dây chuyền")}
@@ -342,7 +348,7 @@ export function LineDetailView({
         <LineGenericPhotorealisticView
           lineId={expansion.code}
           lineCode={expansion.code}
-          lineTitle={tr("Sơ đồ dây chuyền & trạng thái thiết bị - {0}", expansion.code)}
+          lineTitle={tr("Sơ đồ dây chuyền & trạng thái thiết bị - {0}", lineDisplayName(expansion.code))}
           lineSubtitle={expansion.subtitle}
           bgImageUrl=""
           stationConfigs={expansion.stations}

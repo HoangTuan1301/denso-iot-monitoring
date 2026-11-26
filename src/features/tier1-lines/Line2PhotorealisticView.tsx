@@ -10,6 +10,7 @@ import {
   LINE2_STATION_CONFIGS,
   StationFlowData,
 } from './LineGenericPhotorealisticView';
+import { lineDisplayName } from '../../config/lineDisplayName';
 import { tr } from '../../i18n/tr';
 
 interface Line2PhotorealisticViewProps {
@@ -27,7 +28,7 @@ export function Line2PhotorealisticView({
     <LineGenericPhotorealisticView
       lineId="LN-PNT-02"
       lineCode="LN-PNT-02"
-      lineTitle={tr("Sơ đồ dây chuyền & trạng thái thiết bị - LN-PNT-02")}
+      lineTitle={tr("Sơ đồ dây chuyền & trạng thái thiết bị - {0}", lineDisplayName('LN-PNT-02'))}
       lineSubtitle={tr("Dây chuyền Paint – Xử lý bề mặt và sơn phủ công nghiệp")}
       bgImageUrl="/images/lines/line2-diagram-body.jpg"
       stationConfigs={LINE2_STATION_CONFIGS}

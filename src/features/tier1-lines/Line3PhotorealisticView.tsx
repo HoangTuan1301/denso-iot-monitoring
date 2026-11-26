@@ -10,6 +10,7 @@ import {
   LINE3_STATION_CONFIGS,
   StationFlowData,
 } from './LineGenericPhotorealisticView';
+import { lineDisplayName } from '../../config/lineDisplayName';
 import { tr } from '../../i18n/tr';
 
 interface Line3PhotorealisticViewProps {
@@ -27,7 +28,7 @@ export function Line3PhotorealisticView({
     <LineGenericPhotorealisticView
       lineId="LN-ASM-03"
       lineCode="LN-ASM-03"
-      lineTitle={tr("Sơ đồ dây chuyền & trạng thái thiết bị - LN-ASM-03")}
+      lineTitle={tr("Sơ đồ dây chuyền & trạng thái thiết bị - {0}", lineDisplayName('LN-ASM-03'))}
       lineSubtitle={tr("Dây chuyền Assembly – Lắp ráp cụm chi tiết và kiểm tra hoàn thiện")}
       bgImageUrl="/images/lines/line3-diagram-body.jpg"
       stationConfigs={LINE3_STATION_CONFIGS}

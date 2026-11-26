@@ -4,6 +4,7 @@
  * Tương thích hoàn hảo Dark & Light Mode với độ tương phản cao
  */
 
+import { lineDisplayName } from '../../config/lineDisplayName';
 import { useState, useEffect } from "react";
 import { Sun, Moon, RefreshCw, LogOut, Radio, Menu } from "lucide-react";
 import { useUiStore, useIsDesktop } from "../../stores/useUiStore";
@@ -144,7 +145,7 @@ export function Header() {
 
             {dashboardViewLevel === 'line_overview' && (
               <span className="font-bold text-slate-900 dark:text-white">
-                {t("breadcrumb.line", { code: lines.find((l) => l.id === selectedLineId || l.code === selectedLineId)?.code || selectedLineId || 'LN-PRS-01' })}
+                {t("breadcrumb.line", { code: (() => { const c = lines.find((l) => l.id === selectedLineId || l.code === selectedLineId)?.code || selectedLineId || 'LN-PRS-01'; return lineDisplayName(c); })() })}
               </span>
             )}
 
@@ -154,7 +155,7 @@ export function Header() {
                   onClick={() => setDashboardViewLevel('line_overview')}
                   className="text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 font-medium transition-colors cursor-pointer"
                 >
-                  {t("breadcrumb.line", { code: lines.find((l) => l.id === selectedLineId || l.code === selectedLineId)?.code || selectedLineId || 'LN-PRS-01' })}
+                  {t("breadcrumb.line", { code: (() => { const c = lines.find((l) => l.id === selectedLineId || l.code === selectedLineId)?.code || selectedLineId || 'LN-PRS-01'; return lineDisplayName(c); })() })}
                 </button>
                 <span className="text-slate-400 dark:text-slate-500">&gt;</span>
                 <span className="font-bold text-slate-900 dark:text-white">
@@ -169,7 +170,7 @@ export function Header() {
                   onClick={() => setDashboardViewLevel('line_overview')}
                   className="text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 font-medium transition-colors cursor-pointer hidden md:inline"
                 >
-                  {t("breadcrumb.line", { code: lines.find((l) => l.id === selectedLineId || l.code === selectedLineId)?.code || selectedLineId || 'LN-PRS-01' })}
+                  {t("breadcrumb.line", { code: (() => { const c = lines.find((l) => l.id === selectedLineId || l.code === selectedLineId)?.code || selectedLineId || 'LN-PRS-01'; return lineDisplayName(c); })() })}
                 </button>
                 <span className="text-slate-400 dark:text-slate-500 hidden md:inline">&gt;</span>
                 <button

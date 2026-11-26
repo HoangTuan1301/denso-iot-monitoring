@@ -77,7 +77,7 @@
     }
   },
   "decision": {
-    "top5Title": "ドカ停時間 上位5ライン",
+    "top5Title": "稼働効率ワースト5ライン",
     "minutes": "{{count}} 分",
     "virtualTag": "シミュレーション",
     "whatIfTitle": "What‑If シミュレーション · {{line}}",
@@ -119,7 +119,9 @@
       "IDLE": "開始前"
     },
     "axisFrom": "縦軸は {{value}} 個から",
-    "due": "{{time}}・{{shift}}直"
+    "due": "{{time}}・{{shift}}直",
+    "top5Sub": "OEEの低い順 · 名称は工場マップと同じ",
+    "stopMinutes": "停止 {{count}} 分"
   },
   "cause": {
     "JAM": "ワーク詰まり",
@@ -181,7 +183,7 @@
     },
     "cond": {
       "title": "加工条件の推移 · {{days}} 日間",
-      "subtitle": "日平均値 · 赤 = 規格外 · 日 = 休日",
+      "subtitle": "日平均値 · 赤 = NG（是正後でないと稼働不可） · 日 = 休み",
       "passRate": "合格率 {{pct}}%",
       "ngCount": "NG {{count}} 件",
       "export": "Excel出力",
@@ -192,7 +194,20 @@
       "param_press_force": "プレス荷重",
       "param_torque": "締付トルク",
       "param_oil_temp": "油温",
-      "month": "{{m}}月"
+      "month": "{{m}}月",
+      "today": "今日",
+      "ngToday": "本日NG {{count}} 件",
+      "lockTitle": "本日 {{date}}：加工条件NG {{count}} 件 – 設備ロック中、稼働不可",
+      "lockDetail": "{{items}}。規格内に調整・再測定するとロック解除されます。",
+      "fixBtn": "是正・再測定",
+      "fixedTitle": "{{time}} に是正・再測定済み – 全条件OK、稼働可",
+      "undo": "元に戻す",
+      "legendToday": "今日",
+      "legendNg": "NG – 稼働前に是正必須",
+      "legendOk": "白 = 規格内",
+      "legendFuture": "加工条件 未測定",
+      "legendOff": "休み",
+      "future": "未測定"
     },
     "simulated": "シミュレーションデータ",
     "loading": "読み込み中…",
@@ -228,7 +243,24 @@
       "count": "計測回数",
       "okRate": "良品率",
       "times": "{{count}} 回",
-      "spec": "規格 荷重・ストローク"
+      "spec": "規格 荷重・ストローク",
+      "wave": {
+        "btn": "圧入波形を見る",
+        "title": "圧入波形 · {{time}}",
+        "sub": "{{machine}} · 荷重–ストローク · {{n}} 点",
+        "current": "表示中の圧入",
+        "compareNg": "NG圧入 {{time}} と比較",
+        "okZone": "合格範囲 {{load}} kN · {{stroke}} mm",
+        "prev": "前へ",
+        "next": "次へ",
+        "compare": "NGと比較",
+        "hideCompare": "比較を隠す",
+        "note": "波形はCSVのピーク荷重とストロークから生成したデモ用の模擬データです。Unipulseの実波形ファイルが入手でき次第、実データに置き換えます。",
+        "rowHint": "クリックで圧入波形を表示",
+        "close": "閉じる",
+        "axisX": "ストローク (mm)",
+        "axisY": "荷重 (kN)"
+      }
     },
     "cs": {
       "title": "チェックシート · 始業／終業点検",
@@ -281,5 +313,10 @@
       "now": "現在",
       "avg": "平均"
     }
+  },
+  "oeeTone": {
+    "ok": "目標達成",
+    "near": "目標付近（{{warn}}–{{target}}%）",
+    "low": "{{warn}}%未満"
   }
 }

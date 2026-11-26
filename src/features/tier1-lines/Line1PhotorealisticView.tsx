@@ -21,6 +21,7 @@ import {
   StopCircle,
   X,
 } from 'lucide-react';
+import { lineDisplayName } from '../../config/lineDisplayName';
 import { tr } from '../../i18n/tr';
 import { ConveyorScene } from './LineGenericPhotorealisticView';
 
@@ -282,7 +283,7 @@ export function Line1PhotorealisticView({
           </div>
           <div>
             <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-tight">
-              {tr("Sơ đồ dây chuyền & trạng thái thiết bị - LN-PRS-01")}
+              {tr("Sơ đồ dây chuyền & trạng thái thiết bị - {0}", lineDisplayName('LN-PRS-01'))}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
               {tr("Dây chuyền Press – Gia công dập và lắp ráp")}
@@ -326,7 +327,7 @@ export function Line1PhotorealisticView({
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                    {tr("Sơ đồ dây chuyền & trạng thái thiết bị - LN-PRS-01 (Toàn màn hình)")}
+                    {tr("Sơ đồ dây chuyền & trạng thái thiết bị - {0} (Toàn màn hình)", lineDisplayName('LN-PRS-01'))}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     {tr("Bấm vào bất kỳ máy nào để mở Machine Detail & CHECK SHEET")}

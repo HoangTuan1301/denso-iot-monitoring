@@ -11,6 +11,9 @@ import { useTranslation } from 'react-i18next';
 import { Download, ArrowRight, RefreshCw } from 'lucide-react';
 import type { FactoryProductionOverview, WhatIfResponse, WhatIfScenario, LineProductionStatus } from '../../../types/production';
 import { useLineWhatIf, useCauseText } from './useProduction';
+import { OEE_COLOR, oeeLevel } from './oeeTone';
+import { lineDisplayName } from '../../../config/lineDisplayName';
+import { trData } from '../../../i18n/tr';
 
 const STATUS_COLOR: Record<LineProductionStatus, string> = {
   ALARM: '#DC2626',
@@ -44,7 +47,6 @@ export function ProductionDecisionPanel({ overview, loading, error, onRetry, sel
     setScenarioId(whatIf.data?.recommendedId ?? null);
   }, [whatIf.data]);
 
-  const maxStop = Math.max(1, ...top.map((l) => l.longStopMinutes || l.totalStopMinutes));
   const scenarioName = (s: WhatIfScenario) =>
     s.id === 'REROUTE'
       ? s.targetLineCode
@@ -75,18 +77,16 @@ export function ProductionDecisionPanel({ overview, loading, error, onRetry, sel
             <span className="text-[10px] text-slate-500">{t('dashboard.kpi.shift', { shift: overview.shift.shift, label: overview.shift.label })}</span>
           )}
         </div>
+        <p className="-mt-1.5 mb-2.5 text-[10.5px] text-slate-500 dark:text-slate-400">{t('decision.top5Sub')}</p>
         {loading && !overview ? (
           <div className="space-y-2 animate-pulse">{[0, 1, 2, 3, 4].map((i) => <div key={i} className="h-11 rounded-lg bg-slate-100 dark:bg-white/5" />)}</div>
         ) : (
           <ol className="flex flex-col gap-1.5">
             {top.map((l, i) => {
               const active = l.lineCode === selectedLineCode;
-              const color = STATUS_COLOR[l.productionStatus] || STATUS_COLOR.RUNNING;
-              const minutes = l.longStopMinutes || l.totalStopMinutes;
-              const cause =
-                l.mainCauseCode === 'SHORT_STOP'
-                  ? t('cause.SHORT_STOP_COUNT', { count: l.shortStopCount })
-                  : causeText(l.mainCauseCode, l.mainCauseOp, l.mainCause);
+              const lv = oeeLevel(l.oee);
+              const color = lv === 'none' ? STATUS_COLOR[l.productionStatus] || STATUS_COLOR.RUNNING : OEE_COLOR[lv];
+              const minutes = l.totalStopMinutes;
               return (
                 <li key={l.lineCode}>
                   <button
@@ -102,18 +102,22 @@ export function ProductionDecisionPanel({ overview, loading, error, onRetry, sel
                     <span className="w-5 h-5 shrink-0 rounded-full text-[10px] font-extrabold text-white flex items-center justify-center" style={{ background: color }}>
                       {i + 1}
                     </span>
-                    <span className="flex flex-col min-w-[86px]">
-                      <span className="text-xs font-extrabold text-slate-900 dark:text-white font-mono">{l.lineCode}</span>
-                      <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate max-w-[110px]">
-                        {l.virtual ? `${t('decision.virtualTag')}` : l.lineName}
+                    <span className="flex flex-col min-w-0 flex-1">
+                      <span className="text-[13px] font-extrabold text-slate-900 dark:text-white">{lineDisplayName(l.lineCode)}</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                        {l.virtual ? t('decision.virtualTag') : trData(l.lineName).replace(/^Dây chuyền\s+/i, '')} · {l.lineCode}
                       </span>
                     </span>
-                    <span className="flex-1 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                      <span className="block h-full rounded-full" style={{ width: `${Math.round((minutes / maxStop) * 100)}%`, background: color }} />
+                    <span className="font-mono text-xs font-extrabold shrink-0" style={{ color }}>
+                      {l.oee !== null && l.oee !== undefined ? `${l.oee.toFixed(1)}%` : '—'}
                     </span>
-                    <span className="flex flex-col items-end min-w-[92px]">
-                      <span className="text-xs font-mono font-bold text-slate-900 dark:text-white">{t('decision.minutes', { count: minutes })}</span>
-                      <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate max-w-[110px]">{cause}</span>
+                    <span className="flex flex-col items-end min-w-[84px]">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">{t('decision.stopMinutes', { count: minutes })}</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate max-w-[110px]">
+                        {l.mainCauseCode === 'SHORT_STOP'
+                          ? t('cause.SHORT_STOP_COUNT', { count: l.shortStopCount })
+                          : causeText(l.mainCauseCode, l.mainCauseOp, l.mainCause) || '—'}
+                      </span>
                     </span>
                   </button>
                 </li>

@@ -9,6 +9,8 @@ import { useTranslation } from 'react-i18next';
 import { apiClient } from '../../../services/api';
 import type { UnipulseData } from '../../../types/machineDetail';
 import { ExpandToggle } from './ExpandToggle';
+import { UnipulseWaveModal } from './UnipulseWaveModal';
+import { Activity } from 'lucide-react';
 
 const REFRESH_MS = 15_000;
 
@@ -16,6 +18,7 @@ export function UnipulsePanel({ machineId, className = '' }: { machineId: string
   const { t } = useTranslation();
   const [data, setData] = useState<UnipulseData | null>(null);
   const [open, setOpen] = useState(false);
+  const [wave, setWave] = useState<number | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -48,7 +51,17 @@ export function UnipulsePanel({ machineId, className = '' }: { machineId: string
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('machine.unipulse.title')}</h3>
-          <ExpandToggle open={open} onToggle={() => setOpen((v) => !v)} controls={`unipulse-${machineId}`} />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setWave(0)}
+              disabled={!data.rows.length}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold disabled:opacity-40 cursor-pointer"
+            >
+              <Activity className="w-3.5 h-3.5" /> {t('machine.unipulse.wave.btn')}
+            </button>
+            <ExpandToggle open={open} onToggle={() => setOpen((v) => !v)} controls={`unipulse-${machineId}`} />
+          </div>
         </div>
         <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400 truncate">
           {t('machine.unipulse.file', { file: data.fileName, time: data.importedAt })}
@@ -88,11 +101,16 @@ export function UnipulsePanel({ machineId, className = '' }: { machineId: string
             </tr>
           </thead>
           <tbody>
-            {data.rows.map((r) => {
+            {data.rows.map((r, i) => {
               const badLoad = r.loadKn < data.spec.loadMin || r.loadKn > data.spec.loadMax;
               const badStroke = r.strokeMm < data.spec.strokeMin || r.strokeMm > data.spec.strokeMax;
               return (
-                <tr key={r.seq} className="border-b border-slate-100 dark:border-slate-800">
+                <tr
+                  key={r.seq}
+                  onClick={() => setWave(i)}
+                  title={t('machine.unipulse.wave.rowHint')}
+                  className="border-b border-slate-100 dark:border-slate-800 cursor-pointer hover:bg-blue-50/60 dark:hover:bg-blue-950/20"
+                >
                   <td className="py-1.5 px-3 font-mono text-slate-700 dark:text-slate-300">{r.time}</td>
                   <td className={`py-1.5 px-3 font-mono text-right tabular-nums ${badLoad ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-slate-900 dark:text-white'}`}>
                     {r.loadKn.toFixed(2)}
@@ -104,6 +122,7 @@ export function UnipulsePanel({ machineId, className = '' }: { machineId: string
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${r.result === 'OK' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'}`}>
                       {r.result}
                     </span>
+                    <Activity className="inline-block w-3.5 h-3.5 ml-1.5 text-blue-500 align-[-2px]" aria-hidden="true" />
                   </td>
                 </tr>
               );
@@ -116,6 +135,9 @@ export function UnipulsePanel({ machineId, className = '' }: { machineId: string
         {data.simulated && ` · ${t('lineView.simulated')}`}
       </p>
       </>
+      )}
+      {wave !== null && data.rows[wave] && (
+        <UnipulseWaveModal data={data} index={wave} machineId={machineId} onClose={() => setWave(null)} onIndex={setWave} />
       )}
     </section>
   );

@@ -77,7 +77,7 @@
     }
   },
   "decision": {
-    "top5Title": "Top 5 lines by long downtime",
+    "top5Title": "Top 5 lowest-performing lines",
     "minutes": "{{count}} min",
     "virtualTag": "simulated",
     "whatIfTitle": "What‑If simulation · {{line}}",
@@ -119,7 +119,9 @@
       "IDLE": "Not started"
     },
     "axisFrom": "Axis starts at {{value}} pcs",
-    "due": "{{time}} · shift {{shift}}"
+    "due": "{{time}} · shift {{shift}}",
+    "top5Sub": "Sorted by OEE, lowest first · names match the factory map",
+    "stopMinutes": "{{count}} min stopped"
   },
   "cause": {
     "JAM": "Workpiece jam",
@@ -181,7 +183,7 @@
     },
     "cond": {
       "title": "Machining conditions · {{days}} days",
-      "subtitle": "Daily average · red = out of spec · Sun = day off",
+      "subtitle": "Daily average · red = NG, must be fixed before running · Sun = off",
       "passRate": "Pass rate {{pct}}%",
       "ngCount": "{{count}} NG",
       "export": "Export Excel",
@@ -192,7 +194,20 @@
       "param_press_force": "Press force",
       "param_torque": "Tightening torque",
       "param_oil_temp": "Oil temperature",
-      "month": "M{{m}}"
+      "month": "M{{m}}",
+      "today": "Today",
+      "ngToday": "{{count}} NG today",
+      "lockTitle": "Today {{date}}: {{count}} machining condition(s) NG – machine locked, not allowed to run",
+      "lockDetail": "{{items}}. Adjust and re-measure within spec to unlock.",
+      "fixBtn": "Fix & re-measure",
+      "fixedTitle": "Fixed & re-measured at {{time}} – all conditions OK, machine may run",
+      "undo": "Undo",
+      "legendToday": "Today",
+      "legendNg": "NG – must be fixed before running",
+      "legendOk": "White = within spec",
+      "legendFuture": "Not measured yet",
+      "legendOff": "Off",
+      "future": "Not measured"
     },
     "simulated": "Simulated data",
     "loading": "Loading…",
@@ -228,7 +243,24 @@
       "count": "Measurements",
       "okRate": "OK rate",
       "times": "{{count}} times",
-      "spec": "Spec load · stroke"
+      "spec": "Spec load · stroke",
+      "wave": {
+        "btn": "View press wave",
+        "title": "Press waveform · {{time}}",
+        "sub": "{{machine}} · Load – stroke · {{n}} samples",
+        "current": "Selected press",
+        "compareNg": "Compare NG press {{time}}",
+        "okZone": "Accept zone {{load}} kN · {{stroke}} mm",
+        "prev": "Previous",
+        "next": "Next",
+        "compare": "Compare with NG",
+        "hideCompare": "Hide comparison",
+        "note": "The waveform is simulated from the peak load and stroke in the CSV for demo purposes; it will be replaced by real Unipulse waveform data when available.",
+        "rowHint": "Click to view the press waveform",
+        "close": "Close",
+        "axisX": "Stroke (mm)",
+        "axisY": "Load (kN)"
+      }
     },
     "cs": {
       "title": "CHECK SHEET · Start / end of shift",
@@ -281,5 +313,10 @@
       "now": "Now",
       "avg": "AVG"
     }
+  },
+  "oeeTone": {
+    "ok": "On target",
+    "near": "Near target ({{warn}}–{{target}}%)",
+    "low": "Below {{warn}}%"
   }
 }

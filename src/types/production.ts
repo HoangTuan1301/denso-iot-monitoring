@@ -148,6 +148,7 @@ export interface FactoryProductionOverview {
     virtual: boolean;
     zoneId: string | null;
     productionStatus: LineProductionStatus;
+    oee?: number | null;
     longStopMinutes: number;
     totalStopMinutes: number;
     mainCauseCode: string | null;
@@ -165,7 +166,8 @@ export interface ProcessConditionSeries {
   specMax: number;
   decimals: number;
   ngCount: number;
-  values: Array<{ date: string; value: number | null; status: 'OK' | 'NG' | 'OFF' }>;
+  nominal?: number;
+  values: Array<{ date: string; value: number | null; status: 'OK' | 'NG' | 'OFF' | 'FUTURE' }>;
 }
 
 export interface ProcessConditionsResponse {
@@ -173,6 +175,8 @@ export interface ProcessConditionsResponse {
   lineId: string;
   lineCode: string;
   days: number;
+  /** Ngày hiện tại (YYYY-MM-DD, giờ VN); các ngày sau đó là chưa đo */
+  today?: string;
   dates: Array<{ date: string; weekday: number }>;
   conditions: ProcessConditionSeries[];
   summary: { checked: number; ng: number; passRate: number | null };

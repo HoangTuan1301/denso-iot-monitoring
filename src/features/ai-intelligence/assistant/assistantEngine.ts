@@ -12,6 +12,7 @@
  *  - Đoạn văn cách nhau một dòng trống; **đậm**; dòng bắt đầu "1. " là danh sách đánh số, "- " là gạch đầu dòng.
  */
 import { tr, trData } from '../../../i18n/tr';
+import { LINE_DISPLAY_NAME } from '../../../config/lineDisplayName';
 import type { AIProcessedMachine } from '../adapters/aiTelemetryAdapter';
 import type { ProductionLine, MetricIndicator } from '../../../types/hierarchy';
 import type { AlarmEvent } from '../../../types/alarm';
@@ -100,15 +101,11 @@ function shiftInfo(now: Date) {
 // ---------------------------------------------------------------------------
 // Tên ngắn dây chuyền + nhận diện thực thể trong câu hỏi
 // ---------------------------------------------------------------------------
-const LINE_SHORT: Record<string, string> = {
-  'LN-PRS-01': 'Line 1', 'LN-PNT-02': 'Line 2', 'LN-ASM-03': 'Line 3',
-  'LN-AT-04': 'AT', 'LN-AFM-05': 'AFM', 'LN-JAT-06': 'JATCO', 'LN-AVS-07': 'AVS', 'LN-HSG-08': 'Housing',
-  'LN-DCS-09': 'Decast 1', 'LN-DCT-10': 'DCT', 'LN-MH1-11': 'H1', 'LN-WS7-12': 'WS7', 'LN-OCV-13': 'OCV3',
-};
+const LINE_SHORT: Record<string, string> = LINE_DISPLAY_NAME;
 const EXTRA_ALIAS: Record<string, string[]> = {
-  'LN-PRS-01': ['line1', 'line01', 'day chuyen 1', 'dap han'], 'LN-PNT-02': ['line2', 'line02', 'son'],
-  'LN-ASM-03': ['line3', 'line03', 'lap rap hoan thien'], 'LN-DCS-09': ['decast', 'duc'], 'LN-HSG-08': ['vo hop so'],
-  'LN-MH1-11': ['mid h1'], 'LN-OCV-13': ['ocv'], 'LN-JAT-06': ['jatco', 'cvt'],
+  'LN-PRS-01': ['line1', 'line01', 'line 1', 'day chuyen 1', 'dap han'], 'LN-PNT-02': ['line2', 'line02', 'line 2', 'son'],
+  'LN-ASM-03': ['line3', 'line03', 'line 3', 'lap rap hoan thien', 'cvt mid'], 'LN-HSG-08': ['vo hop so', 'housing'], 'LN-DCS-09': ['decast', 'duc'],
+  'LN-MH1-11': ['mid h1'], 'LN-OCV-13': ['ocv'], 'LN-JAT-06': ['jatco'],
 };
 const lineShort = (l: { code: string; name: string }) => LINE_SHORT[l.code] || trData(l.name);
 /** "Decast 1 (LN-DCS-09)" */
@@ -1026,7 +1023,7 @@ export async function answerQuestion(
       const line = findLine(ctx, params.lineId);
       if (!line) {
         return {
-          text: tr('Mình chưa nhận ra dây chuyền bạn hỏi. Bạn có thể gõ tên ngắn như {0}, {1}, {2} hoặc mã {3}.', b('JATCO'), b('Decast 1'), b('Line 1'), b('LN-DCS-09')),
+          text: tr('Mình chưa nhận ra dây chuyền bạn hỏi. Bạn có thể gõ tên ngắn như {0}, {1}, {2} hoặc mã {3}.', b('JATCO'), b('Decast 1'), b('CVT'), b('LN-DCS-09')),
           sources: tr('danh mục dây chuyền'),
           chips: [{ label: tr('Dây chuyền Decast 1 có máy nào đang có vấn đề không?'), intent: 'line_status', params: { lineId: 'LINE-09' } }],
         };

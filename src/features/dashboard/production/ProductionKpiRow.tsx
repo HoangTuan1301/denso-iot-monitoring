@@ -6,8 +6,8 @@
 import { useTranslation } from 'react-i18next';
 import { Factory, Monitor, Activity, WifiOff, Gauge } from 'lucide-react';
 import type { FactoryProductionOverview } from '../../../types/production';
+import { OEE_CARD, OEE_TARGET, OeeProgress, OeeStatusPill, oeeLevel } from './oeeTone';
 
-const OEE_TARGET = 85;
 
 function fmt(v: number | null | undefined, d = 1) {
   return v === null || v === undefined || Number.isNaN(v) ? '—' : v.toFixed(d);
@@ -27,7 +27,7 @@ export function ProductionKpiRow({ data, loading }: { data: FactoryProductionOve
   }
 
   const oee = data?.oee.oee ?? null;
-  const oeeOk = oee !== null && oee >= OEE_TARGET;
+  const lv = oeeLevel(oee);
   const m = data?.machines;
   const online = m ? m.running + m.alarmStop : 0;
 
@@ -36,26 +36,28 @@ export function ProductionKpiRow({ data, loading }: { data: FactoryProductionOve
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-6 gap-3.5">
-      {/* OEE nhà máy */}
-      <div className="col-span-2 rounded-xl p-4 h-[118px] bg-slate-900 dark:bg-slate-950 text-white border border-slate-800 flex items-center justify-between gap-4 shadow-xs">
-        <div className="flex flex-col gap-1.5 min-w-0">
-          <span className="text-[11px] font-bold tracking-wide text-slate-300 flex items-center gap-1.5">
-            <Gauge className="w-3.5 h-3.5" /> {t('dashboard.kpi.factoryOee')}
+      {/* OEE nhà máy – màu theo ngưỡng (góp ý mentor 26/11) */}
+      <div className={`col-span-2 rounded-xl px-4 py-3 h-[118px] border flex flex-col justify-between gap-1 shadow-xs min-w-0 ${OEE_CARD[lv].box}`}>
+        <span className="flex items-center justify-between gap-2 min-w-0">
+          <span className="text-[11px] font-bold tracking-wide text-slate-700 dark:text-slate-300 flex items-center gap-1.5 truncate">
+            <Gauge className="w-3.5 h-3.5 shrink-0" /> {t('dashboard.kpi.factoryOee')}
           </span>
-          <span className="font-mono text-4xl font-extrabold leading-none">
+          <OeeStatusPill value={oee} />
+        </span>
+        <span className="flex items-baseline gap-2 min-w-0">
+          <span className={`font-mono text-4xl font-extrabold leading-none ${OEE_CARD[lv].value}`}>
             {fmt(oee)}
             <span className="text-xl">%</span>
           </span>
-          <span className={`text-[11px] font-semibold ${oeeOk ? 'text-emerald-300' : 'text-amber-300'}`}>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
             {t('dashboard.kpi.oeeTarget', { target: OEE_TARGET })}
             {data?.shift ? ` · ${t('dashboard.kpi.shift', { shift: data.shift.shift, label: data.shift.label })}` : ''}
           </span>
-        </div>
-        <div className="flex flex-col gap-1.5 font-mono text-[11px] text-slate-200 shrink-0">
-          <span>A · {fmt(data?.oee.availability)}%</span>
-          <span>P · {fmt(data?.oee.performance)}%</span>
-          <span>Q · {fmt(data?.oee.quality)}%</span>
-        </div>
+        </span>
+        <OeeProgress value={oee} />
+        <span className="font-mono text-[10.5px] text-slate-600 dark:text-slate-300 truncate">
+          A {fmt(data?.oee.availability)}% · P {fmt(data?.oee.performance)}% · Q {fmt(data?.oee.quality)}%
+        </span>
       </div>
 
       {/* Tổng số dây chuyền */}

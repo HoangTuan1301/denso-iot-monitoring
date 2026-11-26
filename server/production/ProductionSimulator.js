@@ -562,9 +562,12 @@ export function simulateLineDaily({ line, machines = [], period = 'week', date, 
 /* ------------------------------------------------------------------ */
 export function simulateProcessConditions({ line, days = 30, now = new Date() }) {
   const n = Math.max(7, Math.min(90, Number(days) || 30));
+  // Góp ý mentor 26/11: cửa sổ gồm các ngày đã qua + HÔM NAY + 7 ngày tới (chưa đo)
+  const future = Math.min(7, n - 1);
   const today = toVnParts(now);
+  const todayStr = new Date(Date.UTC(today.year, today.month - 1, today.day)).toISOString().slice(0, 10);
   const dates = [];
-  for (let i = n - 1; i >= 0; i--) {
+  for (let i = n - 1 - future; i >= -future; i--) {
     const d = new Date(Date.UTC(today.year, today.month - 1, today.day) - i * 86400000);
     dates.push({ date: d.toISOString().slice(0, 10), weekday: d.getUTCDay() });
   }
@@ -572,13 +575,19 @@ export function simulateProcessConditions({ line, days = 30, now = new Date() })
   const conditions = PROCESS_CONDITIONS.map((c) => {
     let ngCount = 0;
     const values = dates.map(({ date, weekday }) => {
+      if (date > todayStr) return { date, value: null, status: 'FUTURE' }; // chưa đo
       if (weekday === 0) return { date, value: null, status: 'OFF' }; // Chủ nhật nghỉ
       const rng = createRng(`${line.id}|${c.key}|${date}`);
       let v = c.nominal + (rng() - 0.5) * 2 * c.spread;
-      // ~5% số ngày lệch ra ngoài quy cách
-      if (rng() < 0.05) {
-        const span = c.max - c.min;
-        v = rng() < 0.5 ? c.min - span * range(rng, 0.03, 0.12) : c.max + span * range(rng, 0.03, 0.12);
+      if (date === todayStr) {
+        // Chỉ HÔM NAY mới có thể NG (~20% mỗi điều kiện): NG phải xử lý xong mới được chạy,
+        // nên các ngày đã qua luôn nằm trong quy cách.
+        if (rng() < 0.2) {
+          const span = c.max - c.min;
+          v = rng() < 0.5 ? c.min - span * range(rng, 0.03, 0.12) : c.max + span * range(rng, 0.03, 0.12);
+        }
+      } else {
+        v = Math.min(c.max, Math.max(c.min, v));
       }
       v = round(v, c.decimals);
       const ok = v >= c.min && v <= c.max;
@@ -591,19 +600,21 @@ export function simulateProcessConditions({ line, days = 30, now = new Date() })
       unit: c.unit,
       specMin: c.min,
       specMax: c.max,
+      nominal: c.nominal,
       decimals: c.decimals,
       ngCount,
       values,
     };
   });
 
-  const checked = conditions.reduce((a, c) => a + c.values.filter((v) => v.status !== 'OFF').length, 0);
+  const checked = conditions.reduce((a, c) => a + c.values.filter((v) => v.status === 'OK' || v.status === 'NG').length, 0);
   const ng = conditions.reduce((a, c) => a + c.ngCount, 0);
   return {
     simulated: true,
     lineId: line.id,
     lineCode: line.code || line.id,
     days: n,
+    today: todayStr,
     dates,
     conditions,
     summary: { checked, ng, passRate: checked ? round(((checked - ng) / checked) * 100, 1) : null },
@@ -793,6 +804,7 @@ export function buildFactoryOverview({ lineShifts, machines = [], lines = [] }) 
       virtual: l.virtual,
       zoneId: l.zoneId,
       productionStatus: l.productionStatus,
+      oee: l.oee.oee,
       longStopMinutes: l.longStops.minutes,
       totalStopMinutes: l.longStops.minutes + l.shortStops.minutes,
       mainCauseCode: l.longStops.longest ? l.longStops.longest.causeCode : l.shortStops.count ? 'SHORT_STOP' : null,
@@ -804,7 +816,9 @@ export function buildFactoryOverview({ lineShifts, machines = [], lines = [] }) 
           ? `Dừng ngắn × ${l.shortStops.count}`
           : null,
     }))
-    .sort((a, b) => b.longStopMinutes - a.longStopMinutes || b.totalStopMinutes - a.totalStopMinutes)
+    // Góp ý mentor 26/11: Top 5 = 5 line hiệu suất (OEE) thấp nhất, kèm thời gian dừng
+    .filter((l) => l.oee !== null && l.oee !== undefined)
+    .sort((a, b) => a.oee - b.oee || b.totalStopMinutes - a.totalStopMinutes)
     .slice(0, 5);
 
   return {

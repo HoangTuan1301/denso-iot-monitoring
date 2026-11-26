@@ -151,3 +151,11 @@ div[data-slot="wrapper"] {
     min-width: 900px;
   }
 }
+
+/* Ô "chưa đo" (ngày chưa tới) trong bảng điều kiện gia công */
+.kl-hatch {
+  background: repeating-linear-gradient(135deg, #f1f5f9 0 6px, #e2e8f0 6px 8px);
+}
+.dark .kl-hatch {
+  background: repeating-linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0 6px, rgba(51, 65, 85, 0.6) 6px 8px);
+}

@@ -6,8 +6,8 @@
 import { useTranslation } from 'react-i18next';
 import type { LineShiftProduction } from '../../../types/production';
 import { useCauseText } from '../../dashboard/production/useProduction';
+import { OEE_CARD, OEE_TARGET, OeeProgress, OeeStatusPill, oeeLevel } from '../../dashboard/production/oeeTone';
 
-const OEE_TARGET = 85;
 const nf = (v: number) => v.toLocaleString('en-US');
 
 export function LineProductionKpis({ data, loading }: { data: LineShiftProduction | null; loading: boolean }) {
@@ -30,16 +30,24 @@ export function LineProductionKpis({ data, loading }: { data: LineShiftProductio
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-      {/* OEE */}
-      <div className={`${card} bg-slate-900 dark:bg-slate-950 border-slate-800 text-white`}>
-        <span className="flex items-center justify-between gap-2 text-[11px] font-bold text-slate-300">
+      {/* OEE – màu theo ngưỡng (góp ý mentor 26/11) */}
+      <div className={`${card} ${OEE_CARD[notStarted ? 'none' : oeeLevel(data.oee.oee)].box}`}>
+        <span className="flex items-center justify-between gap-2 text-[11px] font-bold text-slate-700 dark:text-slate-300">
           <span className="truncate">{t('lineView.kpi.oee')}</span>
-          <span className={`shrink-0 font-semibold ${(data.oee.oee ?? 0) >= OEE_TARGET ? 'text-emerald-300' : 'text-amber-300'}`}>
-            {t('lineView.kpi.oeeTarget', { target: OEE_TARGET })}
-          </span>
+          {notStarted ? (
+            <span className="shrink-0 text-slate-500">{t('lineView.kpi.oeeTarget', { target: OEE_TARGET })}</span>
+          ) : (
+            <OeeStatusPill value={data.oee.oee} />
+          )}
         </span>
-        <span className="font-mono text-3xl font-extrabold leading-none">{notStarted ? '—' : `${data.oee.oee}%`}</span>
-        <span className="font-mono text-[11px] text-slate-200 truncate">
+        <span className="flex items-baseline gap-2">
+          <span className={`font-mono text-3xl font-extrabold leading-none ${OEE_CARD[notStarted ? 'none' : oeeLevel(data.oee.oee)].value}`}>
+            {notStarted ? '—' : `${data.oee.oee}%`}
+          </span>
+          {!notStarted && <span className="text-[11px] text-slate-500 dark:text-slate-400">{t('lineView.kpi.oeeTarget', { target: OEE_TARGET })}</span>}
+        </span>
+        {!notStarted && <OeeProgress value={data.oee.oee} />}
+        <span className="font-mono text-[11px] text-slate-600 dark:text-slate-300 truncate">
           A {data.oee.availability}% · P {data.oee.performance}% · Q {data.oee.quality}%
         </span>
       </div>

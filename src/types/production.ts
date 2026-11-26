@@ -33,6 +33,11 @@ export interface StopEvent {
 export interface HourlyOutput {
   hour: string; // "06:00"
   plan: number;
+  /** Kế hoạch mặc định của giờ (trước khi sửa) */
+  planDefault?: number;
+  /** Giờ này đã được người dùng sửa kế hoạch */
+  planEdited?: boolean;
+  planReason?: string | null;
   planSoFar: number;
   actual: number | null;
   status: 'done' | 'running' | 'future';

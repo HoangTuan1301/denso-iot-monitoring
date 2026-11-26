@@ -726,6 +726,14 @@ export const apiClient = {
     return request('/api/production/overview');
   },
 
+  /** Sửa kế hoạch 1 giờ trong ca (qty = null → về mặc định). Trả về dữ liệu ca đã tính lại. */
+  async updateLinePlan(
+    lineId: string,
+    body: { date: string; shift: number; hour: number; qty: number | null; reason?: string }
+  ): Promise<LineShiftProduction> {
+    return request(`/api/production/lines/${encodeURIComponent(lineId)}/plan`, { method: 'PUT', body: JSON.stringify(body) });
+  },
+
   async getLineProduction(lineId: string, params?: { date?: string; shift?: 1 | 2 | 3 }): Promise<LineShiftProduction> {
     const sp = new URLSearchParams();
     if (params?.date) sp.append('date', params.date);

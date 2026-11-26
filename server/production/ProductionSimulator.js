@@ -214,6 +214,18 @@ function fmtClock(utcMs) {
  * @param {Date}   [opts.now]
  * @param {object} [opts.settings]
  */
+/* ------------------------------------------------------------------ */
+/* Kế hoạch theo giờ do người dùng sửa (góp ý mentor 26/11)            */
+/* key `${lineId}|${date}|${shift}` → { [hourIndex 0–7]: { qty, reason, by, at } } */
+/* ------------------------------------------------------------------ */
+let PLAN_OVERRIDES = {};
+export function setPlanOverrides(map) {
+  PLAN_OVERRIDES = map && typeof map === 'object' ? map : {};
+}
+export function getPlanOverrides() {
+  return PLAN_OVERRIDES;
+}
+
 export function simulateLineShift({ line, machines = [], date, shift, now = new Date(), settings = {} }) {
   const cfg = { ...DEFAULT_PRODUCTION_SETTINGS, ...settings };
   const current = getCurrentShift(now);
@@ -276,8 +288,11 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
   // --- Sản lượng theo giờ ---
   const perfFactorBase = range(rng, 0.93, 0.985);
   const idealPerHour = 3600 / profile.idealCycleSec;
+  const overrides = PLAN_OVERRIDES[`${line.id}|${day}|${sh}`] || {};
   const hourly = [];
   let produced = 0;
+  let planTotal = 0;
+  let planSoFar = 0;
   for (let h = 0; h < 8; h++) {
     const hStart = h * 60;
     const hEnd = hStart + 60;
@@ -311,10 +326,18 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
     const actual =
       status === 'future' ? null : Math.round(((minutesRun - stopMin) / 60) * idealPerHour * perf);
     if (actual) produced += Math.max(0, actual);
+    const ov = overrides[h];
+    const planH = ov && Number.isFinite(Number(ov.qty)) ? Math.max(0, Math.round(Number(ov.qty))) : profile.planPerHour;
+    const planHSoFar = status === 'running' ? Math.round((minutesRun / 60) * planH) : status === 'done' ? planH : 0;
+    planTotal += planH;
+    planSoFar += planHSoFar;
     hourly.push({
       hour: label,
-      plan: profile.planPerHour,
-      planSoFar: status === 'running' ? Math.round((minutesRun / 60) * profile.planPerHour) : profile.planPerHour,
+      plan: planH,
+      planDefault: profile.planPerHour,
+      planEdited: !!ov,
+      planReason: ov?.reason || null,
+      planSoFar: status === 'running' ? planHSoFar : planH,
       actual: actual === null ? null : Math.max(0, actual),
       status,
       stopMinutes: stopMin,
@@ -350,8 +373,6 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
   const quality = produced > 0 ? good / produced : 0;
   const oee = availability * performance * quality;
 
-  const planTotal = profile.planPerHour * 8;
-  const planSoFar = Math.round((elapsedMin / 60) * profile.planPerHour);
   const remainingMin = SHIFT_MINUTES - elapsedMin;
   const recentRate = elapsedMin > 0 ? produced / elapsedMin : profile.planPerHour / 60 * 0.9;
   const forecast = isFinished ? produced : Math.round(produced + recentRate * remainingMin);

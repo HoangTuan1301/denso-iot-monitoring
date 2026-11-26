@@ -15,6 +15,10 @@ import { useCauseText } from '../../dashboard/production/useProduction';
 import { useLineDaily } from './useLineProduction';
 import { NgChart, OutputBarChart, VarianceStrip, nf, toneOf, type OutputSlot, type SlotGroup } from './OutputCharts';
 import { tr, trData } from '../../../i18n/tr';
+import { PlanEditModal, type PlanEditTarget } from './PlanEditModal';
+import { apiClient } from '../../../services/api';
+import { useAuthStore } from '../../../stores/useAuthStore';
+import { lineDisplayName } from '../../../config/lineDisplayName';
 
 type ViewMode = 'shift' | 'week' | 'month';
 
@@ -24,6 +28,8 @@ interface Props {
   shift: 1 | 2 | 3 | null;
   onChangeShift: (shift: 1 | 2 | 3) => void;
   lineCode?: string | null;
+  /** Gọi sau khi sửa kế hoạch giờ để tải lại dữ liệu ca */
+  onPlanChanged?: () => void;
 }
 
 const DAY_MS = 86400000;
@@ -127,12 +133,15 @@ function VarianceBlock({ slots, target, width }: { slots: OutputSlot[]; target: 
   );
 }
 
-export function LineOutputMonitor({ data, loading, shift, onChangeShift, lineCode }: Props) {
+export function LineOutputMonitor({ data, loading, shift, onChangeShift, lineCode, onPlanChanged }: Props) {
   const { t } = useTranslation();
   const causeText = useCauseText();
   const [mode, setMode] = useState<ViewMode>('shift');
   const [anchor, setAnchor] = useState<string | undefined>(undefined);
   const [showTable, setShowTable] = useState(false);
+  const [planEdit, setPlanEdit] = useState<PlanEditTarget | null>(null);
+  const role = useAuthStore((st) => st.currentUser?.role);
+  const canEditPlan = role === 'ADMIN' || role === 'MAINTENANCE';
   const daily = useLineDaily(lineCode ?? data?.lineCode ?? null, mode === 'shift' ? null : mode, anchor);
 
   const activeShift = shift ?? data?.shift ?? 1;
@@ -163,6 +172,7 @@ export function LineOutputMonitor({ data, loading, shift, onChangeShift, lineCod
         ng: h.status === 'future' ? null : (h.ng ?? null),
         status: h.status,
         frac,
+        planEdited: !!h.planEdited,
       };
     });
     const ngThreshold = Math.max(1, Math.round(((data.hourly[0]?.plan ?? 0) * (data.output.ngTargetPct ?? 1)) / 100));
@@ -408,11 +418,51 @@ export function LineOutputMonitor({ data, loading, shift, onChangeShift, lineCod
   const gap = o.actual - o.planSoFar;
   const ngTarget = o.ngTarget ?? Math.round((o.planTotal * (o.ngTargetPct ?? 1)) / 100);
   const ngPct = o.actual > 0 ? (o.defects / o.actual) * 100 : 0;
+  const planDefaultTotal = data.hourly.reduce((a, h) => a + (h.planDefault ?? h.plan), 0);
+  const editedCount = data.hourly.filter((h) => h.planEdited).length;
+  function openPlanEdit(i: number) {
+    const h = data!.hourly[i];
+    if (!h) return;
+    const next = data!.hourly[i + 1]?.hour ?? `${String((Number(h.hour.slice(0, 2)) + 1) % 24).padStart(2, '0')}:00`;
+    setPlanEdit({
+      hourIndex: i,
+      hourLabel: h.hour,
+      nextLabel: next,
+      plan: h.plan,
+      planDefault: h.planDefault ?? h.plan,
+      reason: h.planReason ?? null,
+      shiftTotal: o.planTotal,
+      shiftTotalDefault: planDefaultTotal,
+    });
+  }
+  const savePlan = async (qty: number | null, reason: string) => {
+    if (!planEdit) return;
+    await apiClient.updateLinePlan(data.lineId, { date: data.date, shift: data.shift, hour: planEdit.hourIndex, qty, reason });
+    setPlanEdit(null);
+    onPlanChanged?.();
+  };
 
   return shell(
     <>
+      {planEdit && (
+        <PlanEditModal
+          target={planEdit}
+          subtitle={tr('Ca {0} · {1} · {2} ({3})', data.shift, data.date, lineDisplayName(data.lineCode), data.lineCode)}
+          onClose={() => setPlanEdit(null)}
+          onSave={savePlan}
+        />
+      )}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
-        <Kpi label={t('lineView.output.plan')} value={nf(o.planTotal)} tone="text-blue-700 dark:text-blue-300" sub={tr('{0} pcs / giờ', nf(data.hourly[0]?.plan ?? 0))} />
+        <Kpi
+          label={t('lineView.output.plan')}
+          value={nf(o.planTotal)}
+          tone="text-blue-700 dark:text-blue-300"
+          sub={
+            editedCount
+              ? tr('Đã sửa {0} giờ · mặc định {1}', editedCount, nf(planDefaultTotal))
+              : tr('{0} pcs / giờ', nf(data.hourly[0]?.planDefault ?? data.hourly[0]?.plan ?? 0))
+          }
+        />
         <Kpi
           label={t('lineView.output.actual', { time: data.updatedAt })}
           value={nf(o.actual)}
@@ -441,10 +491,27 @@ export function LineOutputMonitor({ data, loading, shift, onChangeShift, lineCod
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,8fr)_minmax(0,5fr)] gap-3.5">
-        <Panel title={tr('SẢN LƯỢNG THEO GIỜ (pcs)')} legend={<Legend items={barLegend(target, false)} />}>
+        <Panel
+          title={tr('SẢN LƯỢNG THEO GIỜ (pcs)')}
+          legend={
+            <Legend
+              items={barLegend(target, false).map((it, k) =>
+                k === 0 && canEditPlan && !finished ? { ...it, label: tr('Kế hoạch (bấm cột để sửa)') } : it
+              )}
+            />
+          }
+        >
           <div className="overflow-x-auto">
             <div className="min-w-[560px]">
-              <OutputBarChart slots={slots} targetPct={target} width={660} height={270} ariaLabel={t('lineView.output.chartAria')} />
+              <OutputBarChart
+                slots={slots}
+                targetPct={target}
+                width={660}
+                height={270}
+                ariaLabel={t('lineView.output.chartAria')}
+                fullPlan
+                onPlanClick={canEditPlan && !finished ? openPlanEdit : undefined}
+              />
               <VarianceBlock slots={slots} target={target} width={660} />
             </div>
           </div>

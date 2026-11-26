@@ -536,7 +536,7 @@ export function LineDetailView({
       )}
 
       {/* 4b. GIÁM SÁT SẢN LƯỢNG SẢN XUẤT (theo ca) */}
-      <LineOutputMonitor data={lineShift.data} loading={lineShift.loading} shift={selectedShift} onChangeShift={setSelectedShift} lineCode={lineCodeForProduction} />
+      <LineOutputMonitor data={lineShift.data} loading={lineShift.loading} shift={selectedShift} onChangeShift={setSelectedShift} lineCode={lineCodeForProduction} onPlanChanged={lineShift.reload} />
 
       {/* 4c. THEO DÕI ĐIỀU KIỆN GIA CÔNG 30 NGÀY */}
       <ProcessConditionsTable data={conditions.data} loading={conditions.loading} error={conditions.error} onRetry={conditions.reload} />

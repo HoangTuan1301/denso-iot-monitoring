@@ -24,6 +24,8 @@ export interface OutputSlot {
   status: SlotStatus;
   /** Ô đang chạy: tỉ lệ thời gian đã trôi qua (0–1) */
   frac?: number;
+  /** Kế hoạch của ô đã được sửa tay */
+  planEdited?: boolean;
 }
 
 export interface SlotGroup {
@@ -102,9 +104,13 @@ interface BarProps {
   height: number;
   showValues?: boolean;
   ariaLabel: string;
+  /** Bấm vào cột kế hoạch (chế độ ca) để sửa; không truyền = không cho sửa */
+  onPlanClick?: (index: number) => void;
+  /** Kế hoạch hiện đủ ngay từ đầu cho cả giờ đang chạy / giờ tới (không "tự nhảy") */
+  fullPlan?: boolean;
 }
 
-export function OutputBarChart({ slots, targetPct, groups, width: W, height: H, showValues = true, ariaLabel }: BarProps) {
+export function OutputBarChart({ slots, targetPct, groups, width: W, height: H, showValues = true, ariaLabel, onPlanClick, fullPlan = false }: BarProps) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
   const L = 50;
   const R = W - 62;
@@ -200,19 +206,62 @@ export function OutputBarChart({ slots, targetPct, groups, width: W, height: H, 
         const low = s.actual !== null && s.planCompare > 0 && s.actual < (s.planCompare * targetPct) / 100;
         return (
           <g key={s.label + i}>
-            {(fut || s.status === 'running') && (
-              <rect
-                x={px}
-                y={Y(s.plan)}
-                width={bw}
-                height={Math.max(0, (fut ? B : Y(solidPlan)) - Y(s.plan))}
-                rx={3}
-                fill="none"
-                strokeDasharray="3 3"
-                className="stroke-blue-500/60"
-              />
+            {fullPlan ? (
+              <>
+                <path
+                  d={topBar(px, Y(s.plan), bw, B - Y(s.plan))}
+                  fill={`url(#gp${uid})`}
+                  opacity={fut ? 0.4 : 1}
+                  stroke={s.planEdited ? 'currentColor' : 'none'}
+                  strokeWidth={s.planEdited ? 1.6 : 0}
+                  className={s.planEdited ? 'text-slate-900 dark:text-white' : undefined}
+                />
+                {showValues && (
+                  <text x={px + bw / 2} y={Y(s.plan) - 6} fontSize={9.5} textAnchor="middle" fontWeight={700} className="font-mono fill-blue-700 dark:fill-blue-300">
+                    {nf(s.plan)}
+                    {s.planEdited ? '*' : ''}
+                  </text>
+                )}
+              </>
+            ) : (
+              <>
+                {(fut || s.status === 'running') && (
+                  <rect
+                    x={px}
+                    y={Y(s.plan)}
+                    width={bw}
+                    height={Math.max(0, (fut ? B : Y(solidPlan)) - Y(s.plan))}
+                    rx={3}
+                    fill="none"
+                    strokeDasharray="3 3"
+                    className="stroke-blue-500/60"
+                  />
+                )}
+                {!fut && <path d={topBar(px, Y(solidPlan), bw, B - Y(solidPlan))} fill={`url(#gp${uid})`} />}
+              </>
             )}
-            {!fut && <path d={topBar(px, Y(solidPlan), bw, B - Y(solidPlan))} fill={`url(#gp${uid})`} />}
+            {onPlanClick && (
+              <rect
+                x={px - 4}
+                y={T}
+                width={bw + 8}
+                height={B - T}
+                fill="transparent"
+                className="cursor-pointer hover:fill-blue-500/10"
+                role="button"
+                tabIndex={0}
+                aria-label={tr('Sửa kế hoạch giờ {0}', s.label)}
+                onClick={() => onPlanClick(i)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onPlanClick(i);
+                  }
+                }}
+              >
+                <title>{tr('Bấm để sửa kế hoạch giờ {0}', s.label)}</title>
+              </rect>
+            )}
             {s.actual !== null && !fut && (
               <>
                 <path d={topBar(ax, Y(s.actual), bw, B - Y(s.actual))} fill={`url(#${low ? 'gl' : 'ga'}${uid})`} />

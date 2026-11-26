@@ -624,7 +624,7 @@ export async function answerQuestion(
       const ov = await ctx.getOverview().catch(() => null);
       if (!ov) return noProduction();
       const states = ov.lineStates.filter((s) => !s.virtual);
-      const isStop = (s: (typeof states)[number]) => (s.productionStatus === 'ALARM' || s.productionStatus === 'IDLE') && s.statusCode !== 'LOW_OEE';
+      const isStop = (s: (typeof states)[number]) => !!s.stopped || s.productionStatus === 'IDLE';
       const stopped = states.filter(isStop);
       const warn = states.filter((s) => !isStop(s) && s.productionStatus !== 'RUNNING');
       if (!stopped.length) {

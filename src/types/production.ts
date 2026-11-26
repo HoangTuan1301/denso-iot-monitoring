@@ -141,6 +141,8 @@ export interface FactoryProductionOverview {
     virtual: boolean;
     zoneId: string | null;
     productionStatus: LineProductionStatus;
+    /** Line đang dừng (dừng dài đang diễn ra hoặc sự cố giả lập) */
+    stopped?: boolean;
     statusNote: string | null;
     statusCode: string | null;
     statusOp: string | null;

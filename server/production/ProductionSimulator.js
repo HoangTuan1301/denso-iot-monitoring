@@ -425,29 +425,30 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
   const ongoing =
     happened.find((e) => e.forced && !isFinished) ||
     happened.find((e) => e.dur >= cfg.shortStopThresholdMin && e.at + e.dur >= elapsedMin && !isFinished);
-  const recentLong = longStops.length > 0 && happened.some(
-    (e) => e.dur >= cfg.shortStopThresholdMin && elapsedMin - (e.at + e.dur) <= 90
-  );
   const oeePct = oee * 100;
   let productionStatus = 'RUNNING';
   let statusNote = null;
   let statusCode = null; // mã để giao diện dịch: mã nguyên nhân dừng, hoặc LOW_OEE
   let statusOp = null;
+  // Màu trạng thái = cùng ngưỡng với thẻ OEE (góp ý mentor 26/11): < 80 % đỏ, 80–85 % cam, ≥ 85 % xanh.
+  // Riêng sự cố giả lập luôn đỏ. Dừng dài đang diễn ra chỉ ghi chú nguyên nhân, không đổi màu.
   if (isFuture) productionStatus = 'IDLE';
-  else if (ongoing) {
+  else if (ongoing && ongoing.forced) {
     productionStatus = 'ALARM';
     statusNote = `${ongoing.cause.label} · ${ongoing.station.op}`;
     statusCode = ongoing.cause.code;
     statusOp = ongoing.station.op;
-  } else if (oeePct < 72) {
-    productionStatus = 'ALARM';
-    statusNote = `OEE thấp ${round(oeePct, 1)}%`;
-    statusCode = 'LOW_OEE';
-  } else if (recentLong || oeePct < 82) {
-    productionStatus = 'WARNING';
-    statusNote = longest ? `${longest.cause} ${longest.op} (${longest.durationMin}')` : `OEE ${round(oeePct, 1)}%`;
-    statusCode = longest ? longest.causeCode : 'LOW_OEE';
-    statusOp = longest ? longest.op : null;
+  } else {
+    productionStatus = oeePct < 80 ? 'ALARM' : oeePct < 85 ? 'WARNING' : 'RUNNING';
+    if (ongoing) {
+      statusNote = `${ongoing.cause.label} · ${ongoing.station.op}`;
+      statusCode = ongoing.cause.code;
+      statusOp = ongoing.station.op;
+    } else if (productionStatus !== 'RUNNING') {
+      statusNote = longest ? `${longest.cause} ${longest.op} (${longest.durationMin}')` : `OEE ${round(oeePct, 1)}%`;
+      statusCode = longest ? longest.causeCode : 'LOW_OEE';
+      statusOp = longest ? longest.op : null;
+    }
   }
 
   return {
@@ -458,6 +459,7 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
     virtual: !!line.virtual,
     zoneId: LINE_ZONES[line.code] || LINE_ZONES[line.id] || null,
     emergency: !!(emg && ongoing && ongoing.forced),
+    stopped: !!ongoing,
     productionStatus,
     statusNote,
     statusCode,
@@ -858,6 +860,7 @@ export function buildFactoryOverview({ lineShifts, machines = [], lines = [] }) 
     virtual: l.virtual,
     zoneId: l.zoneId,
     productionStatus: l.productionStatus,
+    stopped: !!l.stopped,
     statusNote: l.statusNote,
     statusCode: l.statusCode,
     statusOp: l.statusOp,
@@ -905,7 +908,7 @@ export function buildFactoryOverview({ lineShifts, machines = [], lines = [] }) 
     },
     lines: {
       total: lines.length || lineShifts.length,
-      producing: lineShifts.filter((l) => l.state === 'RUNNING' && l.productionStatus !== 'ALARM').length,
+      producing: lineShifts.filter((l) => l.state === 'RUNNING' && !l.stopped).length,
     },
     machines: { total: machines.length, ...status },
     lineStates,

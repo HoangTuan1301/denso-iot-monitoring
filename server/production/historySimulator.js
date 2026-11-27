@@ -58,8 +58,11 @@ function sampleValue(m, ts) {
 
   const day = vnDay(ts);
   const em = getEmergency();
-  if (em && em.machineId && em.machineId === m.machine_id && ts >= Date.parse(em.startedAt)) {
-    v = (cMax ?? hi + half) + half * 0.15 * rng();
+  if (em && em.machineId && em.machineId === m.machine_id && ts >= Date.parse(em.startedAt) - 60000) {
+    // Thông số bị sự cố: vượt ngưỡng nguy hiểm; các thông số khác của cùng máy: cảnh báo
+    const hit = !em.metricName || em.metricName === m.metricName;
+    if (hit) v = cMax !== null ? cMax + half * (0.1 + 0.2 * rng()) : hi + half * (0.9 + 0.3 * rng());
+    else v = hi + half * (0.12 + 0.2 * rng());
   } else {
     for (const e of episodesFor(m, day, m.lineCode || m.lineId)) {
       if (ts < e.startMs || ts > e.endMs) continue;
@@ -86,6 +89,12 @@ function num(x) {
   return x === null || x === undefined || x === '' || !Number.isFinite(n) ? null : n;
 }
 
+/** Ghi ngay mẫu lịch sử cho máy bị sự cố (gọi khi bấm "Giả lập sự cố" / "Khôi phục sự cố") */
+let kickMachine = null;
+export function recordMachineNow(machineId) {
+  if (kickMachine && machineId) kickMachine(machineId).catch(() => {});
+}
+
 export function startHistorySimulator({ db, log = console }) {
   if (process.env.HISTORY_SIM === 'false') {
     log.log('[HistorySim] Đang tắt (HISTORY_SIM=false).');
@@ -109,6 +118,47 @@ export function startHistorySimulator({ db, log = console }) {
       .map((m) => ({ ...m, ...m.thresholds, id: m.id, lineCode: codeById.get(m.lineId) || m.lineId }));
   }
 
+  let cachedMappings = null;
+  let cachedAt = 0;
+  async function mappingsCached() {
+    if (!cachedMappings || Date.now() - cachedAt > 5 * 60000) {
+      cachedMappings = await loadMappings();
+      cachedAt = Date.now();
+    }
+    return cachedMappings;
+  }
+
+  // Mẫu tức thời (lệch mốc 10 phút) cho 1 máy: dùng khi có/khôi phục sự cố và mỗi phút trong lúc sự cố
+  kickMachine = async (machineId) => {
+    const list = (await mappingsCached()).filter((m) => m.machine_id === machineId);
+    if (!list.length) return;
+    const ts = Math.floor(Date.now() / 60000) * 60000;
+    if (ts % SLOT_MS === 0) return; // mốc 10 phút đã do vòng chính ghi
+    const batch = [];
+    for (const m of list) {
+      const s = sampleValue(m, ts);
+      if (s) batch.push(rowOf(m, ts, s));
+    }
+    if (batch.length) await db.insertTelemetryBatch(batch);
+  };
+
+  function rowOf(m, ts, s) {
+    return {
+      id: `SIM_${m.id}_${ts}`.slice(0, 96),
+      timestamp: new Date(ts).toISOString(),
+      lineId: m.lineId,
+      lineName: m.lineName,
+      machineId: m.machine_id,
+      machineName: m.machineName,
+      metricId: m.metric_id,
+      metricName: m.metricName,
+      value: s.value,
+      unit: m.unit || '',
+      status: s.status,
+      source: 'simulation',
+    };
+  }
+
   async function writeSlots(mappings, fromMs, toMs) {
     let batch = [];
     let written = 0;
@@ -116,20 +166,7 @@ export function startHistorySimulator({ db, log = console }) {
       for (const m of mappings) {
         const s = sampleValue(m, ts);
         if (!s) continue;
-        batch.push({
-          id: `SIM_${m.id}_${ts}`.slice(0, 96),
-          timestamp: new Date(ts).toISOString(),
-          lineId: m.lineId,
-          lineName: m.lineName,
-          machineId: m.machine_id,
-          machineName: m.machineName,
-          metricId: m.metric_id,
-          metricName: m.metricName,
-          value: s.value,
-          unit: m.unit || '',
-          status: s.status,
-          source: 'simulation',
-        });
+        batch.push(rowOf(m, ts, s));
         if (batch.length >= 1500) {
           await db.insertTelemetryBatch(batch);
           written += batch.length;
@@ -148,7 +185,7 @@ export function startHistorySimulator({ db, log = console }) {
     if (running) return;
     running = true;
     try {
-      const mappings = await loadMappings();
+      const mappings = await mappingsCached();
       if (!mappings.length) return;
       const now = Date.now();
       let from = now - SLOT_MS;
@@ -174,8 +211,15 @@ export function startHistorySimulator({ db, log = console }) {
   // Bù lịch sử sau khi khởi động 20 giây (để không giành tài nguyên lúc CSDL vừa sẵn sàng)
   const t0 = setTimeout(() => tick(true), 20_000);
   timer = setInterval(() => tick(false), SLOT_MS);
+  // Trong lúc sự cố giả lập: mỗi phút ghi thêm 1 mẫu cho máy bị sự cố
+  const emTimer = setInterval(() => {
+    const em = getEmergency();
+    if (em?.machineId) kickMachine(em.machineId).catch(() => {});
+  }, 60_000);
   return () => {
     clearTimeout(t0);
     clearInterval(timer);
+    clearInterval(emTimer);
+    kickMachine = null;
   };
 }

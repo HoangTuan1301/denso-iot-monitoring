@@ -12,6 +12,7 @@
  *   GET|POST|DELETE /api/production/emergency          Sự cố giả lập (nút "Giả lập sự cố", ADMIN)
  *   PUT  /api/production/lines/:lineId/plan             Sửa kế hoạch 1 giờ của ca {date, shift, hour, qty|null, reason}
  */
+import { recordMachineNow } from './historySimulator.js';
 import {
   DEFAULT_PRODUCTION_SETTINGS,
   simulateLineShift,
@@ -163,11 +164,14 @@ export function registerProductionRoutes(app, { authenticateToken, requireRole, 
       by: req.user?.fullName || req.user?.email || null,
     };
     setEmergency(e);
+    recordMachineNow(e.machineId);
     res.json({ emergency: e });
   });
 
   app.delete('/api/production/emergency', authenticateToken, requireRole(['ADMIN']), (req, res) => {
+    const prev = getEmergency();
     setEmergency(null);
+    if (prev?.machineId) recordMachineNow(prev.machineId);
     res.json({ emergency: null });
   });
 

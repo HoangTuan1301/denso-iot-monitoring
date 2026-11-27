@@ -26,6 +26,7 @@ import {
   X,
   CheckCircle2,
 } from 'lucide-react';
+import { PRODUCTION_REFRESH_EVENT } from '../../utils/productionRefresh';
 import { useHistoryStore, getTodayVNDate, getVNDateDaysAgo } from '../../stores/useHistoryStore';
 import { useMonitoringStore } from '../../stores/useMonitoringStore';
 import { TelemetryFilterParams } from '../../types/hierarchy';
@@ -62,6 +63,20 @@ export function MachineHistoryView() {
   // Tự động tải dữ liệu khi mở view lần đầu
   useEffect(() => {
     fetchLogs();
+  }, [fetchLogs]);
+
+  // Giả lập / khôi phục sự cố: máy chủ ghi ngay bản ghi mới → tải lại sau 1,5 giây
+  useEffect(() => {
+    let t: ReturnType<typeof setTimeout> | undefined;
+    const onRefresh = () => {
+      clearTimeout(t);
+      t = setTimeout(() => fetchLogs(), 1500);
+    };
+    window.addEventListener(PRODUCTION_REFRESH_EVENT, onRefresh);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener(PRODUCTION_REFRESH_EVENT, onRefresh);
+    };
   }, [fetchLogs]);
 
   // Đồng bộ formFilters nếu filters trong store thay đổi từ bên ngoài (ví dụ khi reset)

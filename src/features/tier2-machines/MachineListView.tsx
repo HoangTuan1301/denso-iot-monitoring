@@ -331,7 +331,10 @@ export function MachineListView() {
                   </div>
 
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white mt-1">
-                    {line.code}
+                    {lineDisplayName(line.code)}
+                    {lineDisplayName(line.code) !== line.code && (
+                      <span className="ml-1.5 font-mono text-[11px] font-semibold text-slate-500 dark:text-slate-400">{line.code}</span>
+                    )}
                   </h4>
                   <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-1 mt-0.5">
                     {line.name}
@@ -354,7 +357,7 @@ export function MachineListView() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-factory-border pb-3">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                {tr("Thành phần thuộc")} {currentLine.code} ({currentLine.name})
+                {tr("Thành phần thuộc")} {lineDisplayName(currentLine.code)} · {currentLine.code} ({currentLine.name})
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                 {tr("Quản lý trạng thái giám sát, trạm PLC liên kết và chỉ số đo lường")}
@@ -388,7 +391,7 @@ export function MachineListView() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-bold text-slate-800 dark:text-slate-200">
-                    {tr("Trạm PLC Dây Chuyền (")}{currentLine.code}):
+                    {tr("Trạm PLC Dây Chuyền (")}{lineDisplayName(currentLine.code)}):
                   </span>
                   {currentLine.plc ? (
                     <span className="font-semibold text-blue-600 dark:text-blue-400 font-mono">

@@ -5,6 +5,7 @@
  * Hỗ trợ độ tương phản sắc nét ở cả Light Mode và Dark Mode
  */
 
+import { lineDisplayName } from '../../config/lineDisplayName';
 import { Progress } from '@heroui/react';
 import { 
   ShieldCheck, 
@@ -87,7 +88,7 @@ export function LineCard({ line, onViewDetails }: LineCardProps) {
         <div className="space-y-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-mono text-xs font-bold px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-factory-bg border border-slate-200 dark:border-factory-border text-blue-600 dark:text-blue-400 shrink-0">
-              {line.code}
+              {lineDisplayName(line.code)}
             </span>
 
             {/* Badge Mức Độ Đậm Nổi Bật */}

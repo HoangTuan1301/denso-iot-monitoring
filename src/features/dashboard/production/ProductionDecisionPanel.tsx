@@ -250,7 +250,7 @@ function WhatIfBlock({
       <section className="bg-white dark:bg-factory-card rounded-xl border border-slate-200/80 dark:border-slate-800 p-3.5 shadow-xs">
         <div className="flex items-start justify-between gap-2 mb-2.5">
           <div className="min-w-0">
-            <h3 className="text-[13px] font-extrabold text-slate-900 dark:text-white">{t('decision.whatIfTitle', { line: lineCode })}</h3>
+            <h3 className="text-[13px] font-extrabold text-slate-900 dark:text-white">{t('decision.whatIfTitle', { line: lineDisplayName(lineCode) })}</h3>
             <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
               {t('decision.order', { code: data.order.code, qty: nf(required), due: t('decision.due', { time: data.order.dueTime, shift: data.order.shift }) })}
             </p>

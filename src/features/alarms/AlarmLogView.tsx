@@ -4,6 +4,7 @@
  * Hỗ trợ các bộ lọc đa tiêu chí, Modal xác nhận hoàn thành, và tính năng Xuất Báo Cáo Excel/CSV (UTF-8 BOM)
  */
 
+import { lineDisplayName } from '../../config/lineDisplayName';
 import { fyLabel } from '../../utils/fiscalYear';
 import { useState } from 'react';
 import {
@@ -291,7 +292,7 @@ export function AlarmLogView() {
               <option value="all">{tr("Tất cả Dây chuyền")}</option>
               {lines.map((l) => (
                 <option key={l.id} value={l.id}>
-                  {l.code} - {l.name}
+                  {lineDisplayName(l.code)} · {l.code} - {l.name}
                 </option>
               ))}
             </select>

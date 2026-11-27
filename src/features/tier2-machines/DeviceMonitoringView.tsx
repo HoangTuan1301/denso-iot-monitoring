@@ -10,6 +10,7 @@
  * - Tự động cập nhật thời gian thực qua WebSocket và đồng bộ CSDL TEST (denso_iot_phase1_test)
  */
 
+import { lineDisplayName } from '../../config/lineDisplayName';
 import { useState, useEffect, useMemo } from 'react';
 import {
   Cpu,
@@ -394,7 +395,7 @@ export function DeviceMonitoringView() {
               <option value="all">{tr("Tất cả dây chuyền (")}{allMachines.length} {tr("máy)")}</option>
               {lines.map((l) => (
                 <option key={l.id} value={l.id}>
-                  {l.code} — {l.name} ({l.machines?.length || 0} {tr("máy)")}
+                  {lineDisplayName(l.code)} · {l.code} — {l.name} ({l.machines?.length || 0} {tr("máy)")}
                 </option>
               ))}
             </select>

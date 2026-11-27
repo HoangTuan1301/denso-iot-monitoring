@@ -8,6 +8,7 @@
  * - Tự động cập nhật màu trạng thái Andon Light theo thời gian thực (Single Source of Truth)
  */
 
+import { lineDisplayName } from '../../../config/lineDisplayName';
 import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -548,7 +549,7 @@ export function Line3DScene({
 
       {/* 5. Ghi chú tính chất mô hình */}
       <div className="absolute bottom-2.5 right-3 pointer-events-none text-[9px] font-mono text-slate-500 dark:text-slate-400 bg-white/80 dark:bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-200/70 dark:border-slate-800 shadow-2xs">
-        DENSO Line 1 Digital Twin • Procedural 3D
+        DENSO {lineDisplayName('LN-PRS-01')} Digital Twin • Procedural 3D
       </div>
     </div>
   );

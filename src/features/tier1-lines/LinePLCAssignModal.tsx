@@ -5,6 +5,7 @@
  * Hỗ trợ Dual Confirmation (409 Conflict) và Validation kiểm tra PLC Demo / Vô hiệu hóa (422).
  */
 
+import { lineDisplayName } from '../../config/lineDisplayName';
 import { useState, useEffect } from 'react';
 import {
   Modal,
@@ -186,7 +187,7 @@ export function LinePLCAssignModal({
                   {tr("Gán / Chuyển Giao Trạm PLC Cho Dây Chuyền")}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">
-                  {tr("Dây chuyền:")} <span className="font-semibold text-slate-700 dark:text-slate-300">{line.name}</span> ({line.code})
+                  {tr("Dây chuyền:")} <span className="font-semibold text-slate-700 dark:text-slate-300">{lineDisplayName(line.code)} – {line.name}</span> ({line.code})
                 </p>
               </div>
             </ModalHeader>

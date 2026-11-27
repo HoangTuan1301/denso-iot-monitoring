@@ -6,6 +6,7 @@
  * - Cho phép chuyển đổi linh hoạt trở lại 2D mà không làm mất trạng thái
  */
 
+import { lineDisplayName } from '../../../config/lineDisplayName';
 import { useState, useEffect, useRef } from 'react';
 import { RotateCcw, AlertTriangle, Box, Layers } from 'lucide-react';
 import { Line3DScene } from './Line3DScene';
@@ -105,7 +106,7 @@ export function Line3DView({
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200 font-mono text-[11px]">
             <Box className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-            <span>Line 1 Digital Twin (3D Realtime)</span>
+            <span>{lineDisplayName('LN-PRS-01')} Digital Twin (3D Realtime)</span>
           </span>
           <span className="text-[10px] text-slate-400 hidden sm:inline">•</span>
           <span className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:inline">

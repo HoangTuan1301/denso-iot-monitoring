@@ -13,6 +13,7 @@
  * - Bảng kết quả kiểm tra chi tiết theo chuẩn ISO công nghiệp
  */
 
+import { lineDisplayName } from '../../config/lineDisplayName';
 import { useState, useMemo, useEffect } from 'react';
 import {
   ArrowLeft,
@@ -292,7 +293,7 @@ export function CheckSheetView({
           >
             {lines.map((l) => (
               <option key={l.id} value={l.id}>
-                {l.code} – {l.name.replace(/^Dây chuyền\s*/i, '')}
+                {lineDisplayName(l.code)} · {l.code} – {l.name.replace(/^Dây chuyền\s*/i, '')}
               </option>
             ))}
           </select>

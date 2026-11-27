@@ -5,6 +5,7 @@
  * phân trang mượt mà, phân biệt rõ ràng Simulation/Device và xử lý trạng thái Degraded khi CSDL ngoại tuyến.
  */
 
+import { lineDisplayName } from '../../config/lineDisplayName';
 import { useState, useEffect, useMemo } from 'react';
 import {
   History,
@@ -547,7 +548,7 @@ export function MachineHistoryView() {
               <option value="all">{tr("Tất cả dây chuyền")}</option>
               {lines.map((line) => (
                 <option key={line.id} value={line.id}>
-                  {line.name} ({line.code})
+                  {lineDisplayName(line.code)} – {line.name} ({line.code})
                 </option>
               ))}
             </select>

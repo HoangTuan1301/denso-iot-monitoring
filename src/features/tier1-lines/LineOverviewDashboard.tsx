@@ -10,6 +10,7 @@
  * KIẾN TRÚC HOÀN TOÀN TÁCH BIỆT CÁC COMPONENT CON ĐỂ TRÁNH LỖI HOOK COUNT MISMATCH (WHITE SCREEN)
  */
 
+import { lineDisplayName } from '../../config/lineDisplayName';
 import { useState, useMemo, useEffect } from 'react';
 import {
   Factory,
@@ -386,7 +387,7 @@ function FactoryLayoutMainView() {
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-mono text-xs font-extrabold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                        {line.code}
+                        {lineDisplayName(line.code)}
                       </span>
                       <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />

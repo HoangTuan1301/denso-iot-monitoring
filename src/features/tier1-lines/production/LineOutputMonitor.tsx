@@ -264,7 +264,7 @@ export function LineOutputMonitor({ data, loading, shift, onChangeShift, lineCod
         ? t('lineView.output.subtitle', { shift: data.shift, date: data.date, time: data.updatedAt })
         : ''
       : daily.data
-        ? `${daily.data.lineCode} · ${periodLabel} · ${tr('cập nhật {0}', daily.data.updatedAt)}`
+        ? `${lineDisplayName(daily.data.lineCode)} · ${periodLabel} · ${tr('cập nhật {0}', daily.data.updatedAt)}`
         : '';
 
   const header = (

@@ -13,6 +13,7 @@
  * - Tích hợp WebSocket thời gian thực và đồng bộ CSDL TEST.
  */
 
+import { lineDisplayName } from '../../config/lineDisplayName';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Sliders,
@@ -531,7 +532,7 @@ export function ThresholdConfigView() {
               <option value="all">{tr("Tất cả dây chuyền (")}{allMachines.length} {tr("máy)")}</option>
               {lines.map((l) => (
                 <option key={l.id} value={l.id}>
-                  {l.code} — {l.name} ({l.machines?.length || 0} {tr("máy)")}
+                  {lineDisplayName(l.code)} · {l.code} — {l.name} ({l.machines?.length || 0} {tr("máy)")}
                 </option>
               ))}
             </select>
@@ -577,7 +578,7 @@ export function ThresholdConfigView() {
                         {m.code || m.id}
                       </span>
                       <span className="text-[10px] font-mono text-slate-400">
-                        {m.lineCode}
+                        {lineDisplayName(m.lineCode)} · {m.lineCode}
                       </span>
                     </div>
 

@@ -7,6 +7,7 @@
  * - Card thông tin khu vực được chọn kèm nút "Xem chi tiết dây chuyền >"
  */
 
+import { lineDisplayName } from '../../config/lineDisplayName';
 import { useState, useMemo } from 'react';
 import { Search, ChevronRight, ArrowRight } from 'lucide-react';
 import { ProductionLine } from '../../types/hierarchy';
@@ -35,6 +36,7 @@ export function FactoryLineSearchPanel({
     return lines.filter((l) => {
       const matchSearch =
         l.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lineDisplayName(l.code).toLowerCase().includes(searchTerm.toLowerCase()) ||
         l.name.toLowerCase().includes(searchTerm.toLowerCase());
       return matchSearch;
     });
@@ -151,7 +153,7 @@ export function FactoryLineSearchPanel({
           <div className="flex items-center justify-between gap-1.5 mt-0.5">
             <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">
               {activeLine
-                ? `${activeLine.code} – ${activeLine.name.replace(/^Dây chuyền\s*/i, '')}`
+                ? `${lineDisplayName(activeLine.code)} – ${activeLine.name.replace(/^Dây chuyền\s*/i, '')}`
                 : selectedZone
                 ? selectedZone.name
                 : tr("Chưa chọn khu vực")}

@@ -326,10 +326,21 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
 
   // --- Sản lượng theo giờ ---
   // Line bình thường: công suất lý tưởng cao hơn kế hoạch 13–19 % → sản lượng vượt nhẹ kế hoạch (≈102–108 %), OEE ≈ 87–93 %
-  const perfFactorBase = isTrouble ? range(rng, 0.89, 0.95) : range(rng, 0.915, 0.955);
+  const perfFactorBase = isTrouble ? range(rng, 0.89, 0.95) : range(rng, 0.925, 0.96);
+  // Nghỉ có kế hoạch trong ca (không tính vào thời gian dừng/OEE): họp đầu ca 8–12', giải lao 10' ~giờ thứ 2, ăn ca 30' ~giờ thứ 4 (so le giữa các line), giải lao 10' ~giờ thứ 6
+  const brkRng = createRng(`${line.id}|${day}|${sh}|brk`);
+  const breaks = [
+    { at: 0, dur: 8 + Math.floor(brkRng() * 5) }, // họp đầu ca / kiểm tra 5S, hàng đầu
+    { at: 110 + Math.floor(brkRng() * 15), dur: 10 },
+    { at: 225 + Math.floor(brkRng() * 30), dur: 30 },
+    { at: 350 + Math.floor(brkRng() * 15), dur: 10 },
+  ];
+  const BREAK_TOTAL = breaks.reduce((a, b) => a + b.dur, 0);
+  const breakIn = (from, to) => breaks.reduce((a, b) => a + Math.max(0, Math.min(to, b.at + b.dur) - Math.max(from, b.at)), 0);
+  // Tốc độ từng giờ dao động ±4 % quanh hiệu suất của ca
   const idealPerHour = isTrouble
     ? 3600 / profile.idealCycleSec
-    : Math.max(3600 / profile.idealCycleSec, profile.planPerHour * range(rng, 1.13, 1.19));
+    : Math.max(3600 / profile.idealCycleSec, profile.planPerHour * range(rng, 1.13, 1.19)) * (SHIFT_MINUTES / (SHIFT_MINUTES - BREAK_TOTAL)) * 1.012;
   const overrides = PLAN_OVERRIDES[`${line.id}|${day}|${sh}`] || {};
   const hourly = [];
   let produced = 0;
@@ -364,9 +375,10 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
     const shortCount = happened.filter(
       (e) => e.dur < cfg.shortStopThresholdMin && e.at >= hStart && e.at < hEnd
     ).length;
-    const perf = Math.min(0.995, perfFactorBase + range(rng, -0.015, 0.015));
+    const breakMin = status === 'future' ? 0 : breakIn(hStart, Math.min(hEnd, elapsedMin));
+    const perf = Math.min(0.995, (perfFactorBase + range(brkRng, -0.04, 0.04)));
     const actual =
-      status === 'future' ? null : Math.round(((minutesRun - stopMin) / 60) * idealPerHour * perf);
+      status === 'future' ? null : Math.round((Math.max(0, minutesRun - stopMin - breakMin) / 60) * idealPerHour * perf);
     if (actual) produced += Math.max(0, actual);
     const ov = overrides[h];
     const planH = ov && Number.isFinite(Number(ov.qty)) ? Math.max(0, Math.round(Number(ov.qty))) : profile.planPerHour;
@@ -383,6 +395,7 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
       actual: actual === null ? null : Math.max(0, actual),
       status,
       stopMinutes: stopMin,
+      breakMinutes: breakMin,
       shortStopCount: shortCount,
       longStop,
       note: longNote || (shortCount >= 3 ? `Dừng ngắn × ${shortCount}` : null),
@@ -393,7 +406,9 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
   const longStops = stops.filter((s) => s.type === 'LONG');
   const sum = (arr) => arr.reduce((a, s) => a + s.durationMin, 0);
   const totalStopMin = sum(stops);
-  const runMin = Math.max(0, elapsedMin - totalStopMin);
+  // Thời gian sản xuất có kế hoạch = đã trôi qua − nghỉ có kế hoạch
+  const plannedMin = Math.max(0, elapsedMin - (isFuture ? 0 : breakIn(0, elapsedMin)));
+  const runMin = Math.max(0, plannedMin - totalStopMin);
 
   const defectRate = isTrouble ? range(rng, 0.012, 0.025) : range(rng, 0.008, 0.012);
   // Hàng lỗi NG theo từng giờ (RNG riêng để không làm đổi các số liệu khác của ca)
@@ -410,7 +425,7 @@ export function simulateLineShift({ line, machines = [], date, shift, now = new 
   }
   const defectsByType = splitByWeight(defects, DEFECT_TYPES, ngRng);
   const good = produced - defects;
-  const availability = elapsedMin > 0 ? runMin / elapsedMin : 0;
+  const availability = plannedMin > 0 ? runMin / plannedMin : 0;
   const performance = runMin > 0 ? Math.min(1, (produced * (3600 / idealPerHour)) / (runMin * 60)) : 0;
   const quality = produced > 0 ? good / produced : 0;
   const oee = availability * performance * quality;

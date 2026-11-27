@@ -24,6 +24,7 @@ import { FileIngestionService } from './ingestion/FileIngestionService.js';
 import { defaultProfileRegistry } from './ingestion/FileProfileRegistry.js';
 import { registerProductionRoutes } from './production/productionRoutes.js';
 import { registerMachineRoutes } from './production/machineRoutes.js';
+import { startHistorySimulator } from './production/historySimulator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -2495,6 +2496,9 @@ async function connectDatabaseWithRetry(maxRetries = 10, delayMs = 4000) {
       }
 
       console.log(`[DENSO IoT Backend] Kết nối CSDL MySQL thành công! CSDL sẵn sàng.`);
+
+      // Lịch sử thông số máy mô phỏng (10 phút / mẫu, bù 7 ngày) cho trang Lịch sử dữ liệu
+      startHistorySimulator({ db: mysqlDb });
 
       // Khởi tạo File Ingestion Service nếu được cấu hình bật
       const ENABLE_FILE_INGESTION = process.env.ENABLE_FILE_INGESTION === 'true';

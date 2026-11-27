@@ -22,12 +22,21 @@ export const getTodayVNDate = (): string => {
   }
 };
 
+/** Ngày VN cách hôm nay `days` ngày về trước (YYYY-MM-DD) */
+export const getVNDateDaysAgo = (days: number): string => {
+  const [y, m, d] = getTodayVNDate().split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d - days)).toISOString().slice(0, 10);
+};
+
+/** Khoảng ngày mặc định khi mở trang Lịch sử: 3 ngày trước → hôm nay */
+export const DEFAULT_RANGE_DAYS = 3;
+
 export const DEFAULT_FILTERS: TelemetryFilterParams = {
   lineId: 'all',
   machineId: 'all',
   metricId: 'all',
   status: 'all',
-  startDate: getTodayVNDate(),
+  startDate: getVNDateDaysAgo(DEFAULT_RANGE_DAYS),
   endDate: getTodayVNDate(),
   startTime: '00:00',
   endTime: '23:59',
@@ -120,7 +129,7 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
     set({
       filters: {
         ...DEFAULT_FILTERS,
-        startDate: getTodayVNDate(),
+        startDate: getVNDateDaysAgo(DEFAULT_RANGE_DAYS),
         endDate: getTodayVNDate(),
       },
       error: null,

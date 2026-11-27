@@ -28,7 +28,7 @@ import {
   X,
   CheckCircle2,
 } from 'lucide-react';
-import { useHistoryStore } from '../../stores/useHistoryStore';
+import { useHistoryStore, getTodayVNDate, getVNDateDaysAgo } from '../../stores/useHistoryStore';
 import { useMonitoringStore } from '../../stores/useMonitoringStore';
 import { TelemetryFilterParams } from '../../types/hierarchy';
 import { exportEngine } from '../../utils/exportEngine';
@@ -227,6 +227,19 @@ export function MachineHistoryView() {
   // Đặt lại bộ lọc
   const handleResetFilters = () => {
     resetFilters();
+  };
+
+  // Chọn nhanh khoảng ngày (0 = hôm nay) và tải luôn
+  const RANGE_PRESETS = [0, 3, 7, 30] as const;
+  const today = getTodayVNDate();
+  const activeRange = RANGE_PRESETS.find(
+    (d) => formFilters.endDate === today && formFilters.startDate === getVNDateDaysAgo(d)
+  );
+  const handleRangeSelect = (days: number) => {
+    const next = { ...formFilters, startDate: getVNDateDaysAgo(days), endDate: today, page: 1 };
+    setFormFilters(next);
+    setFilters(next);
+    fetchLogs();
   };
 
   // Chọn ca làm việc nhanh
@@ -480,6 +493,28 @@ export function MachineHistoryView() {
             <span>{tr("Bộ Lọc Tra Cứu Telemetry")}</span>
           </div>
 
+          <div className="flex items-center gap-x-4 gap-y-2 flex-wrap justify-end">
+          {/* Preset khoảng ngày nhanh */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mr-1 hidden sm:inline">
+              {tr("Khoảng ngày:")}
+            </span>
+            {RANGE_PRESETS.map((d) => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => handleRangeSelect(d)}
+                className={`px-2.5 py-1 text-[11px] rounded-lg font-medium transition-colors border cursor-pointer ${
+                  activeRange === d
+                    ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 font-bold'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                {d === 0 ? tr("Hôm nay") : tr("{0} ngày", d)}
+              </button>
+            ))}
+          </div>
+
           {/* Preset ca làm việc nhanh */}
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mr-1 hidden sm:inline">
@@ -530,6 +565,7 @@ export function MachineHistoryView() {
             >
               {tr("Cả ngày (24h)")}
             </button>
+          </div>
           </div>
         </div>
 

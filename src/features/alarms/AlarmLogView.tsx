@@ -4,6 +4,7 @@
  * Hỗ trợ các bộ lọc đa tiêu chí, Modal xác nhận hoàn thành, và tính năng Xuất Báo Cáo Excel/CSV (UTF-8 BOM)
  */
 
+import { fyLabel } from '../../utils/fiscalYear';
 import { useState } from 'react';
 import {
   Button,
@@ -146,7 +147,7 @@ export function AlarmLogView() {
     const link = document.createElement('a');
 
     const now = new Date();
-    const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(
+    const dateStr = `${fyLabel(now)}-${String(now.getMonth() + 1).padStart(2, '0')}${String(
       now.getDate()
     ).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(
       now.getMinutes()

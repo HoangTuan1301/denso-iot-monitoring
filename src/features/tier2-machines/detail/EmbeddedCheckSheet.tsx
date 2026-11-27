@@ -6,6 +6,7 @@
  *    cập nhật mỗi giây, thống kê MIN / MAX / TB / Cpk
  *  - Cột phải: bảng kết quả đầu ca / cuối ca lưu trong CSDL, ghi chú, nút ghi nhận
  */
+import { fyFileTag } from '../../../utils/fiscalYear';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ClipboardList, FileSpreadsheet } from 'lucide-react';
@@ -127,7 +128,7 @@ export function EmbeddedCheckSheet({ machineId, machineCode, metrics }: Props) {
     const url = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
     const a = document.createElement('a');
     a.href = url;
-    a.download = `check-sheet_${machineCode}_${date}_ca${shift}.csv`;
+    a.download = `check-sheet_${machineCode}_${/^\d{4}-/.test(String(date)) ? fyFileTag(String(date)) : date}_ca${shift}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };

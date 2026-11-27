@@ -7,6 +7,7 @@
  *  - Biểu đồ hàng lỗi NG + loại lỗi nhiều nhất
  *  - Bảng chi tiết theo giờ (thu gọn được) ở chế độ ca
  */
+import { fyFileTag, fyLabel } from '../../../utils/fiscalYear';
 import { useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown, ChevronLeft, ChevronRight, Download, Table2 } from 'lucide-react';
@@ -222,8 +223,8 @@ export function LineOutputMonitor({ data, loading, shift, onChangeShift, lineCod
   const periodLabel = (() => {
     const d = daily.data;
     if (!d) return '';
-    if (mode === 'week') return `${tr('Tuần')} W${d.days[0]?.week ?? ''} · ${dm(d.from)} – ${dm(d.to)}`;
-    return `${tr('Tháng')} ${d.from.slice(5, 7)}/${d.from.slice(0, 4)}`;
+    if (mode === 'week') return `${tr('Tuần')} W${d.days[0]?.week ?? ''} · ${dm(d.from)} – ${dm(d.to)} · ${fyLabel(d.from)}`;
+    return `${tr('Tháng')} ${Number(d.from.slice(5, 7))} · ${fyLabel(d.from)}`;
   })();
   const canNext = !!daily.data && daily.data.to < daily.data.today;
   const step = (dir: -1 | 1) => {
@@ -234,7 +235,7 @@ export function LineOutputMonitor({ data, loading, shift, onChangeShift, lineCod
 
   const exportCsv = () => {
     if (mode === 'shift' && data) {
-      downloadCsv(`${data.lineCode}_${data.date}_ca${data.shift}_san-luong.csv`, [
+      downloadCsv(`${data.lineCode}_${fyFileTag(data.date)}_ca${data.shift}_san-luong.csv`, [
         [tr('Giờ'), tr('Kế hoạch'), tr('Thực tế'), tr('Chênh lệch'), 'NG', tr('Ghi chú')],
         ...data.hourly.map((h) => {
           const plan = h.status === 'running' ? h.planSoFar : h.plan;
@@ -243,7 +244,11 @@ export function LineOutputMonitor({ data, loading, shift, onChangeShift, lineCod
       ]);
     } else if (daily.data) {
       const d = daily.data;
-      downloadCsv(`${d.lineCode}_${d.from}_${d.to}_san-luong.csv`, [
+      downloadCsv(
+        mode === 'month'
+          ? `${d.lineCode}_${fyFileTag(d.from.slice(0, 7))}_san-luong.csv`
+          : `${d.lineCode}_${fyLabel(d.from)}-W${d.days[0]?.week ?? ''}_san-luong.csv`,
+        [
         [tr('Ngày'), tr('Tuần'), tr('Kế hoạch'), tr('Thực tế'), tr('Chênh lệch'), 'NG'],
         ...d.days.filter((x) => x.status !== 'off').map((x) => {
           const plan = x.status === 'running' ? x.planSoFar : x.plan;

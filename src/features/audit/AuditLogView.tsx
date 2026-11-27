@@ -4,6 +4,7 @@
  * Ghi nhận toàn bộ thay đổi cấu hình, thao tác người dùng và hỗ trợ Xuất File Audit Log CSV/Excel (UTF-8 BOM).
  */
 
+import { fyLabel } from '../../utils/fiscalYear';
 import { useState, useEffect } from 'react';
 import {
   Button,
@@ -141,7 +142,7 @@ export function AuditLogView() {
     const link = document.createElement('a');
 
     const now = new Date();
-    const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(
+    const dateStr = `${fyLabel(now)}-${String(now.getMonth() + 1).padStart(2, '0')}${String(
       now.getDate()
     ).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(
       now.getMinutes()

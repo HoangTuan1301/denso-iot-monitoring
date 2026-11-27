@@ -6,6 +6,7 @@
  * Góp ý mentor 26/11: đánh dấu cột HÔM NAY; NG hôm nay → băng cảnh báo + khóa máy đến khi
  * "Xử lý & đo lại"; các ngày đã qua luôn đạt; ngày chưa tới tô xám "Chưa đo".
  */
+import { fyFileTag } from '../../../utils/fiscalYear';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, CheckCircle2, Lock } from 'lucide-react';
@@ -97,7 +98,7 @@ export function ProcessConditionsTable({ data, loading, error, onRetry }: Props)
     const url = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
     const a = document.createElement('a');
     a.href = url;
-    a.download = `process-conditions_${data.lineCode}_${data.days}d.csv`;
+    a.download = `process-conditions_${data.lineCode}_${fyFileTag(data.today || new Date().toISOString().slice(0, 10))}_${data.days}d.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };

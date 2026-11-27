@@ -6,6 +6,7 @@
  *   3. Thác tổn thất: Kế hoạch ca → các tổn thất → (+ phục hồi) → Dự kiến cuối ca, có vạch đơn hàng
  *   4. Khuyến nghị + Xuất báo cáo (CSV)
  */
+import { fyFileTag } from '../../../utils/fiscalYear';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download, ArrowRight, RefreshCw } from 'lucide-react';
@@ -239,7 +240,7 @@ function WhatIfBlock({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `what-if_${lineCode}_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `what-if_${lineCode}_${fyFileTag(new Date().toISOString().slice(0, 10))}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };

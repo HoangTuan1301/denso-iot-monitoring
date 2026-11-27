@@ -797,13 +797,13 @@ export function MachineHistoryView() {
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold uppercase text-[11px] tracking-wider py-3 border-b border-slate-200 dark:border-slate-700">
-                  <th className="py-3 px-3.5 w-[15%]">{tr("THỜI GIAN (VN)")}</th>
-                  <th className="py-3 px-2 w-[14%]">{tr("DÂY CHUYỀN")}</th>
-                  <th className="py-3 px-2 w-[16%]">{tr("THIẾT BỊ / MÁY")}</th>
-                  <th className="py-3 px-2 w-[16%]">{tr("CHỈ SỐ ĐO")}</th>
-                  <th className="py-3 px-2 w-[12%]">{tr("GIÁ TRỊ ĐO")}</th>
-                  <th className="py-3 px-2 w-[8%]">{tr("ĐƠN VỊ")}</th>
-                  <th className="py-3 px-3.5 w-[19%] text-right">{tr("TRẠNG THÁI")}</th>
+                  <th className="py-3 px-3.5 w-[14%]">{tr("THỜI GIAN (VN)")}</th>
+                  <th className="py-3 px-2 w-[19%]">{tr("DÂY CHUYỀN")}</th>
+                  <th className="py-3 px-2 w-[19%]">{tr("THIẾT BỊ / MÁY")}</th>
+                  <th className="py-3 px-2 w-[19%]">{tr("CHỈ SỐ ĐO")}</th>
+                  <th className="py-3 px-2 w-[10%]">{tr("GIÁ TRỊ ĐO")}</th>
+                  <th className="py-3 px-2 w-[7%]">{tr("ĐƠN VỊ")}</th>
+                  <th className="py-3 px-3.5 w-[12%]">{tr("TRẠNG THÁI")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
@@ -872,7 +872,7 @@ export function MachineHistoryView() {
                       </td>
 
                       {/* Cột 7: Trạng thái (Pill Badge) */}
-                      <td className="py-3 px-3.5 text-right">
+                      <td className="py-3 px-3.5">
                         {isCrit ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200 dark:border-rose-900/40">
                             <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />

@@ -139,9 +139,6 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-medium text-slate-700 dark:text-slate-300">
             {tr("Ngưỡng:")} <strong>&plusmn;3&sigma;</strong>
           </span>
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 font-semibold">
-            {tr("Cách ly với CSDL & PLC vật lý")}
-          </span>
         </div>
       </div>
 

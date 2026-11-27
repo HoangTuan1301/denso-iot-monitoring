@@ -15,8 +15,6 @@ import {
   Search,
   AlertTriangle,
   Database,
-  Cpu,
-  Radio,
   ChevronLeft,
   ChevronRight,
   ShieldAlert,
@@ -805,15 +803,13 @@ export function MachineHistoryView() {
                   <th className="py-3 px-2 w-[16%]">{tr("CHỈ SỐ ĐO")}</th>
                   <th className="py-3 px-2 w-[12%]">{tr("GIÁ TRỊ ĐO")}</th>
                   <th className="py-3 px-2 w-[8%]">{tr("ĐƠN VỊ")}</th>
-                  <th className="py-3 px-2 w-[10%]">{tr("TRẠNG THÁI")}</th>
-                  <th className="py-3 px-3.5 w-[9%] text-right">{tr("NGUỒN DỮ LIỆU")}</th>
+                  <th className="py-3 px-3.5 w-[19%] text-right">{tr("TRẠNG THÁI")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
                 {logs.map((log) => {
                   const isCrit = log.status === 'critical';
                   const isWarn = log.status === 'warning';
-                  const isSimulation = log.source === 'simulation';
 
                   return (
                     <tr
@@ -876,7 +872,7 @@ export function MachineHistoryView() {
                       </td>
 
                       {/* Cột 7: Trạng thái (Pill Badge) */}
-                      <td className="py-3 px-2">
+                      <td className="py-3 px-3.5 text-right">
                         {isCrit ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200 dark:border-rose-900/40">
                             <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
@@ -891,21 +887,6 @@ export function MachineHistoryView() {
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/40">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                             NORMAL
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Cột 8: Nguồn dữ liệu (Badge Simulation vs Real Device) */}
-                      <td className="py-3 px-3.5 text-right">
-                        {isSimulation ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-200 dark:border-purple-800/40">
-                            <Cpu className="w-3 h-3 text-purple-500" />
-                            Simulation
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300 border border-sky-200 dark:border-sky-800/40">
-                            <Radio className="w-3 h-3 text-sky-500" />
-                            Device
                           </span>
                         )}
                       </td>

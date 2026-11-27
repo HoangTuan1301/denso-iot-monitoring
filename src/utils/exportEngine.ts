@@ -240,7 +240,6 @@ export const exportEngine = {
       tr("Giá Trị Đo"),
       tr("Đơn Vị"),
       tr("Trạng Thái"),
-      tr("Nguồn Dữ Liệu"),
     ];
 
     const rows = logs.map((log) => [
@@ -256,7 +255,6 @@ export const exportEngine = {
       sanitizeCSVCell(Number(log.value).toFixed(2)),
       sanitizeCSVCell(log.unit),
       sanitizeCSVCell(log.status.toUpperCase()),
-      sanitizeCSVCell(log.source === 'simulation' ? tr("Mô phỏng (Simulation)") : tr("Thiết bị (Device)")),
     ]);
 
     // Thêm UTF-8 Byte Order Mark (\uFEFF) ở đầu file để Excel mở font tiếng Việt không bị lỗi
@@ -312,7 +310,6 @@ export const exportEngine = {
           isAnomaly: log.status === 'critical',
           isWarning: log.status === 'warning',
         },
-        source: log.source,
       })),
     };
 
@@ -399,10 +396,9 @@ export const exportEngine = {
       tr("Giá Trị Đo"),
       tr("Đơn Vị"),
       tr("Trạng Thái"),
-      tr("Nguồn Dữ Liệu"),
     ];
 
-    const colLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
+    const colLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
     // Dòng 1: Tiêu đề cột (style s="1")
     const headerCells = headers
@@ -416,7 +412,6 @@ export const exportEngine = {
     const dataRows = logs.map((log, index) => {
       const rowNum = index + 2;
       const timeVN = formatDateTimeVN(log.timestamp);
-      const isSim = log.source === 'simulation' ? tr("Mô phỏng (Simulation)") : tr("Thiết bị (Device)");
 
       return `<row r="${rowNum}">
   <c r="A${rowNum}" t="inlineStr"><is><t>${escapeXml(log.id)}</t></is></c>
@@ -431,7 +426,6 @@ export const exportEngine = {
   <c r="J${rowNum}"><v>${Number(log.value) || 0}</v></c>
   <c r="K${rowNum}" t="inlineStr"><is><t>${escapeXml(log.unit)}</t></is></c>
   <c r="L${rowNum}" t="inlineStr"><is><t>${escapeXml(log.status.toUpperCase())}</t></is></c>
-  <c r="M${rowNum}" t="inlineStr"><is><t>${escapeXml(isSim)}</t></is></c>
 </row>`;
     });
 

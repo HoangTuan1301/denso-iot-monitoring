@@ -1,11 +1,11 @@
 /**
  * @file machineCsv.ts
  * @description Tải file CSV dữ liệu máy (demo).
- * Mỗi máy được cấp sẵn 1 file trong public/data/machine-csv/<machineId>.csv
- * (sinh bằng `node scripts/gen-machine-csv.mjs`). Nếu máy chưa có file,
- * tạo nhanh phần check sheet từ thông số đang hiển thị để nút luôn dùng được.
+ * File được sinh ngay lúc bấm theo ngày giờ hiện tại, đúng định dạng 2 file mẫu thực tế
+ * (xem realCsv.ts). Lỗi bất ngờ → tạo nhanh check sheet từ thông số đang hiển thị.
  */
 import { tr } from '../../../i18n/tr';
+import { buildMachineCsv } from './realCsv';
 
 interface MetricLike {
   name?: string;
@@ -45,22 +45,18 @@ function save(blob: Blob, fileName: string) {
   setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 
-/** Tải CSV của máy; thử theo id rồi theo mã máy, cuối cùng tạo từ thông số hiện tại. */
-export async function downloadMachineCsv(machineId: string, machineCode: string | undefined, metrics: MetricLike[]) {
-  const label = machineCode || machineId;
-  const fileName = `${label}_${tr('du-lieu-may')}.csv`;
-  for (const key of [machineId, machineCode].filter(Boolean) as string[]) {
-    try {
-      const res = await fetch(`/data/machine-csv/${encodeURIComponent(key)}.csv`, { cache: 'no-cache' });
-      const type = res.headers.get('content-type') || '';
-      // Máy chủ tĩnh có thể trả index.html (200) cho đường dẫn không tồn tại
-      if (res.ok && !type.includes('text/html')) {
-        save(await res.blob(), fileName);
-        return;
-      }
-    } catch {
-      /* thử cách tiếp theo */
-    }
+/** Tải CSV của máy: sinh tại thời điểm bấm, đúng định dạng file thực tế (Unipulse cho máy ép, KV log cho máy khác). */
+export function downloadMachineCsv(
+  machineId: string,
+  machineCode: string | undefined,
+  metrics: MetricLike[],
+  machineName?: string
+) {
+  try {
+    const f = buildMachineCsv({ id: machineId, code: machineCode, name: machineName, metrics });
+    save(new Blob([f.content], { type: 'text/csv;charset=utf-8' }), f.fileName);
+  } catch {
+    const label = machineCode || machineId;
+    save(new Blob([fallbackCsv(label, metrics)], { type: 'text/csv;charset=utf-8' }), `${label}_${tr('du-lieu-may')}.csv`);
   }
-  save(new Blob([fallbackCsv(label, metrics)], { type: 'text/csv;charset=utf-8' }), fileName);
 }

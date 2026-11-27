@@ -147,8 +147,8 @@ export function MachineDetailView({
 
           <button
             type="button"
-            onClick={() => downloadMachineCsv(machine.id, machine.code, resolved.metrics as never[])}
-            title={tr("Tải file CSV dữ liệu của máy (check sheet ca + điều kiện gia công 30 ngày)")}
+            onClick={() => downloadMachineCsv(machine.id, machine.code, resolved.metrics as never[], machine.name)}
+            title={tr("Tải file CSV dữ liệu của máy")}
             className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 font-semibold text-xs transition-colors cursor-pointer"
           >
             <Download className="w-4 h-4" />

@@ -205,6 +205,12 @@ export function isPressMachine(m: CsvMachine): boolean {
 /** Sinh file CSV của máy tại thời điểm `now` (giờ VN). */
 export function buildMachineCsv(m: CsvMachine, now: Date = new Date()): { fileName: string; content: string } {
   const key = m.code || m.id;
+  const f = buildRaw(m, key, now);
+  // Thêm mã máy vào đầu tên để phân biệt khi tải nhiều máy; phần sau giữ đúng tên file thực tế
+  return { ...f, fileName: `${key}_${f.fileName}` };
+}
+
+function buildRaw(m: CsvMachine, key: string, now: Date): { fileName: string; content: string } {
   const vn = new Date(now.getTime() + 7 * 3600_000);
   const date = vn.toISOString().slice(0, 10);
   if (isPressMachine(m)) {

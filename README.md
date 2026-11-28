@@ -233,5 +233,10 @@ Tất cả API (trừ đăng nhập và `/api/health`) cần header `Authorizati
 ## 10. Nhóm phát triển
 
 - **Dự án:** DENSO IoT Monitoring System – KaiLink (DENSO Hackathon)
-- **Thành viên:** *(nhóm bổ sung)*
-- **Liên hệ:** *(nhóm bổ sung)*
+- **Nhóm:** OptiMax
+- **Thành viên:**
+  - Nguyễn Thế Hoàng Tuân
+  - Phạm Quang Huy
+  - Trần Tuấn Anh
+  - Vũ Thị Thanh Thảo
+  - Nguyễn Lê Hoàng

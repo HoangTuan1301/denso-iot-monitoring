@@ -1,7 +1,7 @@
 /**
  * @file EquipmentRiskHeatmap.tsx
  * @description Bản đồ Rủi ro Thiết bị (Equipment Risk Heatmap)
- * Chuẩn ma trận rủi ro theo dây chuyền công nghiệp DENSO (DC1..DC3 x M1..M6)
+ * Ma trận rủi ro: mỗi hàng là 1 dây chuyền có máy (tên hiển thị theo sơ đồ nhà máy), mỗi ô là 1 máy
  */
 
 import React, { useState } from 'react';
@@ -9,6 +9,7 @@ import { Grid } from 'lucide-react';
 import { AIProcessedMachine } from '../adapters/aiTelemetryAdapter';
 import { ProductionLine } from '../../../types/hierarchy';
 import { tr } from '../../../i18n/tr';
+import { lineDisplayName } from '../../../config/lineDisplayName';
 
 interface EquipmentRiskHeatmapProps {
   lines: ProductionLine[];
@@ -23,21 +24,27 @@ export const EquipmentRiskHeatmap: React.FC<EquipmentRiskHeatmapProps> = ({
 }) => {
   const [hoveredMachine, setHoveredMachine] = useState<AIProcessedMachine | null>(null);
 
-  // Chuẩn hóa 3 dây chuyền DENSO: DC1, DC2, DC3
-  const heatmapRows = [
-    { label: 'DC1', lineId: 'LINE-01', name: lines.find((l) => l.id === 'LINE-01')?.name || tr("Dập & Hàn") },
-    { label: 'DC2', lineId: 'LINE-02', name: lines.find((l) => l.id === 'LINE-02')?.name || tr("Sơn & Gia công") },
-    { label: 'DC3', lineId: 'LINE-03', name: lines.find((l) => l.id === 'LINE-03')?.name || tr("Lắp ráp") },
-  ];
+  // Tất cả dây chuyền đang có máy, theo thứ tự mã dây chuyền
+  const lineIds = [...new Set(allMachines.map((m) => m.lineId).filter(Boolean))].sort((a, b) =>
+    a.localeCompare(b, undefined, { numeric: true })
+  );
+  const heatmapRows = lineIds.map((lineId) => {
+    const line = lines.find((l) => l.id === lineId);
+    const label = lineDisplayName(line?.code, line?.name || lineId);
+    return { label, lineId, name: line?.name || label };
+  });
 
-  const columns = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6'];
+  const maxCols = Math.max(1, ...heatmapRows.map((r) => allMachines.filter((m) => m.lineId === r.lineId).length));
+  const columns = Array.from({ length: maxCols }, (_, i) => `M${i + 1}`);
 
   // Hàm rút gọn mã máy thông minh, không bao giờ bị cắt cụt vô nghĩa
   const getReadableMachineCode = (m: AIProcessedMachine) => {
     const raw = m.machineCode || m.machineId;
     if (raw.includes('PHASE-C') || raw.includes('TEST-C')) return 'PHS-C';
     if (raw.includes('MS-10') || raw.includes('MS10')) return 'MS-10';
-    return raw.replace(/^MCH-/, '').replace(/^MC-/, '');
+    const parts = raw.replace(/^MCH-/, '').replace(/^MC-/, '').split('-');
+    // Bỏ tiền tố dây chuyền (VD AT-CNC-01 → CNC-01) để vừa ô
+    return parts.length >= 3 ? parts.slice(-2).join('-') : parts.join('-');
   };
   const getCellColor = (m?: AIProcessedMachine) => {
     if (!m) return 'bg-slate-100 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/50';
@@ -70,31 +77,31 @@ export const EquipmentRiskHeatmap: React.FC<EquipmentRiskHeatmapProps> = ({
 
       {/* Heatmap Matrix Table (Hỗ trợ cuộn ngang trên màn hình nhỏ để không bao giờ bị cắt chữ) */}
       <div className="flex-1 flex flex-col justify-center my-1 overflow-x-auto">
-        <div className="min-w-[340px]">
+        <div>
           {/* Column Header: M1 .. M6 */}
-          <div className="grid grid-cols-7 gap-1.5 text-center text-[10px] font-bold text-slate-400 mb-1 pl-7">
+          <div className="grid gap-1.5 text-center text-[10px] font-bold text-slate-400 mb-1 pl-[52px]" style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}>
             {columns.map((col) => (
               <div key={col}>{col}</div>
             ))}
           </div>
 
-          {/* Rows: DC1, DC2, DC3 */}
-          <div className="space-y-1.5">
+          {/* Mỗi hàng 1 dây chuyền; cuộn dọc khi nhiều dây chuyền */}
+          <div className="space-y-1 max-h-[300px] overflow-y-auto pr-0.5">
             {heatmapRows.map((row) => {
               const lineMachines = allMachines.filter((m) => m.lineId === row.lineId);
 
               return (
                 <div key={row.label} className="flex items-center gap-1.5">
-                  {/* Row Label (DC1..DC3) */}
+                  {/* Tên dây chuyền */}
                   <div
-                    className="w-7 text-[10px] font-bold text-slate-600 dark:text-slate-300 text-right pr-1 shrink-0"
+                    className="w-[46px] text-[10px] font-bold text-slate-600 dark:text-slate-300 text-right pr-1 shrink-0 truncate"
                     title={row.name}
                   >
                     {row.label}
                   </div>
 
-                  {/* 6 Cells per row */}
-                  <div className="grid grid-cols-6 gap-1.5 flex-1">
+                  {/* Mỗi ô 1 máy */}
+                  <div className="grid gap-1.5 flex-1" style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}>
                     {columns.map((_, colIdx) => {
                       const machine = lineMachines[colIdx];
 
@@ -104,7 +111,7 @@ export const EquipmentRiskHeatmap: React.FC<EquipmentRiskHeatmapProps> = ({
                           onMouseEnter={() => machine && setHoveredMachine(machine)}
                           onMouseLeave={() => setHoveredMachine(null)}
                           onClick={() => machine && onSelectMachine && onSelectMachine(machine.machineId)}
-                          className={`h-7 px-0.5 rounded-lg border transition-all cursor-pointer flex items-center justify-center text-[10px] font-bold tracking-tight shadow-2xs hover:scale-105 select-none ${getCellColor(
+                          className={`h-6 px-0.5 rounded-md border transition-all cursor-pointer flex items-center justify-center text-[9px] font-bold tracking-tighter overflow-hidden shadow-2xs hover:scale-105 select-none ${getCellColor(
                             machine
                           )}`}
                           title={

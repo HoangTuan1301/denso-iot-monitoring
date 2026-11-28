@@ -12,7 +12,7 @@
  * 6. Bảng danh sách toàn bộ các sự kiện dị biệt.
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Info,
   Tv,
@@ -40,6 +40,54 @@ import { AIProcessedMachine, extractMetricTrendPoints } from '../adapters/aiTele
 import { AIAnomalyEvent } from '../types/ai';
 import { useAIStore } from '../stores/useAIStore';
 import { tr } from '../../../i18n/tr';
+import { historyService } from '../../../services/historyService';
+import { AITrendPoint } from '../types/ai';
+
+const RANGE_MS = { '6h': 6 * 3600_000, '12h': 12 * 3600_000, '24h': 24 * 3600_000, '7d': 7 * 86400_000 } as const;
+type RangeKey = keyof typeof RANGE_MS;
+const vnDate = (t: number) => new Date(t + 7 * 3600_000).toISOString().slice(0, 10);
+const vnLabel = (t: number, withDay: boolean) => {
+  const d = new Date(t + 7 * 3600_000).toISOString();
+  return withDay ? `${d.slice(8, 10)}/${d.slice(5, 7)} ${d.slice(11, 16)}` : d.slice(11, 16);
+};
+
+/** Lấy lịch sử thật của 1 thông số (bảng telemetry, 10 phút/mẫu) trong khoảng thời gian đã chọn */
+function useMetricHistory(machineId?: string, metricId?: string, range: RangeKey = '12h') {
+  const [rows, setRows] = useState<{ t: number; v: number }[] | null>(null);
+  useEffect(() => {
+    if (!machineId || !metricId) {
+      setRows(null);
+      return;
+    }
+    const ctrl = new AbortController();
+    const now = Date.now();
+    const from = now - RANGE_MS[range];
+    setRows(null);
+    type Res = { data?: { timestamp: string; value: number }[]; metadata?: { totalPages?: number } };
+    const page = (n: number) =>
+      historyService.getTelemetryLogs(
+        { machineId, metricId, startDate: vnDate(from), endDate: vnDate(now), page: n, limit: 100, sortBy: 'timestamp', sortOrder: 'DESC' } as never,
+        ctrl.signal
+      ) as unknown as Promise<Res>;
+    // Máy chủ trả tối đa 100 dòng/trang → tải trang đầu, rồi các trang còn lại song song (tối đa 12 trang ≈ 7 ngày)
+    page(1)
+      .then(async (first) => {
+        const total = Math.min(12, first.metadata?.totalPages || 1);
+        const rest = total > 1 ? await Promise.all(Array.from({ length: total - 1 }, (_, i) => page(i + 2))) : [];
+        const list = [first, ...rest]
+          .flatMap((r) => r.data || [])
+          .map((r) => ({ t: Date.parse(r.timestamp), v: Number(r.value) }))
+          .filter((r) => Number.isFinite(r.v) && r.t >= from)
+          .sort((a, b) => a.t - b.t);
+        setRows(list);
+      })
+      .catch(() => {
+        if (!ctrl.signal.aborted) setRows([]);
+      });
+    return () => ctrl.abort();
+  }, [machineId, metricId, range]);
+  return rows;
+}
 
 interface AIAnomalyDetectionTabProps {
   allMachines: AIProcessedMachine[];
@@ -100,10 +148,53 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
   }, [allMachines]);
 
   // Dữ liệu biểu đồ đường LineChart từ telemetry adapter
-  const chartData = useMemo(() => {
+  const metricKey = currentMetric ? ((currentMetric as { metricId?: string }).metricId || currentMetric.id) : undefined;
+  const history = useMetricHistory(currentMachine?.machineId, metricKey, timeRange);
+  const warnLine = currentMetric?.warningMax != null ? Number(currentMetric.warningMax) : null;
+  const critLine = currentMetric?.criticalMax != null ? Number(currentMetric.criticalMax) : null;
+  const chartData = useMemo<AITrendPoint[]>(() => {
     if (!currentMachine || !currentMetric) return [];
+    if (history && history.length >= 2) {
+      // 7 ngày: gộp theo giờ cho gọn biểu đồ
+      let pts = history;
+      if (timeRange === '7d') {
+        const byHour = new Map<number, { t: number; v: number }>();
+        for (const p of history) {
+          const k = Math.floor(p.t / 3600_000);
+          const prev = byHour.get(k);
+          // giữ giá trị cao nhất trong giờ để không mất điểm vượt ngưỡng
+          if (!prev || p.v > prev.v) byHour.set(k, p);
+        }
+        pts = [...byHour.values()].sort((a, b) => a.t - b.t);
+      }
+      const wMin = currentMetric.warningMin != null ? Number(currentMetric.warningMin) : null;
+      const cMin = currentMetric.criticalMin != null ? Number(currentMetric.criticalMin) : null;
+      return pts.map((p) => {
+        const crit = (critLine != null && p.v >= critLine) || (cMin != null && p.v <= cMin);
+        const warn = crit || (warnLine != null && p.v >= warnLine) || (wMin != null && p.v <= wMin);
+        return {
+          timestamp: vnLabel(p.t, timeRange === '7d' || timeRange === '24h'),
+          value: Math.round(p.v * 100) / 100,
+          unit: currentMetric.unit,
+          warningMax: warnLine ?? 0,
+          criticalMax: critLine ?? 0,
+          isAnomaly: warn,
+          anomalyType: crit ? 'THRESHOLD_BREACH' : warn ? 'SUDDEN_SPIKE' : undefined,
+        } as AITrendPoint;
+      });
+    }
     return extractMetricTrendPoints(currentMachine, currentMetric.id);
-  }, [currentMachine, currentMetric]);
+  }, [currentMachine, currentMetric, history, timeRange, warnLine, critLine]);
+  // Trục Y bao trọn dữ liệu và các vạch ngưỡng
+  const yDomain = useMemo<[number, number]>(() => {
+    const vals = [...chartData.map((p) => p.value), ...(warnLine != null ? [warnLine] : []), ...(critLine != null ? [critLine] : [])];
+    if (!vals.length) return [0, 100];
+    const lo = Math.min(...vals);
+    const hi = Math.max(...vals);
+    const pad = (hi - lo || Math.abs(hi) || 1) * 0.12;
+    const bottom = lo >= 0 ? Math.max(0, lo - pad) : lo - pad;
+    return [Math.floor(bottom * 10) / 10, Math.ceil((hi + pad) * 10) / 10];
+  }, [chartData, warnLine, critLine]);
 
   // Sự kiện bất thường hiện đang xem chi tiết ở cột phải
   const activeAnomaly = useMemo(() => {
@@ -356,11 +447,11 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-0.5 border-t border-dashed border-amber-500" />
-                <span>{tr("Ngưỡng cảnh báo:")} {currentMetric?.warningMax ?? 70} {currentMetric?.unit}</span>
+                <span>{tr("Ngưỡng cảnh báo:")} {warnLine ?? '—'} {currentMetric?.unit}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-0.5 border-t border-dashed border-rose-500" />
-                <span>{tr("Ngưỡng nguy hiểm:")} {currentMetric?.criticalMax ?? 80} {currentMetric?.unit}</span>
+                <span>{tr("Ngưỡng nguy hiểm:")} {critLine ?? '—'} {currentMetric?.unit}</span>
               </div>
             </div>
 
@@ -377,12 +468,14 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.6} />
                     <XAxis
                       dataKey="timestamp"
+                      minTickGap={28}
                       tick={{ fontSize: 11, fill: '#64748B' }}
                       axisLine={{ stroke: '#CBD5E1' }}
                       tickLine={false}
                     />
                     <YAxis
-                      domain={[0, (currentMetric?.criticalMax ? Number(currentMetric.criticalMax) * 1.3 : 100)]}
+                      domain={yDomain}
+                      allowDataOverflow={false}
                       tick={{ fontSize: 11, fill: '#64748B' }}
                       axisLine={{ stroke: '#CBD5E1' }}
                       tickLine={false}
@@ -397,27 +490,28 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
                       }}
                       formatter={(val: any) => [`${val} ${currentMetric?.unit}`, currentMetric?.name]}
                     />
-                    <ReferenceLine
-                      y={currentMetric?.warningMax ? Number(currentMetric.warningMax) : 70}
+                    {warnLine != null && <ReferenceLine
+                      y={warnLine}
                       stroke="#F59E0B"
                       strokeDasharray="4 4"
                       label={{ value: tr("Cảnh báo"), fill: '#D97706', fontSize: 10, position: 'insideTopRight' }}
-                    />
-                    <ReferenceLine
-                      y={currentMetric?.criticalMax ? Number(currentMetric.criticalMax) : 80}
+                    />}
+                    {critLine != null && <ReferenceLine
+                      y={critLine}
                       stroke="#EF4444"
                       strokeDasharray="4 4"
                       label={{ value: tr("Nguy hiểm"), fill: '#DC2626', fontSize: 10, position: 'insideTopRight' }}
-                    />
+                    />}
                     <Line
                       type="monotone"
                       dataKey="value"
                       stroke="#0D9488"
-                      strokeWidth={2.5}
+                      strokeWidth={2}
+                      isAnimationActive={false}
                       dot={(props: any) => {
                         const { cx, cy, payload } = props;
                         if (payload.isAnomaly) {
-                          const isCrit = payload.value >= (currentMetric?.criticalMax ? Number(currentMetric.criticalMax) : 80);
+                          const isCrit = payload.anomalyType === 'THRESHOLD_BREACH';
                           return (
                             <circle
                               key={props.index}
@@ -430,7 +524,7 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
                             />
                           );
                         }
-                        return <circle key={props.index} cx={cx} cy={cy} r={2} fill="#0D9488" />;
+                        return <circle key={props.index} cx={cx} cy={cy} r={chartData.length > 40 ? 0 : 2} fill="#0D9488" />;
                       }}
                     />
                   </LineChart>

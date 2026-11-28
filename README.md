@@ -106,9 +106,8 @@ Khi chạy trên `*.vercel.app`, frontend tự trỏ API về Render (`src/servi
 │  ├─ services/api.ts            # gọi API + dịch dữ liệu theo ngôn ngữ
 │  ├─ stores/                    # Zustand: monitoring, auth, alarm, theme, ui
 │  ├─ types/ utils/ config/
-├─ scripts/                      # script tiện ích (backup DB, chụp màn hình, i18n-check…)
-├─ tests/                        # script kiểm thử chạy bằng node (.cjs)
-└─ docs/                         # SRS, tài liệu nghiệp vụ & sơ đồ (ERD, DFD, kiến trúc)
+├─ scripts/                      # script tiện ích (backup DB, migration, i18n-check…)
+└─ tests/                        # script kiểm thử chạy bằng node (.cjs)
 ```
 
 ---

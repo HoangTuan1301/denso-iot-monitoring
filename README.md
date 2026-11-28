@@ -1,6 +1,37 @@
+<div align="center">
+
 # DENSO IoT Monitoring System – KaiLink
 
-Hệ thống web giám sát nhà máy thông minh cho bài thi **DENSO Hackathon**: theo dõi sản lượng, thời gian dừng máy, tình trạng thiết bị và đề xuất phương án "cứu đơn hàng" theo thời gian thực.
+**Nền tảng giám sát nhà máy thông minh theo thời gian thực** — sản lượng, OEE, dừng máy, tình trạng thiết bị và đề xuất phương án "cứu đơn hàng".
+
+Bài dự thi **DENSO Hackathon** · Nhóm **OptiMax**
+
+[![Live demo](https://img.shields.io/badge/Live_demo-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://denso-iot-monitoring-on6l.vercel.app)
+[![API](https://img.shields.io/badge/API-Render-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://denso-iot-monitoring.onrender.com/api/health)
+[![Release](https://img.shields.io/badge/release-v1.0.0-DC0032?style=for-the-badge)](https://github.com/HoangTuan1301/denso-iot-monitoring/releases)
+
+![React](https://img.shields.io/badge/React_18-20232A?logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript_5-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite_6-646CFF?logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js_·_Express_5-339933?logo=nodedotjs&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL_8-4479A1?logo=mysql&logoColor=white)
+![i18n](https://img.shields.io/badge/i18n-VI_·_EN_·_JA-orange)
+
+![Dashboard tổng quan KaiLink](.github/screenshots/dashboard.png)
+
+</div>
+
+<table>
+  <tr>
+    <td width="50%"><img src=".github/screenshots/line-production.png" alt="Giám sát sản lượng theo giờ của dây chuyền" /></td>
+    <td width="50%"><img src=".github/screenshots/ai-assistant.png" alt="Trợ lý AI KaiLink dự báo bảo trì" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Sản lượng theo giờ: kế hoạch – thực tế – lũy kế – dự báo cuối ca</sub></td>
+    <td align="center"><sub>Trợ lý AI KaiLink: trả lời từ dữ liệu trực tiếp của nhà máy</sub></td>
+  </tr>
+</table>
 
 - **Web demo:** https://denso-iot-monitoring-on6l.vercel.app
 - **API (backend):** https://denso-iot-monitoring.onrender.com — kiểm tra nhanh tại `/api/health`

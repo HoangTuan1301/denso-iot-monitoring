@@ -244,7 +244,8 @@ function closestMetric(m: AIProcessedMachine) {
     if (typeof v !== 'number' || !isFinite(v)) continue;
     const cands: Array<[number, number]> = [];
     if (x.warningMax != null) cands.push([x.warningMax, x.warningMax - v]);
-    if (x.warningMin != null) cands.push([x.warningMin, v - x.warningMin]);
+    // Ngưỡng dưới = 0 (VD độ rung, dòng điện) không phải giới hạn thật: giảm về 0 là bình thường, không dự báo
+    if (x.warningMin != null && x.warningMin > 0) cands.push([x.warningMin, v - x.warningMin]);
     for (const [thr, gap] of cands) {
       const span = x.warningMax != null && x.warningMin != null ? Math.abs(x.warningMax - x.warningMin) : Math.abs(thr) || 1;
       const margin = gap / (span || 1);

@@ -3,7 +3,6 @@
  * @description Thông số "sống" cho màn Chi tiết máy.
  *  - Quy cách: dùng ngưỡng cấu hình trong CSDL nếu đã đặt thật; nếu vẫn là ngưỡng mặc định
  *    (chỉ có trần 80, không có sàn) thì dùng quy cách chuẩn theo loại thông số
- *    (cùng bộ số với file CSV mẫu – scripts/gen-machine-csv.mjs).
  *  - Giá trị: với máy chạy mô phỏng, sinh tín hiệu dao động quanh tâm quy cách mỗi giây
  *    (thỉnh thoảng trôi về gần giới hạn) và giữ 120 điểm gần nhất (≈ 2 phút) để vẽ biểu đồ.
  *    Máy có dữ liệu thật (PLC / file) thì dùng giá trị thật.

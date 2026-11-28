@@ -19,10 +19,10 @@ Hệ thống web giám sát nhà máy thông minh cho bài thi **DENSO Hackathon
 |---|---|
 | **Dashboard tổng quan** | KPI nhà máy (OEE = A × P × Q, số dây chuyền, số máy, trạng thái, máy offline) · **Sơ đồ mặt bằng nhà máy** 87 khu vực, tô màu theo *trạng thái sản xuất* · **Top 5 dây chuyền dừng dài nhất** trong ca · **Mô phỏng What-If** (Chờ sửa / San tải sang line khác / Tăng ca OT / Thay linh kiện giao ca) · **Thác tổn thất** sản lượng · khuyến nghị và xuất báo cáo |
 | **Chi tiết dây chuyền** | KPI ca (OEE, dừng ngắn チョコ停, dừng dài ドカ停, sản lượng) · sơ đồ dây chuyền 2D/3D, bấm vào máy để mở chi tiết · **Giám sát sản lượng** theo giờ (kế hoạch – thực tế – dự báo cuối ca, chọn Ca 1/2/3) · **Bảng điều kiện gia công 30 ngày** (đánh dấu ô ngoài quy cách, xuất Excel) |
-| **Chi tiết máy** | Trạng thái, thông số realtime, thông tin kỹ thuật · **Check sheet đầu/cuối ca** nằm ngay trong trang (ghi nhận, tự chấm OK/NG theo ngưỡng, xuất CSV) · **Tài liệu máy** (bản vẽ, chương trình, khác — tải lên/tải xuống) · **Dữ liệu CSV Unipulse** · nút **Tải CSV** (mỗi máy có sẵn 1 file mẫu: check sheet ca + điều kiện gia công 30 ngày) |
+| **Chi tiết máy** | Trạng thái, thông số realtime, thông tin kỹ thuật · **Check sheet đầu/cuối ca** nằm ngay trong trang (ghi nhận, tự chấm OK/NG theo ngưỡng, xuất CSV) · **Tài liệu máy** (bản vẽ, chương trình, khác — tải lên/tải xuống) · **Dữ liệu Unipulse** (xem sóng lực ép) · nút **Tải CSV**: sinh file ngay lúc bấm theo đúng định dạng thiết bị thật — máy ép/dập → file sóng **Unipulse F381**, máy khác → file log vị trí **Keyence KV** (POS1–POS3) của hôm nay |
 | **Giám sát thiết bị** | Danh sách máy dạng thẻ/bảng, lọc theo dây chuyền, trạng thái, nguồn dữ liệu, mã QR |
 | **Cảnh báo & sự cố** | Nhật ký cảnh báo, quy trình 3 bước *Chờ tiếp nhận → Đang xử lý → Đã giải quyết*, xuất CSV/Excel |
-| **Lịch sử dữ liệu** | Tra cứu telemetry theo ca/ngày/giờ/máy, xuất Excel · CSV · JSON |
+| **Lịch sử dữ liệu** | Tra cứu telemetry theo ca/ngày/giờ/máy (mặc định 3 ngày gần nhất, nút chọn nhanh Hôm nay / 3 / 7 / 30 ngày), lọc theo mức cảnh báo, xuất Excel · CSV · JSON |
 | **AI giám sát & dự đoán** | Tổng quan sức khỏe thiết bị, phát hiện bất thường (Z-score), dự đoán bảo trì, trợ lý AI KaiLink — **chạy bằng kịch bản mô phỏng**, không gọi mô hình AI bên ngoài |
 
 ### 1.2 Cấu hình (ADMIN / MAINTENANCE)
@@ -39,7 +39,13 @@ Dây chuyền & thiết bị (gán trạm PLC) · Danh mục thông số · Mapp
 
 ### 1.4 Dữ liệu mô phỏng — cần biết khi demo
 
-Dữ liệu **sản xuất** (sản lượng, OEE, dừng máy, What-If, điều kiện gia công 30 ngày, Unipulse) được **mô phỏng tất định** ở backend (`server/production/ProductionSimulator.js`): cùng dây chuyền + ngày + ca luôn ra cùng kết quả, theo giờ Việt Nam (UTC+7). Mọi phản hồi loại này có `simulated: true` và giao diện ghi chú "Dữ liệu mô phỏng".
+Dữ liệu **sản xuất** (sản lượng, OEE, dừng máy, What-If, điều kiện gia công 30 ngày, Unipulse) được **mô phỏng tất định** ở backend (`server/production/ProductionSimulator.js`): cùng dây chuyền + ngày + ca luôn ra cùng kết quả, theo giờ Việt Nam (UTC+7). Mọi phản hồi loại này có `simulated: true`.
+
+- **5 dây chuyền có vấn đề mỗi ngày** (đổi theo ngày): có dừng dài, OEE thấp (đỏ/cam); các dây chuyền khác chạy ổn định (OEE ≈ 87–93 %, xanh). Màu trạng thái theo OEE: ≥ 85 % xanh · 80–85 % cam · < 80 % đỏ.
+- **Sản lượng theo giờ:** kế hoạch chia đều; thực tế có họp đầu ca, giải lao, ăn ca (nghỉ có kế hoạch, không tính vào OEE) và dao động ±4 % mỗi giờ. Kế hoạch từng giờ sửa được bằng cách bấm vào cột (ADMIN/MAINTENANCE).
+- **Giả lập sự cố** (nút trên thanh tiêu đề, ADMIN): chọn một máy đang chạy tốt, chuyển sang báo động; **Khôi phục sự cố** để trở lại. Nút **Trực tiếp** bật/tắt tự làm mới dữ liệu.
+- **Lịch sử telemetry demo** (`server/production/historySimulator.js`): 10 phút ghi 1 mẫu cho mọi thông số, tự bù 7 ngày khi khởi động, có các đợt cảnh báo/nguy hiểm theo các dây chuyền có vấn đề và theo sự cố giả lập. Tắt bằng `HISTORY_SIM=false`.
+- **Năm tài chính:** nhãn năm/kỳ và tên file xuất dùng năm tài chính DENSO (bắt đầu 1/4, VD tháng 11/2026 = FY27).
 
 - Ca làm việc: **Ca 1** 06:00–14:00 · **Ca 2** 14:00–22:00 · **Ca 3** 22:00–06:00.
 - Ngưỡng phân biệt dừng ngắn / dừng dài mặc định **10 phút**, lưu trong bảng `app_settings`, đổi qua `PUT /api/production/settings` (ADMIN).
@@ -48,7 +54,6 @@ Dữ liệu **sản xuất** (sản lượng, OEE, dừng máy, What-If, điều
   - Backend **tự thêm khi khởi động nếu chưa có** (không sửa dữ liệu cũ). Tắt bằng biến môi trường `SEED_EXPANSION_LINES=false`.
   - Ô nhỏ trên sơ đồ = line ít máy / máy nhỏ (VD OCV3 có 2 máy để bàn). Các ô khác vẫn là "Chưa kết nối IoT".
   - Khi CSDL không kết nối, AT và AFM vẫn hiện dưới dạng dây chuyền ảo để đủ Top 5.
-- Bảng Unipulse đang dùng dữ liệu giả lập; khi có file CSV mẫu thật sẽ đổi cột cho khớp.
 
 Danh sách dây chuyền, máy, thông số, ngưỡng, check sheet, tài liệu, tài khoản, audit log là **dữ liệu thật trong MySQL**.
 
@@ -208,7 +213,6 @@ Tất cả API (trừ đăng nhập và `/api/health`) cần header `Authorizati
 | `npm run build` | Kiểm tra TypeScript (`tsc --noEmit`) rồi build vào `dist/` |
 | `npm run preview` | Xem thử bản build |
 | `node scripts/i18n-check.mjs` | Kiểm tra bản dịch |
-| `node scripts/gen-machine-csv.mjs` | Sinh lại file CSV mẫu của từng máy vào `public/data/machine-csv/` |
 | `node tests/<tên-file>.cjs` | Các script kiểm thử riêng lẻ (chưa có lệnh `npm test`) |
 
 **Triển khai:** push lên `main` → Vercel build frontend, Render khởi động lại backend (mất khoảng 2–3 phút). Trên Render cần đặt `JWT_SECRET`, `JWT_REFRESH_SECRET` và các biến `DB_*`.
@@ -221,7 +225,7 @@ Tất cả API (trừ đăng nhập và `/api/health`) cần header `Authorizati
 2. **Dashboard:** xem OEE nhà máy → sơ đồ mặt bằng (chế độ *Trạng thái*) → **Top 5 dây chuyền dừng dài** → chọn một dây chuyền để xem **What-If** và **Thác tổn thất**, đọc phương án được đề xuất.
 3. Mở **chi tiết dây chuyền** → xem dừng ngắn/dừng dài, biểu đồ sản lượng theo giờ, bảng điều kiện gia công 30 ngày.
 4. Bấm vào một máy trên sơ đồ → **chi tiết máy**: ghi nhận check sheet đầu ca, xem tài liệu máy, dữ liệu Unipulse.
-5. Bấm **Tải CSV** ở chi tiết máy để lấy file dữ liệu máy; mở **Cảnh báo & sự cố** để xem quy trình xử lý 3 bước.
+5. Bấm **Giả lập sự cố** trên thanh tiêu đề → xem dây chuyền chuyển đỏ trên sơ đồ, Top 5 và **Lịch sử dữ liệu**; bấm **Tải CSV** ở chi tiết máy để lấy file dữ liệu máy; mở **Cảnh báo & sự cố** để xem quy trình xử lý 3 bước.
 6. Chuyển **EN / 日本語** để giới thiệu giao diện đa ngôn ngữ; mở trên điện thoại để giới thiệu bản mobile.
 
 ---

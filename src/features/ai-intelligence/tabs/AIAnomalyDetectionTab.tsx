@@ -185,6 +185,8 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
     }
     return extractMetricTrendPoints(currentMachine, currentMetric.id);
   }, [currentMachine, currentMetric, history, timeRange, warnLine, critLine]);
+  // 2 ngưỡng trùng nhau (hoặc quá sát) → chỉ vẽ 1 vạch, 1 nhãn để chữ không chồng lên nhau
+  const sameLine = warnLine != null && critLine != null && Math.abs(warnLine - critLine) < 1e-9;
   // Trục Y bao trọn dữ liệu và các vạch ngưỡng
   const yDomain = useMemo<[number, number]>(() => {
     const vals = [...chartData.map((p) => p.value), ...(warnLine != null ? [warnLine] : []), ...(critLine != null ? [critLine] : [])];
@@ -490,17 +492,17 @@ export const AIAnomalyDetectionTab: React.FC<AIAnomalyDetectionTabProps> = ({
                       }}
                       formatter={(val: any) => [`${val} ${currentMetric?.unit}`, currentMetric?.name]}
                     />
-                    {warnLine != null && <ReferenceLine
+                    {warnLine != null && !sameLine && <ReferenceLine
                       y={warnLine}
                       stroke="#F59E0B"
                       strokeDasharray="4 4"
-                      label={{ value: tr("Cảnh báo"), fill: '#D97706', fontSize: 10, position: 'insideTopRight' }}
+                      label={{ value: tr("Cảnh báo"), fill: '#D97706', fontSize: 11, fontWeight: 600, position: 'insideBottomRight' }}
                     />}
                     {critLine != null && <ReferenceLine
                       y={critLine}
                       stroke="#EF4444"
                       strokeDasharray="4 4"
-                      label={{ value: tr("Nguy hiểm"), fill: '#DC2626', fontSize: 10, position: 'insideTopRight' }}
+                      label={{ value: sameLine ? tr("Cảnh báo / Nguy hiểm") : tr("Nguy hiểm"), fill: '#DC2626', fontSize: 11, fontWeight: 600, position: 'insideTopRight' }}
                     />}
                     <Line
                       type="monotone"
